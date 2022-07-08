@@ -73,16 +73,25 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
     // Accompanist - Pull-to-refresh
-    implementation 'com.google.accompanist:accompanist-swiperefresh:0.24.10-beta'
+    implementation 'com.google.accompanist:accompanist-swiperefresh:0.24.11-rc'
 
     // Accompanist - Pager
-    implementation 'com.google.accompanist:accompanist-pager:0.24.10-beta'
-    implementation 'com.google.accompanist:accompanist-pager-indicators:0.24.10-beta'
+    implementation 'com.google.accompanist:accompanist-pager:0.24.13-rc'
+    implementation 'com.google.accompanist:accompanist-pager-indicators:0.24.11-rc'
 
     implementation 'com.google.android.material:material:1.6.1'
+
+    // https://developer.chrome.com/docs/android/custom-tabs/integration-guide/
+    implementation "androidx.browser:browser:1.4.0"
 
     // jsoup HTML parser library @ https://jsoup.org/
     implementation 'org.jsoup:jsoup:1.15.2'
 
-    implementation files('libs/dutapi-1.6.1.jar')
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+
+    // https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp
+    implementation 'com.squareup.okhttp:okhttp:2.7.5'
+
+    implementation files('libs/DUTAPI_Java-1.6.2.jar')
 }

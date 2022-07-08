@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android
 
-import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
@@ -9,14 +8,20 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.zoemeow.dutapp.android.ui.theme.DUTAppForAndroidTheme
 import io.zoemeow.dutapp.android.view.account.Account
@@ -25,9 +30,15 @@ import io.zoemeow.dutapp.android.view.mainnavbar.MainBottomNavigationBar
 import io.zoemeow.dutapp.android.view.mainnavbar.MainNavRoutes
 import io.zoemeow.dutapp.android.view.news.News
 import io.zoemeow.dutapp.android.view.settings.Settings
-
+import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
+import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 
 class MainActivity : ComponentActivity() {
+    // https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted
+
+    private lateinit var accountViewModel: AccountViewModel
+    private lateinit var newsViewModel: NewsViewModel
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,22 +48,54 @@ class MainActivity : ComponentActivity() {
         val policy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        // https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted
-
-
         setContent {
             DUTAppForAndroidTheme {
-                // A scaffold container using the 'background' color from the theme
+                AccountViewModel.setInstance(viewModel())
+                accountViewModel = AccountViewModel.getInstance()
+
+                NewsViewModel.setInstance(viewModel())
+                newsViewModel = NewsViewModel.getInstance()
+                newsViewModel.setContext(LocalContext.current)
+
                 val navController = rememberNavController()
 
+                val backStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = backStackEntry?.destination?.route
+
+                // A scaffold container using the 'background' color from the theme
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.background,
                     topBar = {
-
+                        CenterAlignedTopAppBar(
+                            title = {
+                                Text("DUT")
+                            }
+                        )
                     },
-                    bottomBar = { MainBottomNavigationBar(navController = navController) },
+                    bottomBar = {
+                        MainBottomNavigationBar(
+                            navController = navController,
+                            currentRoute = currentRoute
+                        )
+                    },
+                    floatingActionButton = {
+                        when (currentRoute) {
+                            MainNavRoutes.News.route -> {
+                                FloatingActionButton(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    onClick = {
+                                        // TODO: Search in news global and news subject here!
+                                    },
+                                    content = {
+                                        Icon(
+                                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_search_24),
+                                            contentDescription = "Search",
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    },
                     content = { contentPadding ->
                         NavigationHost(
                             navController = navController,
@@ -79,11 +122,11 @@ class MainActivity : ComponentActivity() {
             }
 
             composable(MainNavRoutes.News.route) {
-                News()
+                News(newsViewModel)
             }
 
             composable(MainNavRoutes.Account.route) {
-                Account()
+                Account(accountViewModel)
             }
 
             composable(MainNavRoutes.Settings.route) {
