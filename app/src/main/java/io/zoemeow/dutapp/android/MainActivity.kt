@@ -8,11 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.TopAppBar
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -53,9 +51,9 @@ class MainActivity : ComponentActivity() {
                 AccountViewModel.setInstance(viewModel())
                 accountViewModel = AccountViewModel.getInstance()
 
-                NewsViewModel.setInstance(viewModel())
-                newsViewModel = NewsViewModel.getInstance()
-                newsViewModel.setContext(LocalContext.current)
+                newsViewModel = viewModel()
+                // NewsViewModel.setInstance(viewModel())
+                // newsViewModel = NewsViewModel.getInstance()
 
                 val navController = rememberNavController()
 
@@ -65,36 +63,11 @@ class MainActivity : ComponentActivity() {
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        CenterAlignedTopAppBar(
-                            title = {
-                                Text("DUT")
-                            }
-                        )
-                    },
                     bottomBar = {
                         MainBottomNavigationBar(
                             navController = navController,
                             currentRoute = currentRoute
                         )
-                    },
-                    floatingActionButton = {
-                        when (currentRoute) {
-                            MainNavRoutes.News.route -> {
-                                FloatingActionButton(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    onClick = {
-                                        // TODO: Search in news global and news subject here!
-                                    },
-                                    content = {
-                                        Icon(
-                                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_search_24),
-                                            contentDescription = "Search",
-                                        )
-                                    }
-                                )
-                            }
-                        }
                     },
                     content = { contentPadding ->
                         NavigationHost(

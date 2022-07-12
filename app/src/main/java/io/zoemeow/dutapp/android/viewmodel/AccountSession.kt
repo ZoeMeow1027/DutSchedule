@@ -82,7 +82,8 @@ class AccountSession: Serializable {
     fun getSubjectSchedule(year: Int, semester: Int): ArrayList<SubjectScheduleItem> {
         return if (isLoggedIn()) {
             try {
-                Account.getSubjectSchedule(this.sessionId, year, semester)
+                val result = Account.getSubjectSchedule(this.sessionId, year, semester)
+                result
             }
             catch (ex: Exception) {
                 ArrayList()
@@ -95,7 +96,8 @@ class AccountSession: Serializable {
     fun getSubjectFee(year: Int, semester: Int): ArrayList<SubjectFeeItem> {
         return if (isLoggedIn()) {
             try {
-                Account.getSubjectFee(this.sessionId, year, semester)
+                val result = Account.getSubjectFee(this.sessionId, year, semester)
+                result
             }
             catch (ex: Exception) {
                 ArrayList()
@@ -108,7 +110,8 @@ class AccountSession: Serializable {
     fun getAccountInformation(): AccountInformation? {
         return if (isLoggedIn()) {
             try {
-                Account.getAccountInformation(this.sessionId)
+                val result = Account.getAccountInformation(this.sessionId)
+                result
             }
             catch (ex: Exception) {
                 null

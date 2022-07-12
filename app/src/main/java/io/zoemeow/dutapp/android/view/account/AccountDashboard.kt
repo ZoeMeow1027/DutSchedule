@@ -1,5 +1,6 @@
 package io.zoemeow.dutapp.android.view.account
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,13 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapp.android.R
 
 @Composable
 fun AccountDashboard(
-    username: String,
+    padding: PaddingValues,
     logoutRequested: () -> Unit
 ) {
     val dialogLogoutEnabled = remember { mutableStateOf(false) }
@@ -34,7 +36,7 @@ fun AccountDashboard(
         logoutRequest = { logoutRequested() }
     )
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -59,13 +61,10 @@ fun AccountDashboard(
                         .border(1.dp, Color.Gray, CircleShape)
                         .align(Alignment.CenterHorizontally),
                 )
-                Spacer(modifier = Modifier.size(5.dp))
-                Text(
-                    text = username,
-                )
             }
         }
         Spacer(modifier = Modifier.size(15.dp))
+        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp)
@@ -92,7 +91,8 @@ fun AccountDashboard(
                 .clip(RoundedCornerShape(15.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable {
-
+                    val intent = Intent(context, AccountSubjectScheduleActivity::class.java)
+                    context.startActivity(intent)
                 },
             contentAlignment = Alignment.Center,
         ) {
@@ -110,7 +110,8 @@ fun AccountDashboard(
                 .clip(RoundedCornerShape(15.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable {
-
+                    val intent = Intent(context, AccountSubjectFeeActivity::class.java)
+                    context.startActivity(intent)
                 },
             contentAlignment = Alignment.Center,
         ) {

@@ -11,10 +11,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AccountNotLoggedIn(
+    padding: PaddingValues,
     loginRequested: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -24,7 +25,7 @@ fun AccountNotLoggedIn(
         )
         Spacer(modifier = Modifier.size(5.dp))
         Text(
-            text = "Login to using more features in this app.",
+            text = "Login to use more features in this app.",
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(modifier = Modifier.size(5.dp))
