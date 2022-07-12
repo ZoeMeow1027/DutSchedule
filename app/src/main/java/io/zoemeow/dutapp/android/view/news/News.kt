@@ -1,5 +1,7 @@
 package io.zoemeow.dutapp.android.view.news
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -8,83 +10,142 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import io.zoemeow.dutapp.android.ui.thirdparty.pagerTabIndicatorOffset
+import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun News(newsViewModel: NewsViewModel) {
-    val tabTitles = listOf(
-        "News Global",
-        "News Subject"
+fun News(
+    newsViewModel: NewsViewModel,
+) {
+    val tabList = listOf(
+        "Global",
+        "Subject"
     )
     val pagerState = rememberPagerState(initialPage = 0)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
-    ) {
-        TabRow(
-            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 5.dp),
-            selectedTabIndex = pagerState.currentPage,
-            indicator = { tabPositions ->
-                /**
-                 * This is a temporary fix for require material instead of material3.
-                 * Waiting for a release fix for this library.
-                 *
-                 * https://github.com/google/accompanist/issues/1076
-                 */
-                TabRowDefaults.Indicator(
-                    Modifier.pagerTabIndicatorOffset(pagerState, tabPositions)
-                )
-            }
-        ) {
-            tabTitles.forEachIndexed { index, text ->
-                val selected = pagerState.currentPage == index
-                Tab(
-                    selected = selected,
-                    onClick = { scope.launch { pagerState.animateScrollToPage(index) } },
-                    text = {
-                        Text(
-                            text = text,
-                            color = MaterialTheme.colorScheme.secondary
+    BackHandler(
+        enabled = newsViewModel.newsGlobalItemChose.value != null || newsViewModel.newsSubjectItemChose.value != null,
+        onBack = {
+            newsViewModel.newsGlobalItemChose.value = null
+            newsViewModel.newsSubjectItemChose.value = null
+        }
+    )
+
+    Scaffold(
+        topBar = {
+            SmallTopAppBar(
+                title = { Text("News") },
+                actions = {
+                    if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
+                        var count = 0
+                        for (tabItem in tabList) {
+                            val count2: Int = count
+                            Button(
+                                onClick = {
+                                    scope.launch { pagerState.animateScrollToPage(count2) }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    if (pagerState.currentPage == count2) MaterialTheme.colorScheme.secondaryContainer
+                                    else MaterialTheme.colorScheme.background
+                                ),
+                                modifier = Modifier.padding(start = 3.dp, end = 3.dp)
+                            ) {
+                                Text(
+                                    text = tabItem,
+                                    color = (
+                                            if (isSystemInDarkTheme()) Color.White
+                                            else Color.Black
+                                            )
+                                )
+                            }
+                            count += 1
+                        }
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
+                FloatingActionButton(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    onClick = {
+                        // TODO: Search in news global and news subject here!
+                    },
+                    content = {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_search_24),
+                            contentDescription = "Search",
                         )
                     }
                 )
             }
-        }
-
-        HorizontalPager(count = tabTitles.size, state = pagerState) { index ->
-            when (index) {
-                0 -> NewsGlobal(
-                    newsGlobalList = newsViewModel.newsGlobalList,
-                    isLoading = newsViewModel.newsGlobalState,
-                    reloadRequested = {
-                        newsViewModel.getNewsGlobal(it)
-                    },
-                    itemClicked = {
-                        newsViewModel.openNewsDetailsGlobalActivity(it)
-                    }
-                )
-                1 -> NewsSubject(
-                    newsSubjectList = newsViewModel.newsSubjectList,
-                    isLoading = newsViewModel.newsSubjectState,
-                    reloadRequested = {
-                        newsViewModel.getNewsSubject(it)
-                    },
-                    itemClicked = {
-                        newsViewModel.openNewsDetailsSubjectActivity(it)
+        },
+        content = { padding ->
+            if (newsViewModel.newsGlobalItemChose.value != null) {
+                NewsDetailsGlobal(
+                    padding = padding,
+                    news = newsViewModel.newsGlobalItemChose.value!!,
+                    linkClicked = {
+                        openLinkInCustomTab(context, it)
                     }
                 )
             }
+            else if (newsViewModel.newsSubjectItemChose.value != null) {
+                NewsDetailsSubject(
+                    padding = padding,
+                    news = newsViewModel.newsSubjectItemChose.value!!,
+                    linkClicked = {
+                        openLinkInCustomTab(context, it)
+                    }
+                )
+            }
+            else {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier.padding(padding)
+                ) {
+                    HorizontalPager(count = tabList.size, state = pagerState) { index ->
+                        when (index) {
+                            0 -> NewsGlobal(
+                                newsGlobalList = newsViewModel.newsGlobalList,
+                                isLoading = newsViewModel.newsGlobalState,
+                                reloadRequested = {
+                                    newsViewModel.getNewsGlobal(it)
+                                },
+                                itemClicked = {
+                                    // newsViewModel.openNewsDetailsGlobalActivity(it)
+                                    newsViewModel.newsGlobalItemChose.value = it
+                                }
+                            )
+                            1 -> NewsSubject(
+                                newsSubjectList = newsViewModel.newsSubjectList,
+                                isLoading = newsViewModel.newsSubjectState,
+                                reloadRequested = {
+                                    newsViewModel.getNewsSubject(it)
+                                },
+                                itemClicked = {
+//                                    newsViewModel.openNewsDetailsSubjectActivity(it)
+                                    newsViewModel.newsSubjectItemChose.value = it
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
-    }
+    )
 }
