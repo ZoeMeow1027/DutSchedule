@@ -26,7 +26,7 @@ fun NewsGlobalItem(
             .padding(top = 5.dp, bottom = 5.dp)
             // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
             .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.85f))
             .clickable { clickable() }
     ) {
         Column(

@@ -5,17 +5,29 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutapp.android.model.ProcessState
+import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
 
 @Composable
 fun AccountNotLoggedIn(
     padding: PaddingValues,
-    loginRequested: () -> Unit
+    accountViewModel: AccountViewModel
 ) {
+    val dialogLoginEnabled = remember { mutableStateOf(false) }
+
+    AccountLoginDialog(
+        enabled = dialogLoginEnabled,
+        accountViewModel = accountViewModel
+    )
     Column(
-        modifier = Modifier.fillMaxSize().padding(padding),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -31,17 +43,11 @@ fun AccountNotLoggedIn(
         Spacer(modifier = Modifier.size(5.dp))
         Button(
             onClick = {
-                loginRequested()
+                accountViewModel.processStateLoggingIn.value = ProcessState.NotRun
+                dialogLoginEnabled.value = true
             },
-            content = {
-                Text(
-                    text = "Login",
-                )
-            }
+            content = { Text("Login") }
         )
-//        Spacer(modifier = Modifier.size(10.dp))
-//        Text(
-//            text = "By continue logging your account, you have agreed to our Private Policy."
-//        )
     }
 }
+

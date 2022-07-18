@@ -51,24 +51,15 @@ fun NewsSubject (
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
-            if (newsSubjectList.size > 0) {
-                items(newsSubjectList) { item ->
-                    NewsSubjectItem(
-                        date = if (item.date != null) DateToString(item.date, "dd/MM/yyyy") else "",
-                        title = item.title ?: "",
-                        summary = item.contentString ?: "",
-                        clickable = {
-                            itemClicked(item)
-                        }
-                    )
-                }
-            }
-            else item {
-                Surface(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-
-                }
+            items(newsSubjectList) { item ->
+                NewsSubjectItem(
+                    date = if (item.date != null) DateToString(item.date, "dd/MM/yyyy") else "",
+                    title = item.title ?: "",
+                    summary = item.contentString ?: "",
+                    clickable = {
+                        itemClicked(item)
+                    }
+                )
             }
         }
     }

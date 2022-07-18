@@ -1,9 +1,12 @@
 package io.zoemeow.dutapp.android.view.news
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -19,7 +23,9 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
+import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 import kotlinx.coroutines.launch
 
@@ -45,8 +51,12 @@ fun News(
     )
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             SmallTopAppBar(
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 title = { Text("News") },
                 actions = {
                     if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
@@ -74,7 +84,7 @@ fun News(
                             count += 1
                         }
                     }
-                }
+                },
             )
         },
         floatingActionButton = {
@@ -94,6 +104,9 @@ fun News(
             }
         },
         content = { padding ->
+//            // If background image not null, directly show here.
+//            BackgroundImage(globalViewModel.backgroundImageBitmap)
+
             if (newsViewModel.newsGlobalItemChose.value != null) {
                 NewsDetailsGlobal(
                     padding = padding,

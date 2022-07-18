@@ -79,6 +79,9 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-pager:0.24.13-rc'
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.24.11-rc'
 
+    // Accompanist
+    implementation 'com.google.accompanist:accompanist-drawablepainter:0.23.1'
+
     implementation 'com.google.android.material:material:1.6.1'
 
     // https://developer.chrome.com/docs/android/custom-tabs/integration-guide/
