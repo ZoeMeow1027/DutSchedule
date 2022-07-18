@@ -1,5 +1,6 @@
 package io.zoemeow.dutapp.android.view.news
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,6 +13,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -51,24 +53,15 @@ fun NewsGlobal(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
-            if (newsGlobalList.size > 0) {
-                items(newsGlobalList) { item ->
-                    NewsGlobalItem(
-                        date = if (item.date != null) DateToString(item.date, "dd/MM/yyyy") else "",
-                        title = item.title ?: "",
-                        summary = item.contentString ?: "",
-                        clickable = {
-                            itemClicked(item)
-                        }
-                    )
-                }
-            }
-            else item {
-                Surface(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-
-                }
+            items(newsGlobalList) { item ->
+                NewsGlobalItem(
+                    date = if (item.date != null) DateToString(item.date, "dd/MM/yyyy") else "",
+                    title = item.title ?: "",
+                    summary = item.contentString ?: "",
+                    clickable = {
+                        itemClicked(item)
+                    }
+                )
             }
         }
     }

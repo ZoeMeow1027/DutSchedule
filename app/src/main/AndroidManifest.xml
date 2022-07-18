@@ -4,6 +4,8 @@
     package="io.zoemeow.dutapp.android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -17,10 +19,6 @@
         tools:targetApi="31">
         <!--android:usesCleartextTraffic="true"-->
         <activity
-            android:name=".view.account.AccountLoginActivity"
-            android:exported="false"
-            android:theme="@style/Theme.DUTAppForAndroid"/>
-        <activity
             android:name=".view.account.AccountSubjectScheduleActivity"
             android:exported="false"
             android:theme="@style/Theme.DUTAppForAndroid"/>
@@ -32,7 +30,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.DUTAppForAndroid">
+            android:theme="@style/Theme.DUTAppForAndroid"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

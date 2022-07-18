@@ -38,10 +38,10 @@ fun AccountLogoutDialog(
             },
             dismissButton = {
                 TextButton(
-                    onClick = { enabled.value = false },
-                    content = {
-                        Text("Never mind")
-                    }
+                    onClick = {
+                        enabled.value = false
+                    },
+                    content = { Text("Never mind") }
                 )
             },
             confirmButton = {
@@ -50,9 +50,7 @@ fun AccountLogoutDialog(
                         enabled.value = false
                         logoutRequest()
                     },
-                    content = {
-                        Text("Continue")
-                    }
+                    content = { Text("Continue") }
                 )
             },
         )
