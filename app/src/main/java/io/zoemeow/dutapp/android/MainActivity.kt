@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -18,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 import io.zoemeow.dutapp.android.ui.theme.DUTAppForAndroidTheme
 import io.zoemeow.dutapp.android.view.account.Account
@@ -65,16 +67,27 @@ class MainActivity : ComponentActivity() {
 
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
-                    containerColor = Color.Transparent,
+                    containerColor = if (globalViewModel.settings.backgroundImageOption == BackgroundImageType.None)
+                        MaterialTheme.colorScheme.background else Color.Transparent,
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         MainBottomNavigationBar(
                             navController = navController,
-                            currentRoute = currentRoute
+                            currentRoute = currentRoute,
+                            onClick = {
+                                if (it.route == MainNavRoutes.News.route) {
+                                    if (
+                                        newsViewModel.newsSubjectItemChose.value != null ||
+                                        newsViewModel.newsGlobalItemChose.value != null
+                                    ) {
+                                        newsViewModel.newsSubjectItemChose.value = null
+                                        newsViewModel.newsGlobalItemChose.value = null
+                                    }
+                                }
+                            }
                         )
                     },
                     content = { contentPadding ->
-
                         NavigationHost(
                             navController = navController,
                             padding = contentPadding

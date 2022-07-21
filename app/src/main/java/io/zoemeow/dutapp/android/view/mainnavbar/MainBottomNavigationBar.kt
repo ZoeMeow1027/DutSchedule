@@ -12,7 +12,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 @Composable
 fun MainBottomNavigationBar(
     navController: NavHostController,
-    currentRoute: String?
+    currentRoute: String?,
+    onClick: (route: MainNavBarItems) -> Unit
 ) {
     NavigationBar {
         MainNavBarItemObject.MainBarItems.forEach { navItem ->
@@ -26,6 +27,7 @@ fun MainBottomNavigationBar(
                         launchSingleTop = true
                         restoreState = true
                     }
+                    onClick(navItem)
                 },
                 icon = {
                     Icon(

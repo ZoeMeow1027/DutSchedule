@@ -5,7 +5,7 @@ import java.io.Serializable
 
 data class AppSettingsItem(
     // Background image area
-    var backgroundImageOption: BackgroundImageType = BackgroundImageType.FromLauncher,
+    var backgroundImageOption: BackgroundImageType = BackgroundImageType.None,
     var backgroundImagePath: String? = null,
 
     // Account area
@@ -13,6 +13,8 @@ data class AppSettingsItem(
     var password: String? = null,
     var rememberLogin: Boolean = false,
 
-    // School year settings
+    /**
+     * Gets or sets current school year
+     */
     var schoolYear: SchoolYearItem = SchoolYearItem()
 ): Serializable

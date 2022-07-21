@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.ViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import io.zoemeow.dutapp.android.model.AppSettingsItem
+import io.zoemeow.dutapp.android.model.SchoolYearItem
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.utils.GetCurrentHomeWallpaper
 
@@ -26,7 +27,7 @@ class GlobalViewModel: ViewModel() {
     }
 
     // App settings here.
-    private var settings: AppSettingsItem = AppSettingsItem()
+    var settings: AppSettingsItem = AppSettingsItem()
 
     // Main activity
     private val mainActivity: MutableState<Activity?> = mutableStateOf(null)
@@ -55,9 +56,5 @@ class GlobalViewModel: ViewModel() {
             backgroundDrawable.value = null
             backgroundPainter.value = null
         }
-    }
-
-    fun initialize() {
-
     }
 }
