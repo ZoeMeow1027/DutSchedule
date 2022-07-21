@@ -28,6 +28,8 @@ class AccountViewModel: ViewModel() {
         }
     }
 
+    private val globalViewModel = GlobalViewModel.getInstance()
+
     /**
      * Account session. Handle all for easier use for DutAPI-Java.
      */
@@ -77,11 +79,6 @@ class AccountViewModel: ViewModel() {
      * Check if a progress for get account information is running.
      */
     val processStateAccInfo: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
-
-    /**
-     * School year item. That's it!
-     */
-    var schoolYearItem: SchoolYearItem = SchoolYearItem()
 
     /**
      * Get login state.
@@ -174,8 +171,8 @@ class AccountViewModel: ViewModel() {
                         schoolYearItemInput.semester
                     )
                 else accountSession.getSubjectSchedule(
-                    schoolYearItem.year,
-                    schoolYearItem.semester
+                    globalViewModel.settings.schoolYear.year,
+                    globalViewModel.settings.schoolYear.semester
                 )
 
                 subjectScheduleList.clear()
@@ -212,8 +209,8 @@ class AccountViewModel: ViewModel() {
                         schoolYearItemInput.semester
                     )
                 else accountSession.getSubjectFee(
-                    schoolYearItem.year,
-                    schoolYearItem.semester
+                    globalViewModel.settings.schoolYear.year,
+                    globalViewModel.settings.schoolYear.semester
                 )
 
                 subjectFeeList.clear()

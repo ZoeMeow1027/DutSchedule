@@ -85,7 +85,8 @@ fun AccountLoginDialog(
                 .fillMaxWidth()
                 .wrapContentHeight(),
             onDismissRequest = {
-
+                if (enabledControl.value)
+                    enabled.value = false
             },
             title = {
                 Text("Login")
