@@ -11,8 +11,8 @@ android {
         applicationId "io.zoemeow.dutapp.android"
         minSdk 21
         targetSdk 32
-        versionCode 15
-        versionName "0.3.alpha"
+        versionCode 21
+        versionName "0.4.alpha"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

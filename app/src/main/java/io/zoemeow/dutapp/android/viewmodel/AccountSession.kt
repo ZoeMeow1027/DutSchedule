@@ -4,6 +4,9 @@ import io.zoemeow.dutapi.Account
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.Serializable
 
 class AccountSession: Serializable {
@@ -68,7 +71,11 @@ class AccountSession: Serializable {
     fun logout(): Boolean {
         return try {
             if (isLoggedIn()) {
-                Account.logout(this.sessionId)
+                CoroutineScope(Dispatchers.IO).launch {
+                    kotlin.runCatching {
+                        Account.logout(sessionId)
+                    }
+                }
                 this.sessionId = null
                 this.sessionIdLastRequest = 0
             }

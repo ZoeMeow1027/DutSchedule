@@ -4,6 +4,6 @@ import java.io.Serializable
 
 enum class BackgroundImageType(code: Int): Serializable {
     None(0),
-    FromLauncher(1),
+    FromWallpaper(1),
     FromItemYouSpecific(2)
 }

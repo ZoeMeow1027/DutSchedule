@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
@@ -28,6 +27,9 @@ class AccountViewModel: ViewModel() {
         }
     }
 
+    /**
+     * GlobalViewModel
+     */
     private val globalViewModel = GlobalViewModel.getInstance()
 
     /**
@@ -104,15 +106,24 @@ class AccountViewModel: ViewModel() {
 
                 if (result) {
                     processStateLoggingIn.value = ProcessState.Successful
+                    globalViewModel.showMessageSnackBar("Successfully login!")
                 }
                 else {
                     processStateLoggingIn.value = ProcessState.Failed
+//                    globalViewModel.showMessageSnackBar(
+//                        "Something went wrong with your account! " +
+//                            "Make sure your username and password is correct."
+//                    )
                 }
                 checkIsLoggedIn()
                 getAccountInformation()
             }
             catch (ex: Exception) {
                 processStateLoggingIn.value = ProcessState.Failed
+//                globalViewModel.showMessageSnackBar(
+//                    "Something went wrong while logging you in! " +
+//                        "Don't worry, just try again."
+//                )
             }
         }
     }
@@ -131,11 +142,25 @@ class AccountViewModel: ViewModel() {
 
                 val result = accountSession.logout()
 
-                processStateLoggingIn.value = if (result) ProcessState.Successful else ProcessState.Failed
+                if (result) {
+                    processStateLoggingIn.value = ProcessState.Successful
+                    globalViewModel.showMessageSnackBar("Successfully logout!")
+                }
+                else {
+                    processStateLoggingIn.value = ProcessState.Failed
+                    globalViewModel.showMessageSnackBar(
+                        "Something went wrong while logging you out! " +
+                                "Don't worry, just try again."
+                    )
+                }
                 checkIsLoggedIn()
             }
             catch (ex: Exception) {
                 processStateLoggingIn.value = ProcessState.Failed
+                globalViewModel.showMessageSnackBar(
+                    "Something went wrong while logging you out! " +
+                            "Don't worry, just try again."
+                )
             }
         }
     }

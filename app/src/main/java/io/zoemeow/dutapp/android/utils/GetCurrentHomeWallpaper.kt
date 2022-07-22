@@ -11,11 +11,21 @@ import androidx.core.content.ContextCompat
 
 class GetCurrentHomeWallpaper {
     companion object {
-        private fun checkPermission(context: Context): Boolean {
+        fun checkPermission(context: Context): Boolean {
             return ContextCompat.checkSelfPermission(
                 context,
                 Manifest.permission.READ_EXTERNAL_STORAGE
             ) == PackageManager.PERMISSION_GRANTED
+        }
+
+        fun requirePermission(activity: Activity) {
+            ActivityCompat.requestPermissions(
+                activity,
+                listOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ).toTypedArray(),
+                0
+            )
         }
 
         fun getCurrentWallpaper(activity: Activity): Drawable? {
@@ -23,13 +33,7 @@ class GetCurrentHomeWallpaper {
                 val wallpaperManager = WallpaperManager.getInstance(activity)
                 wallpaperManager.drawable
             } else {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    listOf(
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ).toTypedArray(),
-                    0
-                )
+                requirePermission(activity)
                 if (checkPermission(activity)) getCurrentWallpaper(activity) else null
             }
         }

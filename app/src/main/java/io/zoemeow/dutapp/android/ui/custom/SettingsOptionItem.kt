@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 fun SettingsOptionItem(
     title: String,
     description: String? = null,
-    enabled: Boolean = true,
     clickable: (() -> Unit)? = null,
 ) {
     Box(

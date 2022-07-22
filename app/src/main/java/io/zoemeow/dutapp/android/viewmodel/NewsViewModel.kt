@@ -1,6 +1,7 @@
 package io.zoemeow.dutapp.android.viewmodel
 
 import android.util.Log
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +17,11 @@ import kotlinx.coroutines.launch
 
 class NewsViewModel : ViewModel() {
     /**
+     * GlobalViewModel
+     */
+    private val globalViewModel = GlobalViewModel.getInstance()
+
+    /**
      * This will save old item for cache and offline viewing for News Global.
      */
     val newsGlobalList: SnapshotStateList<NewsGlobalItem> = mutableStateListOf()
@@ -28,49 +34,7 @@ class NewsViewModel : ViewModel() {
     /**
      * Current News Global page.
      */
-    private var newsGlobalPage: MutableState<Int> = mutableStateOf(1)
-
-    /**
-     * Get news from sv.dut.udn.vn (tab Thông báo chung).
-     *
-     * @param renew: Mark this function for delete all item in old list and add new one. Otherwise
-     * it will append to old one.
-     */
-    fun getNewsGlobal(renew: Boolean = false) {
-        // If another instance is running, will not run this instance.
-        if (newsGlobalState.value == ProcessState.Running)
-            return
-
-        // Set to running to avoid another instance.
-        newsGlobalState.value = ProcessState.Running
-
-        // Use this instead of viewModelScope.launch {} to avoid freezing UI.
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                Log.d("io.zoemeow.dutapp", "Triggered NewsGlobal load with page ${newsGlobalPage.value}")
-
-                val newsTemp = News.getNews(NewsType.Global, if (renew) 1 else newsGlobalPage.value)
-                if (newsTemp.size <= 0)
-                    throw Exception("News list is empty!")
-
-                //
-                if (renew) newsGlobalList.clear()
-                newsGlobalList.addAll(newsTemp)
-                newsTemp.clear()
-
-                // If renew, will reset news global state to default.
-                // Otherwise, increase news page by 1
-                newsGlobalPage.value = if (renew) 2 else newsGlobalPage.value + 1
-
-                newsGlobalState.value = ProcessState.Successful
-            }
-            // Any exception thrown will be result of failed.
-            catch (ex: Exception) {
-                ex.printStackTrace()
-                newsGlobalState.value = ProcessState.Failed
-            }
-        }
-    }
+    private val newsGlobalPage: MutableState<Int> = mutableStateOf(1)
 
     /**
      * This will save old item for cache and offline viewing for News Subject.
@@ -80,55 +44,115 @@ class NewsViewModel : ViewModel() {
     /**
      * Check if a progress for get news subject is running.
      */
-    var newsSubjectState: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
+    val newsSubjectState: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
 
     /**
      * Current News Subject page.
      */
-    private var newsSubjectPage: MutableState<Int> = mutableStateOf(1)
+    private val newsSubjectPage: MutableState<Int> = mutableStateOf(1)
 
-    /**
-     * Get news from sv.dut.udn.vn (tab Thông báo lớp học phần).
-     *
-     * @param renew: Mark this function for delete all item in old list and add new one. Otherwise
-     * it will append to old one.
-     */
-    fun getNewsSubject(renew: Boolean = false) {
+    @SuppressWarnings("unchecked")
+    private fun <T> getNews(
+        newsType: NewsType,
+        newsState: MutableState<ProcessState>,
+        newsList: SnapshotStateList<T>,
+        newsPage: MutableState<Int>,
+        renewNewsList: Boolean = false
+    ) {
         // If another instance is running, will not run this instance.
-        if (newsSubjectState.value == ProcessState.Running)
+        if (newsState.value == ProcessState.Running)
             return
 
         // Set to running to avoid another instance.
-        newsSubjectState.value = ProcessState.Running
+        newsState.value = ProcessState.Running
 
         // Use this instead of viewModelScope.launch {} to avoid freezing UI.
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                Log.d("io.zoemeow.dutapp", "Triggered NewsSubject load with page ${newsSubjectPage.value}")
+                Log.d("NewsViewModel", "Triggered $newsType load with page ${newsPage.value}")
 
-                val newsTemp = News.getNews(NewsType.Subject, if (renew) 1 else newsSubjectPage.value)
-                if (newsTemp.size <= 0)
-                    throw Exception("News list is empty!")
+                val newsTemp = News.getNews(newsType, if (renewNewsList) 1 else newsPage.value)
+                if (newsTemp.size <= 0) {
+                    Log.w("NewsViewModel", "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet.")
+                    throw Exception("$newsType list is empty!")
+                }
 
                 //
-                if (renew) newsSubjectList.clear()
-                newsSubjectList.addAll(newsTemp)
+                if (renewNewsList) newsList.clear()
+                for (newsTempItem in newsTemp) {
+                    newsList.add(newsTempItem as T)
+                }
                 newsTemp.clear()
 
-                // If renew, will reset news subject state to default.
+                // If renew, will reset news state to default.
                 // Otherwise, increase news page by 1
-                newsSubjectPage.value = if (renew) 2 else newsGlobalPage.value + 1
+                newsPage.value = if (renewNewsList) 2 else newsPage.value + 1
 
-                newsSubjectState.value = ProcessState.Successful
+                newsState.value = ProcessState.Successful
             }
             // Any exception thrown will be result of failed.
             catch (ex: Exception) {
+                globalViewModel.showMessageSnackBar(
+                    "We ran into a problem while getting your $newsType. " +
+                            "Check your internet connection and try again."
+                )
                 ex.printStackTrace()
-                newsSubjectState.value = ProcessState.Failed
+                newsState.value = ProcessState.Failed
             }
         }
     }
 
+    /**
+     * Get news from sv.dut.udn.vn (tab Thông báo chung).
+     *
+     * @param renewNewsList: Mark this function for delete all item in old list and add new one. Otherwise
+     * it will append to old one.
+     */
+    fun getNewsGlobal(renewNewsList: Boolean = false) {
+        getNews(
+            newsType = NewsType.Global,
+            newsState = newsGlobalState,
+            newsList = newsGlobalList,
+            newsPage = newsGlobalPage,
+            renewNewsList = renewNewsList
+        )
+    }
+
+    /**
+     * Get news from sv.dut.udn.vn (tab Thông báo lớp học phần).
+     *
+     * @param renewNewsList: Mark this function for delete all item in old list and add new one. Otherwise
+     * it will append to old one.
+     */
+    fun getNewsSubject(renewNewsList: Boolean = false) {
+        getNews(
+            newsType = NewsType.Subject,
+            newsState = newsSubjectState,
+            newsList = newsSubjectList,
+            newsPage = newsSubjectPage,
+            renewNewsList = renewNewsList
+        )
+    }
+
     val newsGlobalItemChose: MutableState<NewsGlobalItem?> = mutableStateOf(null)
     val newsSubjectItemChose: MutableState<NewsGlobalItem?> = mutableStateOf(null)
+
+    lateinit var lazyListNewsGlobalState: LazyListState
+    lateinit var lazyListNewsSubjectState: LazyListState
+    lateinit var scope: CoroutineScope
+
+    fun scrollNewsListToTop() {
+        if (this::lazyListNewsGlobalState.isInitialized && this::scope.isInitialized) {
+            scope.launch {
+                if (!lazyListNewsGlobalState.isScrollInProgress)
+                    lazyListNewsGlobalState.animateScrollToItem(index = 0)
+            }
+        }
+        if (this::lazyListNewsGlobalState.isInitialized && this::scope.isInitialized) {
+            scope.launch {
+                if (!lazyListNewsSubjectState.isScrollInProgress)
+                    lazyListNewsSubjectState.animateScrollToItem(index = 0)
+            }
+        }
+    }
 }
