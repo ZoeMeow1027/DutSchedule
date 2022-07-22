@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">DUT</string>
+    <string name="news_tab_global">Global</string>
+    <string name="news_tab_subject">Subject</string>
+    <string name="navbar_news">News</string>
+    <string name="navbar_account">Account</string>
+    <string name="topbar_news">News</string>
+    <string name="topbar_account">Account %1$s</string>
 </resources>
