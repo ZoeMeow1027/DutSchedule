@@ -87,6 +87,11 @@ fun AccountLoginDialog(
             onDismissRequest = {
                 if (enabledControl.value)
                     enabled.value = false
+
+                username.value = ""
+                password.value = ""
+                rememberLogin.value = false
+
             },
             title = {
                 Text("Login")
@@ -166,6 +171,19 @@ fun AccountLoginDialog(
                         )
                         Spacer(modifier = Modifier.size(5.dp))
                         Text("Remember your login")
+                    }
+                    if (accountViewModel.processStateLoggingIn.value == ProcessState.Running ||
+                        accountViewModel.processStateLoggingIn.value == ProcessState.Failed)
+                    {
+                        Spacer(modifier = Modifier.size(15.dp))
+                        Text(
+                            text = if (accountViewModel.processStateLoggingIn.value == ProcessState.Running)
+                                "We are logging you in. Please wait..."
+                        else
+                            "Something went wrong with your account! " +
+                                    "Make sure your username and password is correct." +
+                                    "\nIf everything is ok, don't worry, just try again."
+                        )
                     }
                 }
             }

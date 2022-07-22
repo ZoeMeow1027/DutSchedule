@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
@@ -24,15 +25,15 @@ import io.zoemeow.dutapp.android.utils.LazyList_EndOfListHandler
 fun NewsSubject (
     newsSubjectList: SnapshotStateList<NewsGlobalItem>,
     isLoading: MutableState<ProcessState>,
+    lazyListState: LazyListState,
     reloadRequested: (Boolean) -> Unit,
     itemClicked: (NewsGlobalItem) -> Unit
 ) {
     val swipeRefreshState = rememberSwipeRefreshState(true)
-    val lazyColumnState = rememberLazyListState()
     swipeRefreshState.isRefreshing = isLoading.value == ProcessState.Running
 
     LazyList_EndOfListHandler(
-        listState = lazyColumnState,
+        listState = lazyListState,
         onLoadMore = { reloadRequested(false) }
     )
 
@@ -47,7 +48,7 @@ fun NewsSubject (
             modifier = Modifier
                 .fillMaxSize()
                 .padding(start = 20.dp, end = 20.dp),
-            state = lazyColumnState,
+            state = lazyListState,
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {

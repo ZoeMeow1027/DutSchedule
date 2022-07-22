@@ -6,9 +6,11 @@ import android.os.StrictMode.ThreadPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -46,15 +48,22 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DUTAppForAndroidTheme {
-                // Initialize ViewModel
+                // Initialize GlobalViewModel
                 GlobalViewModel.setInstance(viewModel())
                 globalViewModel = GlobalViewModel.getInstance()
+                // Set activity to variable in GlobalViewModel
                 globalViewModel.setActivity(this)
+                // Load backgrounds if its settings is enabled
+                globalViewModel.LoadBackground()
+                // Set SnackBar in MainActivity Scaffold
+                globalViewModel.snackBarHostState = SnackbarHostState()
+
+                // Initialize AccountViewModel
                 AccountViewModel.setInstance(viewModel())
                 accountViewModel = AccountViewModel.getInstance()
-                newsViewModel = viewModel()
 
-                globalViewModel.LoadBackground()
+                // Initialize NewsViewModel
+                newsViewModel = viewModel()
 
                 // Initialize for NavController for main activity
                 val navController = rememberNavController()
@@ -67,6 +76,7 @@ class MainActivity : ComponentActivity() {
 
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
+                    snackbarHost = { SnackbarHost(hostState = globalViewModel.snackBarHostState) },
                     containerColor = if (globalViewModel.settings.backgroundImageOption == BackgroundImageType.None)
                         MaterialTheme.colorScheme.background else Color.Transparent,
                     modifier = Modifier.fillMaxSize(),
@@ -82,6 +92,9 @@ class MainActivity : ComponentActivity() {
                                     ) {
                                         newsViewModel.newsSubjectItemChose.value = null
                                         newsViewModel.newsGlobalItemChose.value = null
+                                    }
+                                    else {
+                                        newsViewModel.scrollNewsListToTop()
                                     }
                                 }
                             }
@@ -117,7 +130,7 @@ class MainActivity : ComponentActivity() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = MainNavRoutes.Main.route,
+            startDestination = MainNavRoutes.News.route,
             modifier = Modifier.padding(padding)
         ) {
             composable(MainNavRoutes.Main.route) {

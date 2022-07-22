@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,13 +35,13 @@ import kotlinx.coroutines.launch
 fun News(
     newsViewModel: NewsViewModel,
 ) {
-    val tabList = listOf(
-        "Global",
-        "Subject"
-    )
+    val tabList = listOf("Global", "Subject")
     val pagerState = rememberPagerState(initialPage = 0)
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    newsViewModel.lazyListNewsGlobalState = rememberLazyListState()
+    newsViewModel.lazyListNewsSubjectState = rememberLazyListState()
+    newsViewModel.scope = rememberCoroutineScope()
 
     BackHandler(
         enabled = newsViewModel.newsGlobalItemChose.value != null || newsViewModel.newsSubjectItemChose.value != null,
@@ -65,7 +66,7 @@ fun News(
                             val count2: Int = count
                             Button(
                                 onClick = {
-                                    scope.launch { pagerState.animateScrollToPage(count2) }
+                                    newsViewModel.scope.launch { pagerState.animateScrollToPage(count2) }
                                 },
                                 colors = ButtonDefaults.buttonColors(
                                     if (pagerState.currentPage == count2) MaterialTheme.colorScheme.secondaryContainer
@@ -88,25 +89,22 @@ fun News(
             )
         },
         floatingActionButton = {
-            if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
-                FloatingActionButton(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    onClick = {
-                        // TODO: Search in news global and news subject here!
-                    },
-                    content = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_search_24),
-                            contentDescription = "Search",
-                        )
-                    }
-                )
-            }
+//            if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
+//                FloatingActionButton(
+//                    containerColor = MaterialTheme.colorScheme.primary,
+//                    onClick = {
+//                        // TODO: Search in news global and news subject here!
+//                    },
+//                    content = {
+//                        Icon(
+//                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_search_24),
+//                            contentDescription = "Search",
+//                        )
+//                    }
+//                )
+//            }
         },
         content = { padding ->
-//            // If background image not null, directly show here.
-//            BackgroundImage(globalViewModel.backgroundImageBitmap)
-
             if (newsViewModel.newsGlobalItemChose.value != null) {
                 NewsDetailsGlobal(
                     padding = padding,
@@ -136,6 +134,7 @@ fun News(
                             0 -> NewsGlobal(
                                 newsGlobalList = newsViewModel.newsGlobalList,
                                 isLoading = newsViewModel.newsGlobalState,
+                                lazyListState = newsViewModel.lazyListNewsGlobalState,
                                 reloadRequested = {
                                     newsViewModel.getNewsGlobal(it)
                                 },
@@ -147,6 +146,7 @@ fun News(
                             1 -> NewsSubject(
                                 newsSubjectList = newsViewModel.newsSubjectList,
                                 isLoading = newsViewModel.newsSubjectState,
+                                lazyListState = newsViewModel.lazyListNewsSubjectState,
                                 reloadRequested = {
                                     newsViewModel.getNewsSubject(it)
                                 },
