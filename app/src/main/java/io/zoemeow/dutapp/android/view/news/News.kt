@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -35,7 +36,10 @@ import kotlinx.coroutines.launch
 fun News(
     newsViewModel: NewsViewModel,
 ) {
-    val tabList = listOf("Global", "Subject")
+    val tabList = listOf(
+        stringResource(id = R.string.news_tab_global),
+        stringResource(id = R.string.news_tab_subject)
+    )
     val pagerState = rememberPagerState(initialPage = 0)
     val context = LocalContext.current
 
@@ -58,7 +62,7 @@ fun News(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
-                title = { Text("News") },
+                title = { Text(stringResource(id = R.string.navbar_news)) },
                 actions = {
                     if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
                         var count = 0
@@ -72,7 +76,7 @@ fun News(
                                     if (pagerState.currentPage == count2) MaterialTheme.colorScheme.secondaryContainer
                                     else MaterialTheme.colorScheme.background
                                 ),
-                                modifier = Modifier.padding(start = 3.dp, end = 3.dp)
+                                modifier = Modifier.padding(start = 2.dp, end = 2.dp)
                             ) {
                                 Text(
                                     text = tabItem,

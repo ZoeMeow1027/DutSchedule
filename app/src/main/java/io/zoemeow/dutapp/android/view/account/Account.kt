@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,7 +28,12 @@ fun Account(accountViewModel: AccountViewModel) {
         },
         content = { padding ->
             if (accountViewModel.isLoggedIn.value) {
-                topAppTitle.value = "Account (${accountViewModel.username.value})"
+                topAppTitle.value = String.format(
+                    stringResource(id = R.string.topbar_account),
+                    if (accountViewModel.username.value.isNotEmpty())
+                        "(${accountViewModel.username.value})"
+                    else ""
+                )
                 AccountDashboard(
                     padding = padding,
                     logoutRequested = {
@@ -35,8 +42,7 @@ fun Account(accountViewModel: AccountViewModel) {
                 )
             }
             else {
-                topAppTitle.value = "Account"
-                val context = LocalContext.current
+                topAppTitle.value = String.format(stringResource(id = R.string.topbar_account), "")
                 AccountNotLoggedIn(
                     padding = padding,
                     accountViewModel = accountViewModel
