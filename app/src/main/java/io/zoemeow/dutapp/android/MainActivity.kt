@@ -5,16 +5,13 @@ import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -22,7 +19,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
-import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 import io.zoemeow.dutapp.android.ui.theme.DUTAppForAndroidTheme
 import io.zoemeow.dutapp.android.view.account.Account
 import io.zoemeow.dutapp.android.view.main.Main
@@ -47,10 +43,21 @@ class MainActivity : ComponentActivity() {
         permitAllPolicy()
 
         setContent {
-            DUTAppForAndroidTheme {
-                // Initialize GlobalViewModel
-                GlobalViewModel.setInstance(viewModel())
-                globalViewModel = GlobalViewModel.getInstance()
+            // Initialize GlobalViewModel
+            GlobalViewModel.setInstance(viewModel())
+            globalViewModel = GlobalViewModel.getInstance()
+
+            // Initialize AccountViewModel
+            AccountViewModel.setInstance(viewModel())
+            accountViewModel = AccountViewModel.getInstance()
+
+            // Initialize NewsViewModel
+            newsViewModel = viewModel()
+
+            DUTAppForAndroidTheme(
+                dynamicColor = globalViewModel.settings.personalize.appDynamicColors,
+                backgroundPainter = globalViewModel.backgroundPainter
+            ) {
                 // Set activity to variable in GlobalViewModel
                 globalViewModel.setActivity(this)
                 // Load backgrounds if its settings is enabled
@@ -58,27 +65,17 @@ class MainActivity : ComponentActivity() {
                 // Set SnackBar in MainActivity Scaffold
                 globalViewModel.snackBarHostState = SnackbarHostState()
 
-                // Initialize AccountViewModel
-                AccountViewModel.setInstance(viewModel())
-                accountViewModel = AccountViewModel.getInstance()
-
-                // Initialize NewsViewModel
-                newsViewModel = viewModel()
-
                 // Initialize for NavController for main activity
                 val navController = rememberNavController()
                 // Nav Route
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
 
-                // If background image not null, directly show here.
-                BackgroundImage(globalViewModel.backgroundPainter)
-
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = globalViewModel.snackBarHostState) },
-                    containerColor = if (globalViewModel.settings.backgroundImageOption == BackgroundImageType.None)
-                        MaterialTheme.colorScheme.background else Color.Transparent,
+                    containerColor = if (globalViewModel.settings.personalize.backgroundImage.option == BackgroundImageType.None)
+                        MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         MainBottomNavigationBar(
@@ -130,7 +127,7 @@ class MainActivity : ComponentActivity() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = MainNavRoutes.News.route,
+            startDestination = MainNavRoutes.Main.route,
             modifier = Modifier.padding(padding)
         ) {
             composable(MainNavRoutes.Main.route) {

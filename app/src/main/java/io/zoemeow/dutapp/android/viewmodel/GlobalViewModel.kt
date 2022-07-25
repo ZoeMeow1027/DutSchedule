@@ -50,7 +50,7 @@ class GlobalViewModel: ViewModel() {
     @Composable
     fun LoadBackground() {
         // This will get background wallpaper from launcher.
-        if (settings.backgroundImageOption == BackgroundImageType.FromWallpaper) {
+        if (settings.personalize.backgroundImage.option == BackgroundImageType.FromWallpaper) {
             if (mainActivity.value != null) {
                 backgroundDrawable.value = GetCurrentHomeWallpaper.getCurrentWallpaper(mainActivity.value!!)
                 backgroundPainter.value = rememberDrawablePainter(drawable = backgroundDrawable.value!!)
