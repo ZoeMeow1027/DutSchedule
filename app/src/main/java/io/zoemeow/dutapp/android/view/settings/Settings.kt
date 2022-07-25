@@ -1,7 +1,6 @@
 package io.zoemeow.dutapp.android.view.settings
 
 import android.content.Context
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -34,6 +33,9 @@ fun Settings() {
         containerColor = Color.Transparent,
         topBar = {
             SmallTopAppBar(
+                colors = TopAppBarDefaults.smallTopAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 title = {
                     Text(text = "Settings")
                 }
@@ -59,11 +61,11 @@ fun Settings() {
                     )
                     SettingsOptionItem(
                         title = "Background Image",
-                        description = when (globalViewModel.settings.backgroundImageOption) {
+                        description = when (globalViewModel.settings.personalize.backgroundImage.option) {
                             BackgroundImageType.None -> "Unset"
                             BackgroundImageType.FromWallpaper -> "From phone wallpaper"
                             BackgroundImageType.FromItemYouSpecific -> "Specific a image (" +
-                                    "${globalViewModel.settings.backgroundImagePath})"
+                                    "${globalViewModel.settings.personalize.backgroundImage.path})"
                         } + " (This feature are under development. Stay tuned!)",
                         clickable = { }
                     )

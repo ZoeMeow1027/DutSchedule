@@ -3,18 +3,23 @@ package io.zoemeow.dutapp.android.model
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import java.io.Serializable
 
-data class AppSettingsItem(
-    // Background image area
-    var backgroundImageOption: BackgroundImageType = BackgroundImageType.None,
-    var backgroundImagePath: String? = null,
+class AppSettingsItem: Serializable {
+    class Personalize: Serializable {
+        class BackgroundImage: Serializable {
+            var option: BackgroundImageType = BackgroundImageType.None
+            var path: String? = null
+        }
 
-    // Account area
-    var username: String? = null,
-    var password: String? = null,
-    var rememberLogin: Boolean = false,
+        var backgroundImage: BackgroundImage = BackgroundImage()
+        var appDynamicColors: Boolean = true
+    }
 
-    /**
-     * Gets or sets current school year
-     */
+    class Account: Serializable {
+        var username: String? = null
+        var password: String? = null
+    }
+
+    var account: Account = Account()
+    var personalize: Personalize = Personalize()
     var schoolYear: SchoolYearItem = SchoolYearItem()
-): Serializable
+}

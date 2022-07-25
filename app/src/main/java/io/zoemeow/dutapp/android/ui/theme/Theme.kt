@@ -3,18 +3,17 @@ package io.zoemeow.dutapp.android.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
+import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -43,6 +42,8 @@ fun DUTAppForAndroidTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
+    // Background image for application
+    backgroundPainter: MutableState<Painter?> = mutableStateOf(null),
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -60,6 +61,9 @@ fun DUTAppForAndroidTheme(
             ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
         }
     }
+
+    // If background image not null, directly show here.
+    BackgroundImage(backgroundPainter)
 
     MaterialTheme(
         colorScheme = colorScheme,
