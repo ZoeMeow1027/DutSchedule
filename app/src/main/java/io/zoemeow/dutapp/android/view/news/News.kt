@@ -1,12 +1,9 @@
 package io.zoemeow.dutapp.android.view.news
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
@@ -15,17 +12,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
-import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
+import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
@@ -36,6 +30,8 @@ import kotlinx.coroutines.launch
 fun News(
     newsViewModel: NewsViewModel,
 ) {
+    val globalViewModel = GlobalViewModel.getInstance()
+
     val tabList = listOf(
         stringResource(id = R.string.news_tab_global),
         stringResource(id = R.string.news_tab_subject)
@@ -81,7 +77,11 @@ fun News(
                                 Text(
                                     text = tabItem,
                                     color = (
-                                            if (isSystemInDarkTheme()) Color.White
+                                            if (
+                                                (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
+                                                        isSystemInDarkTheme()) ||
+                                                globalViewModel.appTheme.value == AppTheme.DarkMode
+                                            ) Color.White
                                             else Color.Black
                                             )
                                 )

@@ -1,19 +1,19 @@
 package io.zoemeow.dutapp.android.ui.theme
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
+import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -54,6 +54,7 @@ fun DUTAppForAndroidTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {

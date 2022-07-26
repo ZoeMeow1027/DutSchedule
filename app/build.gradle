@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
@@ -11,8 +12,8 @@ android {
         applicationId "io.zoemeow.dutapp.android"
         minSdk 21
         targetSdk 32
-        versionCode 25
-        versionName "0.5-alpha"
+        versionCode 32
+        versionName "0.6-alpha"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -65,6 +66,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.5.0'
 
+    implementation 'com.google.android.material:material:1.6.1'
+
     // Google Gson
     implementation 'com.google.code.gson:gson:2.9.0'
 
@@ -82,8 +85,6 @@ dependencies {
     // Accompanist
     implementation 'com.google.accompanist:accompanist-drawablepainter:0.23.1'
 
-    implementation 'com.google.android.material:material:1.6.1'
-
     // https://developer.chrome.com/docs/android/custom-tabs/integration-guide/
     implementation "androidx.browser:browser:1.4.0"
 
@@ -98,6 +99,10 @@ dependencies {
 
     // From JitPack.io
     implementation 'com.github.ZoeMeow5466:DUTAPI.Java:1.6.2'
+
+    // Google Dagger and Hilt
+    implementation "com.google.dagger:hilt-android:2.42"
+    kapt "com.google.dagger:hilt-compiler:2.42"
 }
 
 // https://kotlinlang.org/docs/opt-in-requirements.html#module-wide-opt-in

@@ -1,15 +1,18 @@
 package io.zoemeow.dutapp.android
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -18,6 +21,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
+import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.ui.theme.DUTAppForAndroidTheme
 import io.zoemeow.dutapp.android.view.account.Account
@@ -30,6 +35,7 @@ import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     // https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted
 
@@ -44,8 +50,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             // Initialize GlobalViewModel
-            GlobalViewModel.setInstance(viewModel())
-            globalViewModel = GlobalViewModel.getInstance()
+            globalViewModel = viewModel()
+            GlobalViewModel.setInstance(globalViewModel)
 
             // Initialize AccountViewModel
             AccountViewModel.setInstance(viewModel())
@@ -55,8 +61,13 @@ class MainActivity : ComponentActivity() {
             newsViewModel = viewModel()
 
             DUTAppForAndroidTheme(
-                dynamicColor = globalViewModel.settings.personalize.appDynamicColors,
-                backgroundPainter = globalViewModel.backgroundPainter
+                dynamicColor = globalViewModel.dynamicColorEnabled.value,
+                darkTheme = (
+                        (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
+                                isSystemInDarkTheme()) ||
+                        globalViewModel.appTheme.value == AppTheme.DarkMode
+                ),
+                backgroundPainter = globalViewModel.backgroundPainter,
             ) {
                 // Set activity to variable in GlobalViewModel
                 globalViewModel.setActivity(this)
@@ -74,7 +85,7 @@ class MainActivity : ComponentActivity() {
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = globalViewModel.snackBarHostState) },
-                    containerColor = if (globalViewModel.settings.personalize.backgroundImage.option == BackgroundImageType.None)
+                    containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.None)
                         MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
@@ -127,7 +138,7 @@ class MainActivity : ComponentActivity() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = MainNavRoutes.Main.route,
+            startDestination = MainNavRoutes.News.route,
             modifier = Modifier.padding(padding)
         ) {
             composable(MainNavRoutes.Main.route) {

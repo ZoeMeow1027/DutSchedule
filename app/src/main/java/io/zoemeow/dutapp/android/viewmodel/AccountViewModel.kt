@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
@@ -13,8 +14,10 @@ import io.zoemeow.dutapp.android.model.SchoolYearItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AccountViewModel: ViewModel() {
+@HiltViewModel
+class AccountViewModel @Inject constructor(): ViewModel() {
     companion object {
         private val instance: MutableState<AccountViewModel> = mutableStateOf(AccountViewModel())
 
@@ -196,8 +199,8 @@ class AccountViewModel: ViewModel() {
                         schoolYearItemInput.semester
                     )
                 else accountSession.getSubjectSchedule(
-                    globalViewModel.settings.schoolYear.year,
-                    globalViewModel.settings.schoolYear.semester
+                    globalViewModel.schoolYear.value.year,
+                    globalViewModel.schoolYear.value.semester
                 )
 
                 subjectScheduleList.clear()
@@ -234,8 +237,8 @@ class AccountViewModel: ViewModel() {
                         schoolYearItemInput.semester
                     )
                 else accountSession.getSubjectFee(
-                    globalViewModel.settings.schoolYear.year,
-                    globalViewModel.settings.schoolYear.semester
+                    globalViewModel.schoolYear.value.year,
+                    globalViewModel.schoolYear.value.semester
                 )
 
                 subjectFeeList.clear()
