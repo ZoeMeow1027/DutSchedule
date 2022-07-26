@@ -2,39 +2,45 @@ package io.zoemeow.dutapp.android.view.settings
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsSchoolYear(
-    enabled: MutableState<Boolean>
+    enabled: MutableState<Boolean>,
+    globalViewModel: GlobalViewModel
 ) {
-    val globalViewModel = GlobalViewModel.getInstance()
-
     val dropDownListSchoolYear = remember { mutableStateOf(false) }
     val dropDownListSemester = remember { mutableStateOf(false) }
 
     val schoolYearOption = listOf(
         "17","18","19","20","21","22","23","24"
     )
-    val schoolYearOptionChose = remember { mutableStateOf(
-        schoolYearOption[schoolYearOption.indexOf(globalViewModel.settings.schoolYear.year.toString())]
-    ) }
     val semesterOption = listOf(
         "1", "2", "3"
     )
-    val semesterOptionChose = remember { mutableStateOf(
-        semesterOption[semesterOption.indexOf(globalViewModel.settings.schoolYear.semester.toString())]
-    ) }
+    val schoolYearOptionChose = remember { mutableStateOf("") }
+    val semesterOptionChose = remember { mutableStateOf("") }
+
+    LaunchedEffect(enabled.value) {
+        schoolYearOptionChose.value = schoolYearOption[schoolYearOption.indexOf(globalViewModel.schoolYear.value.year.toString())]
+        semesterOptionChose.value = semesterOption[semesterOption.indexOf(globalViewModel.schoolYear.value.semester.toString())]
+    }
+
+    fun commitChanges() {
+        globalViewModel.schoolYear.value.year = 17 + schoolYearOption.indexOf(schoolYearOptionChose.value)
+        globalViewModel.schoolYear.value.semester = 1 + semesterOption.indexOf(semesterOptionChose.value)
+        globalViewModel.requestSaveSettings()
+        globalViewModel.update()
+        enabled.value = false
+    }
 
     if (enabled.value) {
         AlertDialog(
@@ -53,7 +59,6 @@ fun SettingsSchoolYear(
             },
             dismissButton = {
                 TextButton(
-                    // enabled = enabledControl.value,
                     onClick = {
                         enabled.value = false
                     },
@@ -66,12 +71,10 @@ fun SettingsSchoolYear(
                 TextButton(
                     enabled = true,
                     onClick = {
-                        globalViewModel.settings.schoolYear.year = 17 + schoolYearOption.indexOf(schoolYearOptionChose.value)
-                        globalViewModel.settings.schoolYear.semester = 1 + semesterOption.indexOf(semesterOptionChose.value)
-                        enabled.value = false
+                        commitChanges()
                     },
                     content = {
-                        Text("Confirm")
+                        Text("OK")
                     }
                 )
             },
