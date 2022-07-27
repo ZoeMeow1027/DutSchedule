@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SettingsOptionItem(
+fun SettingsOptionItemClickable(
     title: String,
     description: String? = null,
     clickable: (() -> Unit)? = null,

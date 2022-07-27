@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.settings
 
-import android.os.Build
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -16,30 +15,35 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.AppTheme
+import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsAppTheme(
+fun SettingsBackgroundImage(
     enabled: MutableState<Boolean>,
     globalViewModel: GlobalViewModel
 ) {
-    val themeList = listOf("Follow device theme", "Dark mode", "Light mode")
-    val selectedThemeList = remember { mutableStateOf("") }
-    val dynamicColorEnabled = remember { mutableStateOf(true) }
+    val optionList = listOf("Unset", "From device wallpaper", "Specific a image")
+    val selectedOptionList = remember { mutableStateOf("") }
 
     LaunchedEffect(enabled.value) {
-        selectedThemeList.value = themeList[globalViewModel.appTheme.value.ordinal]
-        dynamicColorEnabled.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            globalViewModel.dynamicColorEnabled.value else false
+        selectedOptionList.value = optionList[globalViewModel.backgroundImage.value.option.ordinal]
     }
 
     fun commitChanges() {
-        globalViewModel.appTheme.value = AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
-        globalViewModel.dynamicColorEnabled.value = dynamicColorEnabled.value
+        globalViewModel.backgroundImage.value.option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
+
+        globalViewModel.loadBackground()
         globalViewModel.requestSaveSettings()
         globalViewModel.update()
         enabled.value = false
+
+        // TODO: Find better solution instead of doing this here!!!
+        globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
+        globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
     }
 
     if (enabled.value) {
@@ -55,15 +59,18 @@ fun SettingsAppTheme(
                 enabled.value = false
             },
             title = {
-                Text("Select app theme")
+                Text("Select your background image")
             },
             confirmButton = {
+
+            },
+            dismissButton = {
                 TextButton(
                     onClick = {
-                        commitChanges()
+                        enabled.value = false
                     },
                     content = {
-                        Text("OK")
+                        Text("Cancel")
                     }
                 )
             },
@@ -72,49 +79,31 @@ fun SettingsAppTheme(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start
                 ) {
-                    themeList.forEach { option ->
+                    optionList.forEach { option ->
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Start,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && option == themeList[0]) ||
-                                            option != themeList[0])
-                                        selectedThemeList.value = option
+                                    if (optionList.indexOf(option) <= 1) {
+                                        selectedOptionList.value = option
+                                        commitChanges()
+                                    }
                                 }
                         ) {
                             RadioButton(
-                                selected = (option == selectedThemeList.value),
+                                selected = (option == selectedOptionList.value),
                                 onClick = {
-                                    if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && option == themeList[0]) ||
-                                            option != themeList[0])
-                                        selectedThemeList.value = option
+                                    if (optionList.indexOf(option) <= 1) {
+                                        selectedOptionList.value = option
+                                        commitChanges()
+                                    }
                                 }
                             )
                             Spacer(modifier = Modifier.size(5.dp))
                             Text(text = option)
                         }
-                    }
-                    Spacer(modifier = Modifier.size(5.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                    dynamicColorEnabled.value = !dynamicColorEnabled.value
-                            }
-                    ) {
-                        Checkbox(
-                            checked = dynamicColorEnabled.value,
-                            onCheckedChange = {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                    dynamicColorEnabled.value = it
-                            },
-                        )
-                        Text(text = "Enable dynamic color")
                     }
                     Spacer(modifier = Modifier.size(15.dp))
                     Column(
@@ -133,7 +122,7 @@ fun SettingsAppTheme(
                             ),
                             contentDescription = "info_icon",
                         )
-                        Text("Your OS needs at least:\n - Android 9 to follow device theme,\n - Android 12 to enable dynamic color.")
+                        Text(""""Specific a image" option is temporary disabled due to not working yet.""")
                     }
                 }
             }

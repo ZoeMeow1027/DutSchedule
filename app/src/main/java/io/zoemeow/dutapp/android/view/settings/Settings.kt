@@ -15,7 +15,8 @@ import io.zoemeow.dutapp.android.BuildConfig
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.ui.custom.CustomDivider
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionHeader
-import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItem
+import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemClickable
+import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemSwitch
 import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
@@ -28,6 +29,7 @@ fun Settings() {
 
     val schoolYearSettingsEnabled = remember { mutableStateOf(false) }
     val appThemeSettingsEnabled = remember { mutableStateOf(false) }
+    val backgroundImageSettingsEnabled = remember { mutableStateOf(false) }
 
     // Just trigger to recompose, this doesn't do anything special!
     val text1 = remember { mutableStateOf("Layout") }
@@ -37,6 +39,7 @@ fun Settings() {
 
     SettingsSchoolYear(schoolYearSettingsEnabled, globalViewModel)
     SettingsAppTheme(appThemeSettingsEnabled, globalViewModel)
+    SettingsBackgroundImage(backgroundImageSettingsEnabled, globalViewModel)
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -57,7 +60,7 @@ fun Settings() {
                 content = {
                     SettingsOptionHeader(headerText = text1.value)
                     val themeList = listOf("Follow device theme", "Dark mode", "Light mode")
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "App theme",
                         description = (
                                 themeList[globalViewModel.appTheme.value.ordinal] +
@@ -73,24 +76,30 @@ fun Settings() {
                             appThemeSettingsEnabled.value = true
                         }
                     )
-                    SettingsOptionItem(
-                        title = "Black backgrounds in dark theme (for AMOLED)",
-                        description = "No (This feature are under development. Stay tuned!)",
-                        clickable = {  }
+                    SettingsOptionItemSwitch(
+                        title = "Black background",
+                        description = "Useful if your device has AMOLED display. Requires dark mode enabled.",
+                        value = globalViewModel.blackTheme,
+                        onValueChanged = {
+                            globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
+                            globalViewModel.requestSaveSettings()
+                        }
                     )
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "Background Image",
                         description = when (globalViewModel.backgroundImage.value.option) {
-                            BackgroundImageType.None -> "Unset"
+                            BackgroundImageType.Unset -> "Unset"
                             BackgroundImageType.FromWallpaper -> "From phone wallpaper"
                             BackgroundImageType.FromItemYouSpecific -> "Specific a image (" +
                                     "${globalViewModel.backgroundImage.value.path})"
-                        } + " (This feature are under development. Stay tuned!)",
-                        clickable = { }
+                        },
+                        clickable = {
+                            backgroundImageSettingsEnabled.value = true
+                        }
                     )
                     CustomDivider()
                     SettingsOptionHeader(headerText = "Accounts")
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "Change school year",
                         description = "School year: " +
                                 "20${globalViewModel.schoolYear.value.year}-" +
@@ -107,11 +116,11 @@ fun Settings() {
                     )
                     CustomDivider()
                     SettingsOptionHeader(headerText = "About Application")
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "Version",
                         description = BuildConfig.VERSION_NAME,
                     )
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "Changelog",
                         description = "Click here to view changelog for this application.",
                         clickable = {
@@ -121,7 +130,7 @@ fun Settings() {
                             )
                         }
                     )
-                    SettingsOptionItem(
+                    SettingsOptionItemClickable(
                         title = "GitHub (click to open in browser)",
                         description = "https://github.com/ZoeMeow5466/DUTApp.Android",
                         clickable = {

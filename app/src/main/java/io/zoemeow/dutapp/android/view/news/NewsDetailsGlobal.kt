@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.news
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -24,6 +23,7 @@ import io.zoemeow.dutapp.android.utils.DateToString
 fun NewsDetailsGlobal(
     padding: PaddingValues,
     news: NewsGlobalItem,
+    darkTheme: Boolean = false,
     linkClicked: (String) -> Unit
 ) {
     NewsScreenCore {
@@ -42,13 +42,13 @@ fun NewsDetailsGlobal(
                 Text(
                     text = news.title,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    color = if (darkTheme) Color.White else Color.Black
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
                     text = "Posted on ${DateToString(news.date, "dd/MM/yyyy", "UTC")} (${CalculateDayAgo(news.date) ?: "..."})",
                     style = MaterialTheme.typography.titleLarge,
-                    color = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    color = if (darkTheme) Color.White else Color.Black
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Divider(
@@ -62,7 +62,9 @@ fun NewsDetailsGlobal(
                         append(news.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (isSystemInDarkTheme()) Color.White else Color.Black),
+                            style = SpanStyle(
+                                color = if (darkTheme) Color.White else Color.Black
+                            ),
                             start = 0,
                             end = news.contentString.length
                         )
