@@ -1,16 +1,23 @@
 package io.zoemeow.dutapp.android.viewmodel
 
 import android.app.Activity
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.zoemeow.dutapp.android.MainActivity
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.repository.SettingsFileRepository
 import io.zoemeow.dutapp.android.utils.GetCurrentHomeWallpaper
@@ -47,9 +54,14 @@ class GlobalViewModel @Inject constructor(
     // School year settings
     var schoolYear = settingsFileRepository.schoolYear
 
+    // Black theme (for AMOLED display)
+    var blackTheme = settingsFileRepository.blackTheme
+
     fun requestSaveSettings() {
         settingsFileRepository.saveSettings()
     }
+
+
 
     // Just trigger. This doesn't do anything.
     val triggerUpdateVar: MutableState<Boolean> = mutableStateOf(false)
@@ -68,25 +80,34 @@ class GlobalViewModel @Inject constructor(
     }
 
     // Drawable and painter for background image
-    private val backgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
-    val backgroundPainter: MutableState<Painter?> = mutableStateOf(null)
+    val backgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
 
     /**
      * Get current drawable for background image. Image loaded will save to backgroundPainter.
      */
-    @Composable
-    fun LoadBackground() {
+    fun loadBackground() {
         // This will get background wallpaper from launcher.
         if (backgroundImage.value.option == BackgroundImageType.FromWallpaper) {
             if (mainActivity.value != null) {
-                backgroundDrawable.value = GetCurrentHomeWallpaper.getCurrentWallpaper(mainActivity.value!!)
-                backgroundPainter.value = rememberDrawablePainter(drawable = backgroundDrawable.value!!)
+                GetCurrentHomeWallpaper.getCurrentWallpaper(
+                    activity = mainActivity.value!!,
+                    onResult = { successful, drawable ->
+                        if (successful) {
+                            backgroundDrawable.value = drawable
+                        }
+                        else {
+                            backgroundImage.value.option = BackgroundImageType.Unset
+                            backgroundImage.value.path = null
+                            showMessageSnackBar(
+                                """Missing permission for getting your device wallpaper! BackgroundImage settings will revert to unset.""")
+                        }
+                    }
+                )
             }
         }
         // Otherwise set to null
         else {
             backgroundDrawable.value = null
-            backgroundPainter.value = null
         }
     }
 

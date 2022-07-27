@@ -28,13 +28,39 @@ class GetCurrentHomeWallpaper {
             )
         }
 
-        fun getCurrentWallpaper(activity: Activity): Drawable? {
-            return if (checkPermission(activity)) {
-                val wallpaperManager = WallpaperManager.getInstance(activity)
-                wallpaperManager.drawable
-            } else {
-                requirePermission(activity)
-                if (checkPermission(activity)) getCurrentWallpaper(activity) else null
+        fun getCurrentWallpaper(
+            activity: Activity,
+            onResult: (Boolean, Drawable?) -> Unit
+        ) {
+            var drawable: Drawable? = null
+            var successful = false
+
+            try {
+                if (checkPermission(activity)) {
+                    val wallpaperManager = WallpaperManager.getInstance(activity)
+                    drawable = wallpaperManager.drawable
+                    successful = true
+                    onResult(successful, drawable)
+                }
+                else {
+                    requirePermission(activity)
+                    if (checkPermission(activity)) {
+                        getCurrentWallpaper(
+                            activity,
+                            onResult = { successfulP, drawableP ->
+                                drawable = drawableP
+                                successful = successfulP
+                            }
+                        )
+                    }
+                    onResult(successful, drawable)
+                }
+            }
+            catch (ex: Exception) {
+                ex.printStackTrace()
+                drawable = null
+                successful = false
+                onResult(successful, drawable)
             }
         }
     }

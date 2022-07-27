@@ -113,6 +113,10 @@ fun News(
                 NewsDetailsGlobal(
                     padding = padding,
                     news = newsViewModel.newsGlobalItemChose.value!!,
+                    darkTheme = (
+                            (globalViewModel.appTheme.value == AppTheme.FollowSystem && isSystemInDarkTheme()) ||
+                                    globalViewModel.appTheme.value == AppTheme.DarkMode
+                            ),
                     linkClicked = {
                         openLinkInCustomTab(context, it)
                     }
@@ -122,6 +126,10 @@ fun News(
                 NewsDetailsSubject(
                     padding = padding,
                     news = newsViewModel.newsSubjectItemChose.value!!,
+                    darkTheme = (
+                            (globalViewModel.appTheme.value == AppTheme.FollowSystem && isSystemInDarkTheme()) ||
+                                    globalViewModel.appTheme.value == AppTheme.DarkMode
+                            ),
                     linkClicked = {
                         openLinkInCustomTab(context, it)
                     }

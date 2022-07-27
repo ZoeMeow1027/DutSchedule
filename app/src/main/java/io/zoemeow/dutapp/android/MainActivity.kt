@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,6 +50,12 @@ class MainActivity : ComponentActivity() {
             // Initialize GlobalViewModel
             globalViewModel = viewModel()
             GlobalViewModel.setInstance(globalViewModel)
+            // Set activity to variable in GlobalViewModel
+            globalViewModel.setActivity(this)
+            // Load backgrounds if its settings is enabled
+            globalViewModel.loadBackground()
+            // Set SnackBar in MainActivity Scaffold
+            globalViewModel.snackBarHostState = SnackbarHostState()
 
             // Initialize AccountViewModel
             AccountViewModel.setInstance(viewModel())
@@ -67,15 +71,8 @@ class MainActivity : ComponentActivity() {
                                 isSystemInDarkTheme()) ||
                         globalViewModel.appTheme.value == AppTheme.DarkMode
                 ),
-                backgroundPainter = globalViewModel.backgroundPainter,
+                blackTheme = globalViewModel.blackTheme.value
             ) {
-                // Set activity to variable in GlobalViewModel
-                globalViewModel.setActivity(this)
-                // Load backgrounds if its settings is enabled
-                globalViewModel.LoadBackground()
-                // Set SnackBar in MainActivity Scaffold
-                globalViewModel.snackBarHostState = SnackbarHostState()
-
                 // Initialize for NavController for main activity
                 val navController = rememberNavController()
                 // Nav Route
@@ -85,7 +82,7 @@ class MainActivity : ComponentActivity() {
                 // A scaffold container using the 'background' color from the theme
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = globalViewModel.snackBarHostState) },
-                    containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.None)
+                    containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.Unset)
                         MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
@@ -138,7 +135,7 @@ class MainActivity : ComponentActivity() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = MainNavRoutes.News.route,
+            startDestination = MainNavRoutes.Main.route,
             modifier = Modifier.padding(padding)
         ) {
             composable(MainNavRoutes.Main.route) {

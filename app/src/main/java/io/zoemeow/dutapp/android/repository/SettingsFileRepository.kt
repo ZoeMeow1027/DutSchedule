@@ -1,5 +1,6 @@
 package io.zoemeow.dutapp.android.repository
 
+import android.os.Build
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -17,12 +18,20 @@ import javax.inject.Inject
 class SettingsFileRepository @Inject constructor(private val file: File): Serializable {
     @SerializedName("background_image")
     private var pBackgroundImage: BackgroundImage = BackgroundImage()
+
+    // Android 12 and up can control dynamic color.
     @SerializedName("dynamic_color_enabled")
-    private var pDynamicColorEnabled: Boolean = true
+    private var pDynamicColorEnabled: Boolean = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+
+    // Android 9 and up can control dark mode follow system.
     @SerializedName("app_theme")
-    private var pAppTheme: AppTheme = AppTheme.FollowSystem
+    private var pAppTheme: AppTheme = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) AppTheme.FollowSystem else AppTheme.LightMode
+
     @SerializedName("school_year")
     private var pSchoolYear: SchoolYearItem = SchoolYearItem()
+
+    @SerializedName("black_theme")
+    private var pBlackTheme: Boolean = false
 
     // App background image
     @Transient
@@ -41,6 +50,9 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
     val schoolYear: MutableState<SchoolYearItem> = mutableStateOf(SchoolYearItem())
 
     @Transient
+    val blackTheme: MutableState<Boolean> = mutableStateOf(false)
+
+    @Transient
     private var readyToSave: Boolean = true
 
     private fun loadSettings() {
@@ -56,6 +68,7 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
             val variableItemTemp = Gson().fromJson<SettingsFileRepository>(inputStr, itemType)
 
             backgroundImage.value = variableItemTemp.pBackgroundImage
+            blackTheme.value = variableItemTemp.pBlackTheme
             dynamicColorEnabled.value = variableItemTemp.pDynamicColorEnabled
             appTheme.value = variableItemTemp.pAppTheme
             schoolYear.value = variableItemTemp.pSchoolYear
@@ -74,6 +87,7 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
             Log.d("SettingsWrite", "Triggered settings writing...")
 
             pBackgroundImage = backgroundImage.value
+            pBlackTheme = blackTheme.value
             pDynamicColorEnabled = dynamicColorEnabled.value
             pAppTheme = appTheme.value
             pSchoolYear = schoolYear.value
