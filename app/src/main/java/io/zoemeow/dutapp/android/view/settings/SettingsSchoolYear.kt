@@ -17,26 +17,65 @@ fun SettingsSchoolYear(
     enabled: MutableState<Boolean>,
     globalViewModel: GlobalViewModel
 ) {
-    val dropDownListSchoolYear = remember { mutableStateOf(false) }
-    val dropDownListSemester = remember { mutableStateOf(false) }
+    @Composable
+    fun SchoolYearOption(
+        title: String,
+        value: Int,
+        onValueChanged: (Int) -> Unit,
+        minValue: Int? = null,
+        maxValue: Int? = null,
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Spacer(modifier = Modifier.size(5.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+            ) {
+                Button(
+                    onClick = {
+                        if (minValue != null && minValue < value)
+                            onValueChanged(value - 1)
+                    },
+                    content = { Text("-", style = MaterialTheme.typography.bodyLarge) }
+                )
+                Spacer(modifier = Modifier.size(15.dp))
+                Text("$value", style = MaterialTheme.typography.bodyLarge)
+                Spacer(modifier = Modifier.size(15.dp))
+                Button(
+                    onClick = {
+                        if (maxValue != null && maxValue > value)
+                            onValueChanged(value + 1)
+                    },
+                    content = { Text("+", style = MaterialTheme.typography.bodyLarge) }
+                )
+            }
+        }
+    }
 
-    val schoolYearOption = listOf(
-        "17","18","19","20","21","22","23","24"
-    )
-    val semesterOption = listOf(
-        "1", "2", "3"
-    )
-    val schoolYearOptionChose = remember { mutableStateOf("") }
-    val semesterOptionChose = remember { mutableStateOf("") }
+    val schoolYearOptionVal = remember { mutableStateOf(21) }
+    val schoolSemesterOptionVal = remember { mutableStateOf(3) }
 
     LaunchedEffect(enabled.value) {
-        schoolYearOptionChose.value = schoolYearOption[schoolYearOption.indexOf(globalViewModel.schoolYear.value.year.toString())]
-        semesterOptionChose.value = semesterOption[semesterOption.indexOf(globalViewModel.schoolYear.value.semester.toString())]
+        schoolYearOptionVal.value = globalViewModel.schoolYear.value.year
+        schoolSemesterOptionVal.value = globalViewModel.schoolYear.value.semester
     }
 
     fun commitChanges() {
-        globalViewModel.schoolYear.value.year = 17 + schoolYearOption.indexOf(schoolYearOptionChose.value)
-        globalViewModel.schoolYear.value.semester = 1 + semesterOption.indexOf(semesterOptionChose.value)
+        globalViewModel.schoolYear.value.year = schoolYearOptionVal.value
+        globalViewModel.schoolYear.value.semester = schoolSemesterOptionVal.value
         globalViewModel.requestSaveSettings()
         globalViewModel.update()
         enabled.value = false
@@ -83,61 +122,36 @@ fun SettingsSchoolYear(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.Start,
                 ) {
-                    ExposedDropdownMenuBox(
-                        expanded = dropDownListSchoolYear.value,
-                        onExpandedChange = { dropDownListSchoolYear.value = it },
-                        content = {
-                            OutlinedTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true,
-                                value = schoolYearOptionChose.value,
-                                onValueChange = {},
-                                label = { Text("School year") },
-                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                            )
-                            ExposedDropdownMenu(
-                                expanded = dropDownListSchoolYear.value,
-                                onDismissRequest = { dropDownListSchoolYear.value = false },
-                            ) {
-                                schoolYearOption.forEach { selectionOption ->
-                                    DropdownMenuItem(
-                                        text = { Text(selectionOption) },
-                                        onClick = {
-                                            schoolYearOptionChose.value = selectionOption
-                                            dropDownListSchoolYear.value = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                    Text(
+                        text = "Your settings after confirm:\n" +
+                                "- Current school year: 20${schoolYearOptionVal.value}-" +
+                                "20${schoolYearOptionVal.value + 1}\n" +
+                                "- Current semester: ${
+                                    if (schoolSemesterOptionVal.value < 3)
+                                        schoolSemesterOptionVal.value
+                                    else
+                                        "3 (in summer)"
+                                }",
+                        style = MaterialTheme.typography.bodyLarge
                     )
-                    ExposedDropdownMenuBox(
-                        expanded = dropDownListSemester.value,
-                        onExpandedChange = { dropDownListSemester.value = it },
-                        content = {
-                            OutlinedTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                readOnly = true,
-                                value = semesterOptionChose.value,
-                                onValueChange = {},
-                                label = { Text("Semester") },
-                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                            )
-                            ExposedDropdownMenu(
-                                expanded = dropDownListSemester.value,
-                                onDismissRequest = { dropDownListSemester.value = false },
-                            ) {
-                                semesterOption.forEach { selectionOption ->
-                                    DropdownMenuItem(
-                                        text = { Text(selectionOption) },
-                                        onClick = {
-                                            semesterOptionChose.value = selectionOption
-                                            dropDownListSemester.value = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                    Spacer(modifier = Modifier.size(15.dp))
+                    SchoolYearOption(
+                        title = "School Year",
+                        value = schoolYearOptionVal.value,
+                        onValueChanged = {
+                            schoolYearOptionVal.value = it
+                        },
+                        minValue = 10,
+                        maxValue = 30
+                    )
+                    SchoolYearOption(
+                        title = "School Semester",
+                        value = schoolSemesterOptionVal.value,
+                        onValueChanged = {
+                            schoolSemesterOptionVal.value = it
+                        },
+                        minValue = 1,
+                        maxValue = 3
                     )
                 }
             }

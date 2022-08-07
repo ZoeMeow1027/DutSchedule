@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun SettingsOptionItemSwitch(
     title: String,
-    value: MutableState<Boolean>,
+    value: Boolean,
     onValueChanged: () -> Unit,
     enabled: Boolean = true,
     description: String? = null,
@@ -49,7 +49,7 @@ fun SettingsOptionItemSwitch(
             }
             Switch(
                 // modifier = Modifier.align(Alignment.CenterEnd),
-                checked = value.value,
+                checked = value,
                 onCheckedChange = { onValueChanged() },
                 enabled = enabled,
             )

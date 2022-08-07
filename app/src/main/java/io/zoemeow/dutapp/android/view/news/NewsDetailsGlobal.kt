@@ -18,14 +18,16 @@ import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapp.android.ui.custom.NewsScreenCore
 import io.zoemeow.dutapp.android.utils.CalculateDayAgo
 import io.zoemeow.dutapp.android.utils.DateToString
+import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import okhttp3.HttpUrl.Companion.toHttpUrl
 
 @Composable
 fun NewsDetailsGlobal(
     padding: PaddingValues,
     news: NewsGlobalItem,
-    darkTheme: Boolean = false,
     linkClicked: (String) -> Unit
 ) {
+    val globalViewModel = GlobalViewModel.getInstance()
     NewsScreenCore {
         val optionsScrollState = rememberScrollState()
         Box(
@@ -42,13 +44,11 @@ fun NewsDetailsGlobal(
                 Text(
                     text = news.title,
                     style = MaterialTheme.typography.headlineMedium,
-                    color = if (darkTheme) Color.White else Color.Black
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
                     text = "Posted on ${DateToString(news.date, "dd/MM/yyyy", "UTC")} (${CalculateDayAgo(news.date) ?: "..."})",
                     style = MaterialTheme.typography.titleLarge,
-                    color = if (darkTheme) Color.White else Color.Black
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Divider(
@@ -62,9 +62,7 @@ fun NewsDetailsGlobal(
                         append(news.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(
-                                color = if (darkTheme) Color.White else Color.Black
-                            ),
+                            style = SpanStyle(color = if (globalViewModel.isDarkMode.value) Color.White else Color.Black),
                             start = 0,
                             end = news.contentString.length
                         )
@@ -94,7 +92,12 @@ fun NewsDetailsGlobal(
                                 annotatedString
                                     .getStringAnnotations(item.position!!.toString(), it, it)
                                     .firstOrNull()
-                                    ?.let { url -> linkClicked(url.item.lowercase()) }
+                                    ?.let { url ->
+                                        var urlTemp = url.item
+                                        urlTemp = urlTemp.replace("http://", "http://", ignoreCase = true)
+                                        urlTemp = urlTemp.replace("https://", "https://", ignoreCase = true)
+                                        linkClicked(urlTemp)
+                                    }
                             }
                         } catch (_: Exception) {
                             // TODO: Exception for can't open link here!

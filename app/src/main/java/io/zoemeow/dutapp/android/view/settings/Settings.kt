@@ -13,11 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import io.zoemeow.dutapp.android.BuildConfig
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
+import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.ui.custom.CustomDivider
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemClickable
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemSwitch
-import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
+import io.zoemeow.dutapp.android.utils.openLink
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +31,7 @@ fun Settings() {
     val schoolYearSettingsEnabled = remember { mutableStateOf(false) }
     val appThemeSettingsEnabled = remember { mutableStateOf(false) }
     val backgroundImageSettingsEnabled = remember { mutableStateOf(false) }
+    val openLinkTypeSettingsEnabled = remember { mutableStateOf(false) }
 
     // Just trigger to recompose, this doesn't do anything special!
     val text1 = remember { mutableStateOf("Layout") }
@@ -37,11 +39,19 @@ fun Settings() {
         text1.value = "Layout"
     }
 
+    val openAppInOptionList = listOf(
+        "Built-in browser",
+        "Default browser custom tab",
+        "External browser"
+    )
+
     SettingsSchoolYear(schoolYearSettingsEnabled, globalViewModel)
     SettingsAppTheme(appThemeSettingsEnabled, globalViewModel)
     SettingsBackgroundImage(backgroundImageSettingsEnabled, globalViewModel)
+    SettingsOpenLinkType(openLinkTypeSettingsEnabled, globalViewModel)
     Scaffold(
         containerColor = Color.Transparent,
+        contentColor = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -79,7 +89,7 @@ fun Settings() {
                     SettingsOptionItemSwitch(
                         title = "Black background",
                         description = "Useful if your device has AMOLED display. Requires dark mode enabled.",
-                        value = globalViewModel.blackTheme,
+                        value = globalViewModel.blackTheme.value,
                         onValueChanged = {
                             globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
                             globalViewModel.requestSaveSettings()
@@ -115,6 +125,15 @@ fun Settings() {
                         }
                     )
                     CustomDivider()
+                    SettingsOptionHeader(headerText = "Miscellaneous")
+                    SettingsOptionItemClickable(
+                        title = "Open link in",
+                        description = openAppInOptionList.get(globalViewModel.openLinkType.value.ordinal),
+                        clickable = {
+                            openLinkTypeSettingsEnabled.value = true
+                        }
+                    )
+                    CustomDivider()
                     SettingsOptionHeader(headerText = "About Application")
                     SettingsOptionItemClickable(
                         title = "Version",
@@ -124,9 +143,10 @@ fun Settings() {
                         title = "Changelog",
                         description = "Click here to view changelog for this application.",
                         clickable = {
-                            openLinkInCustomTab(
+                            openLink(
+                                "https://github.com/ZoeMeow5466/DUTApp.Android",
                                 context.value!!,
-                                "https://github.com/ZoeMeow5466/DUTApp.Android"
+                                OpenLinkType.InCustomTabs
                             )
                         }
                     )
@@ -134,9 +154,10 @@ fun Settings() {
                         title = "GitHub (click to open in browser)",
                         description = "https://github.com/ZoeMeow5466/DUTApp.Android",
                         clickable = {
-                            openLinkInCustomTab(
+                            openLink(
+                                "https://github.com/ZoeMeow5466/DUTApp.Android",
                                 context.value!!,
-                                "https://github.com/ZoeMeow5466/DUTApp.Android"
+                                OpenLinkType.InCustomTabs
                             )
                         }
                     )

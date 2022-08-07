@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -122,16 +123,10 @@ fun SettingsAppTheme(
                         horizontalAlignment = Alignment.Start,
                         modifier = Modifier.wrapContentSize()
                     ) {
-                        Image(
-                            imageVector = ImageVector.vectorResource(
-                                id = if (
-                                    (globalViewModel.appTheme.value == AppTheme.FollowSystem && isSystemInDarkTheme()) ||
-                                    globalViewModel.appTheme.value == AppTheme.DarkMode
-                                )
-                                    R.drawable.ic_baseline_info_white_24
-                                else R.drawable.ic_baseline_info_black_24
-                            ),
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
+                            tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black
                         )
                         Text("Your OS needs at least:\n - Android 9 to follow device theme,\n - Android 12 to enable dynamic color.")
                     }

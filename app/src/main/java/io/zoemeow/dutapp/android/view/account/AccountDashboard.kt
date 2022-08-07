@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.account
 
-import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -23,20 +22,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
+import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
 @Composable
 fun AccountDashboard(
+    globalViewModel: GlobalViewModel,
+    accountViewModel: AccountViewModel,
     padding: PaddingValues,
-    logoutRequested: () -> Unit
 ) {
-    val dialogLogoutEnabled = remember { mutableStateOf(false) }
-
-    AccountLogoutDialog(
-        enabled = dialogLogoutEnabled,
-        logoutRequest = { logoutRequested() }
-    )
     Column(
-        modifier = Modifier.fillMaxSize().padding(padding),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -78,7 +76,7 @@ fun AccountDashboard(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "View account information",
+                text = "View Account Information",
                 modifier = Modifier.padding(15.dp),
             )
         }
@@ -91,13 +89,12 @@ fun AccountDashboard(
                 .clip(RoundedCornerShape(15.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable {
-                    val intent = Intent(context, AccountSubjectScheduleActivity::class.java)
-                    context.startActivity(intent)
+                    accountViewModel.accountPage.value = 2
                 },
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "View subject schedules",
+                text = "View Subject Schedule",
                 modifier = Modifier.padding(15.dp),
             )
         }
@@ -110,26 +107,14 @@ fun AccountDashboard(
                 .clip(RoundedCornerShape(15.dp))
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .clickable {
-                    val intent = Intent(context, AccountSubjectFeeActivity::class.java)
-                    context.startActivity(intent)
+                    accountViewModel.accountPage.value = 3
                 },
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text = "View subject fees",
+                text = "View Subject Fee",
                 modifier = Modifier.padding(15.dp),
             )
         }
-        Spacer(modifier = Modifier.size(15.dp))
-        Button(
-            onClick = {
-                dialogLogoutEnabled.value = true
-            },
-            content = {
-                Text(
-                    text = "Logout"
-                )
-            }
-        )
     }
 }

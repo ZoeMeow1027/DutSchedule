@@ -6,5 +6,5 @@
     <string name="navbar_news">Tin tức</string>
     <string name="navbar_account">Tài khoản</string>
     <string name="topbar_news">Tin tức</string>
-    <string name="topbar_account">Tài khoản %1$s</string>
+    <string name="topbar_account">Tài khoản</string>
 </resources>

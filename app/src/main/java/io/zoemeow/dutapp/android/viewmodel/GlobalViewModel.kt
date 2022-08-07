@@ -1,23 +1,12 @@
 package io.zoemeow.dutapp.android.viewmodel
 
 import android.app.Activity
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.zoemeow.dutapp.android.MainActivity
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.repository.SettingsFileRepository
 import io.zoemeow.dutapp.android.utils.GetCurrentHomeWallpaper
@@ -52,10 +41,13 @@ class GlobalViewModel @Inject constructor(
     val appTheme = settingsFileRepository.appTheme
 
     // School year settings
-    var schoolYear = settingsFileRepository.schoolYear
+    val schoolYear = settingsFileRepository.schoolYear
 
     // Black theme (for AMOLED display)
     var blackTheme = settingsFileRepository.blackTheme
+
+    // Open link in
+    var openLinkType = settingsFileRepository.openLinkType
 
     fun requestSaveSettings() {
         settingsFileRepository.saveSettings()
@@ -63,19 +55,19 @@ class GlobalViewModel @Inject constructor(
 
 
 
-    // Just trigger. This doesn't do anything.
+    // Just trigger for UI update. This doesn't do anything.
     val triggerUpdateVar: MutableState<Boolean> = mutableStateOf(false)
     fun update() {
         triggerUpdateVar.value = !triggerUpdateVar.value
     }
 
-
+    val isDarkMode: MutableState<Boolean> = mutableStateOf(false)
 
     // Main activity
     private val mainActivity: MutableState<Activity?> = mutableStateOf(null)
 
     // Set main activity
-    fun setActivity(activity: Activity) {
+    fun setMainActivity(activity: Activity) {
         mainActivity.value = activity
     }
 
