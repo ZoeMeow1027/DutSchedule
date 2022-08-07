@@ -5,24 +5,28 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
 import io.zoemeow.dutapp.android.model.ProcessState
 import io.zoemeow.dutapp.android.model.SchoolYearItem
+import io.zoemeow.dutapp.android.repository.AccountFileRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(): ViewModel() {
+class AccountViewModel @Inject constructor(
+    private val accountFileRepository: AccountFileRepository
+): ViewModel() {
     companion object {
-        private val instance: MutableState<AccountViewModel> = mutableStateOf(AccountViewModel())
+        private val instance: MutableState<AccountViewModel?> = mutableStateOf(null)
 
         fun getInstance(): AccountViewModel {
-            return instance.value
+            return instance.value!!
         }
 
         fun setInstance(accViewModel: AccountViewModel) {
@@ -34,11 +38,6 @@ class AccountViewModel @Inject constructor(): ViewModel() {
      * GlobalViewModel
      */
     private val globalViewModel = GlobalViewModel.getInstance()
-
-    /**
-     * Account session. Handle all for easier use for DutAPI-Java.
-     */
-    private val accountSession = AccountSession()
 
     /**
      * Check if you have logged in.
@@ -90,14 +89,14 @@ class AccountViewModel @Inject constructor(): ViewModel() {
      * Result will return to ```isLoggedIn```.
      */
     private fun checkIsLoggedIn() {
-        isLoggedIn.value = accountSession.isLoggedIn()
+        isLoggedIn.value = accountFileRepository.isLoggedIn()
     }
 
     /**
      * Login account using username and password to sv.dut.udn.vn.
      * Result will return to ```isLoggedIn``` via checkIsLoggedIn().
      */
-    fun login(username: String, password: String) {
+    fun login(username: String, password: String, remember: Boolean = true) {
         if (processStateLoggingIn.value == ProcessState.Running)
             return
 
@@ -105,10 +104,14 @@ class AccountViewModel @Inject constructor(): ViewModel() {
             try {
                 processStateLoggingIn.value = ProcessState.Running
 
-                val result = accountSession.login(username, password)
+                val result = accountFileRepository.login(username, password, remember)
 
                 if (result) {
                     processStateLoggingIn.value = ProcessState.Successful
+
+                    // Set view to 1
+                    accountPage.value = 1
+
                     globalViewModel.showMessageSnackBar("Successfully login!")
                 }
                 else {
@@ -131,6 +134,43 @@ class AccountViewModel @Inject constructor(): ViewModel() {
         }
     }
 
+    var reLoginFirstTime: Boolean = true
+
+    fun reLogin() {
+        if (!reLoginFirstTime)
+            return
+
+        if (processStateLoggingIn.value == ProcessState.Running)
+            return
+
+        viewModelScope.launch {
+            try {
+                processStateLoggingIn.value = ProcessState.Running
+
+                if (accountFileRepository.isLoggedIn() || accountFileRepository.login()) {
+                    processStateLoggingIn.value = ProcessState.Successful
+                    checkIsLoggedIn()
+
+                    // Set view to 1
+                    accountPage.value = 1
+                }
+                else throw Exception("Session expired and your account is out-of-date.")
+            }
+            catch (ex: Exception) {
+                processStateLoggingIn.value = ProcessState.Failed
+                ex.printStackTrace()
+                accountFileRepository.checkOrGetSessionId()
+//                globalViewModel.showMessageSnackBar(
+//                    "Something went wrong while logging you in! " +
+//                            "Don't worry, just try again. " +
+//                            "If still unsuccessful, try to logout and login again."
+//                )
+            }
+        }
+
+        reLoginFirstTime = false
+    }
+
     /**
      * Logout your account from sv.dut.udn.vn.
      * Result will return to ```isLoggedIn``` via checkIsLoggedIn().
@@ -143,17 +183,22 @@ class AccountViewModel @Inject constructor(): ViewModel() {
             try {
                 processStateLoggingIn.value = ProcessState.Running
 
-                val result = accountSession.logout()
+                val result = accountFileRepository.logout()
 
                 if (result) {
                     processStateLoggingIn.value = ProcessState.Successful
+
+                    // Reset view to 0
+                    accountPage.value = 0
+
                     globalViewModel.showMessageSnackBar("Successfully logout!")
                 }
                 else {
                     processStateLoggingIn.value = ProcessState.Failed
                     globalViewModel.showMessageSnackBar(
                         "Something went wrong while logging you out! " +
-                                "Don't worry, just try again."
+                                "Don't worry, just try again. " +
+                                "If still unsuccessful, try to logout and login again."
                     )
                 }
                 checkIsLoggedIn()
@@ -162,7 +207,8 @@ class AccountViewModel @Inject constructor(): ViewModel() {
                 processStateLoggingIn.value = ProcessState.Failed
                 globalViewModel.showMessageSnackBar(
                     "Something went wrong while logging you out! " +
-                            "Don't worry, just try again."
+                            "Don't worry, just try again. " +
+                            "If still unsuccessful, try to logout and login again."
                 )
             }
         }
@@ -173,7 +219,7 @@ class AccountViewModel @Inject constructor(): ViewModel() {
      * (FOR OFFLINE AND CACHE USING ONLY, USE THIS AT YOUR OWN RISK)
      */
     fun setSessionId(sessionId: String) {
-        accountSession.setSessionId(sessionId)
+        accountFileRepository.setSessionId(sessionId)
         checkIsLoggedIn()
     }
 
@@ -194,11 +240,11 @@ class AccountViewModel @Inject constructor(): ViewModel() {
                 processStateSubjectSchedule.value = ProcessState.Running
 
                 val subTemp = if (schoolYearItemInput != null)
-                    accountSession.getSubjectSchedule(
+                    accountFileRepository.getSubjectSchedule(
                         schoolYearItemInput.year,
                         schoolYearItemInput.semester
                     )
-                else accountSession.getSubjectSchedule(
+                else accountFileRepository.getSubjectSchedule(
                     globalViewModel.schoolYear.value.year,
                     globalViewModel.schoolYear.value.semester
                 )
@@ -232,11 +278,11 @@ class AccountViewModel @Inject constructor(): ViewModel() {
                 processStateSubjectFee.value = ProcessState.Running
 
                 val subTemp: ArrayList<SubjectFeeItem> = if (schoolYearItemInput != null)
-                    accountSession.getSubjectFee(
+                    accountFileRepository.getSubjectFee(
                         schoolYearItemInput.year,
                         schoolYearItemInput.semester
                     )
-                else accountSession.getSubjectFee(
+                else accountFileRepository.getSubjectFee(
                     globalViewModel.schoolYear.value.year,
                     globalViewModel.schoolYear.value.semester
                 )
@@ -268,7 +314,7 @@ class AccountViewModel @Inject constructor(): ViewModel() {
             try {
                 processStateAccInfo.value = ProcessState.Running
 
-                accountInformation.value = accountSession.getAccountInformation()
+                accountInformation.value = accountFileRepository.getAccountInformation()
                 username.value = accountInformation.value?.studentId ?: ""
 
                 processStateAccInfo.value = ProcessState.Successful
@@ -278,4 +324,15 @@ class AccountViewModel @Inject constructor(): ViewModel() {
             }
         }
     }
+
+
+    // View here
+    /**
+     * Current page of account
+     * 0: Not logged in
+     * 1: Dashboard
+     * 2: Subject schedule
+     * 3: Subject fee
+     */
+    val accountPage: MutableState<Int> = mutableStateOf(0)
 }

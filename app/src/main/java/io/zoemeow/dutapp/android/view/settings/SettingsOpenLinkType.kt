@@ -1,41 +1,39 @@
 package io.zoemeow.dutapp.android.view.settings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutapp.android.R
-import io.zoemeow.dutapp.android.model.enums.AppTheme
-import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
+import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SettingsBackgroundImage(
+fun SettingsOpenLinkType(
     enabled: MutableState<Boolean>,
     globalViewModel: GlobalViewModel
 ) {
-    val optionList = listOf("Unset", "From device wallpaper", "Specific a image")
-    val selectedOptionList = remember { mutableStateOf("") }
+    val optionList = listOf(
+        "Built-in browser",
+        "Default browser custom tab",
+        "External browser"
+    )
+    val selectedOptionList = remember { mutableStateOf(0) }
 
     LaunchedEffect(enabled.value) {
-        selectedOptionList.value = optionList[globalViewModel.backgroundImage.value.option.ordinal]
+        selectedOptionList.value = globalViewModel.openLinkType.value.ordinal
     }
 
     fun commitChanges() {
-        globalViewModel.backgroundImage.value.option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
-
-        globalViewModel.loadBackground()
+        globalViewModel.openLinkType.value = OpenLinkType.values()[selectedOptionList.value]
         globalViewModel.requestSaveSettings()
         globalViewModel.update()
         enabled.value = false
@@ -58,7 +56,7 @@ fun SettingsBackgroundImage(
                 enabled.value = false
             },
             title = {
-                Text("Select your background image")
+                Text("When you click a link, open it in:")
             },
             confirmButton = {
 
@@ -85,40 +83,20 @@ fun SettingsBackgroundImage(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    if (optionList.indexOf(option) <= 1) {
-                                        selectedOptionList.value = option
-                                        commitChanges()
-                                    }
+                                    selectedOptionList.value = optionList.indexOf(option)
+                                    commitChanges()
                                 }
                         ) {
                             RadioButton(
-                                selected = (option == selectedOptionList.value),
+                                selected = (optionList.indexOf(option) == selectedOptionList.value),
                                 onClick = {
-                                    if (optionList.indexOf(option) <= 1) {
-                                        selectedOptionList.value = option
-                                        commitChanges()
-                                    }
+                                    selectedOptionList.value = optionList.indexOf(option)
+                                    commitChanges()
                                 }
                             )
                             Spacer(modifier = Modifier.size(5.dp))
                             Text(text = option)
                         }
-                    }
-                    Spacer(modifier = Modifier.size(15.dp))
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.wrapContentSize()
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
-                            contentDescription = "info_icon",
-                            tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black
-                        )
-                        Text(
-                            "- Remember, this feature is still in beta, so it isn't working well yet.\n" +
-                                "- \"Specific a image\" option is temporary disabled due to not working yet."
-                        )
                     }
                 }
             }

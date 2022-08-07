@@ -3,6 +3,7 @@ package io.zoemeow.dutapp.android.view.account
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,6 +27,6 @@ fun AccountQueryingYourRequest() {
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(modifier = Modifier.size(10.dp))
-        CircularProgressIndicator()
+        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
     }
 }

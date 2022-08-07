@@ -10,12 +10,15 @@ import com.google.gson.reflect.TypeToken
 import io.zoemeow.dutapp.android.model.SchoolYearItem
 import io.zoemeow.dutapp.android.model.appsettings.BackgroundImage
 import io.zoemeow.dutapp.android.model.enums.AppTheme
+import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import java.io.BufferedReader
 import java.io.File
 import java.io.Serializable
 import javax.inject.Inject
+import kotlin.properties.Delegates
 
 class SettingsFileRepository @Inject constructor(private val file: File): Serializable {
+
     @SerializedName("background_image")
     private var pBackgroundImage: BackgroundImage = BackgroundImage()
 
@@ -33,6 +36,9 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
     @SerializedName("black_theme")
     private var pBlackTheme: Boolean = false
 
+    @SerializedName("open_link_type")
+    private var pOpenLinkType: OpenLinkType = OpenLinkType.InBuiltIn
+
     // App background image
     @Transient
     val backgroundImage: MutableState<BackgroundImage> = mutableStateOf(BackgroundImage())
@@ -49,8 +55,14 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
     @Transient
     val schoolYear: MutableState<SchoolYearItem> = mutableStateOf(SchoolYearItem())
 
+    // App black theme
     @Transient
     val blackTheme: MutableState<Boolean> = mutableStateOf(false)
+
+    // Open link in
+    @Transient
+    var openLinkType: MutableState<OpenLinkType> = mutableStateOf(OpenLinkType.InBuiltIn)
+
 
     @Transient
     private var readyToSave: Boolean = true
@@ -72,6 +84,7 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
             dynamicColorEnabled.value = variableItemTemp.pDynamicColorEnabled
             appTheme.value = variableItemTemp.pAppTheme
             schoolYear.value = variableItemTemp.pSchoolYear
+            openLinkType.value = variableItemTemp.pOpenLinkType
         }
         catch (ex: Exception) {
             ex.printStackTrace()
@@ -91,6 +104,7 @@ class SettingsFileRepository @Inject constructor(private val file: File): Serial
             pDynamicColorEnabled = dynamicColorEnabled.value
             pAppTheme = appTheme.value
             pSchoolYear = schoolYear.value
+            pOpenLinkType = openLinkType.value
 
             try {
                 val str = Gson().toJson(this)

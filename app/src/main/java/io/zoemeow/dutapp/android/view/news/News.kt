@@ -20,7 +20,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.AppTheme
-import io.zoemeow.dutapp.android.utils.openLinkInCustomTab
+import io.zoemeow.dutapp.android.utils.openLink
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 import kotlinx.coroutines.launch
@@ -53,6 +53,7 @@ fun News(
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentColor = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -113,12 +114,8 @@ fun News(
                 NewsDetailsGlobal(
                     padding = padding,
                     news = newsViewModel.newsGlobalItemChose.value!!,
-                    darkTheme = (
-                            (globalViewModel.appTheme.value == AppTheme.FollowSystem && isSystemInDarkTheme()) ||
-                                    globalViewModel.appTheme.value == AppTheme.DarkMode
-                            ),
                     linkClicked = {
-                        openLinkInCustomTab(context, it)
+                        openLink(it, context, globalViewModel.openLinkType.value)
                     }
                 )
             }
@@ -126,12 +123,8 @@ fun News(
                 NewsDetailsSubject(
                     padding = padding,
                     news = newsViewModel.newsSubjectItemChose.value!!,
-                    darkTheme = (
-                            (globalViewModel.appTheme.value == AppTheme.FollowSystem && isSystemInDarkTheme()) ||
-                                    globalViewModel.appTheme.value == AppTheme.DarkMode
-                            ),
                     linkClicked = {
-                        openLinkInCustomTab(context, it)
+                        openLink(it, context, globalViewModel.openLinkType.value)
                     }
                 )
             }
@@ -144,7 +137,7 @@ fun News(
                     HorizontalPager(count = tabList.size, state = pagerState) { index ->
                         when (index) {
                             0 -> NewsGlobal(
-                                newsGlobalList = newsViewModel.newsGlobalList,
+                                newsGlobalList = newsViewModel.newsGlobalListByDate,
                                 isLoading = newsViewModel.newsGlobalState,
                                 lazyListState = newsViewModel.lazyListNewsGlobalState,
                                 reloadRequested = {
@@ -156,7 +149,7 @@ fun News(
                                 }
                             )
                             1 -> NewsSubject(
-                                newsSubjectList = newsViewModel.newsSubjectList,
+                                newsSubjectList = newsViewModel.newsSubjectListByDate,
                                 isLoading = newsViewModel.newsSubjectState,
                                 lazyListState = newsViewModel.lazyListNewsSubjectState,
                                 reloadRequested = {

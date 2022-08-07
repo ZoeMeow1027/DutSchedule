@@ -22,7 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
-import io.zoemeow.dutapp.android.ui.theme.DUTAppForAndroidTheme
+import io.zoemeow.dutapp.android.ui.theme.MainActivityTheme
 import io.zoemeow.dutapp.android.view.account.Account
 import io.zoemeow.dutapp.android.view.main.Main
 import io.zoemeow.dutapp.android.view.mainnavbar.MainBottomNavigationBar
@@ -51,20 +51,20 @@ class MainActivity : ComponentActivity() {
             globalViewModel = viewModel()
             GlobalViewModel.setInstance(globalViewModel)
             // Set activity to variable in GlobalViewModel
-            globalViewModel.setActivity(this)
+            globalViewModel.setMainActivity(this)
             // Load backgrounds if its settings is enabled
             globalViewModel.loadBackground()
             // Set SnackBar in MainActivity Scaffold
             globalViewModel.snackBarHostState = SnackbarHostState()
 
             // Initialize AccountViewModel
-            AccountViewModel.setInstance(viewModel())
-            accountViewModel = AccountViewModel.getInstance()
+            accountViewModel = viewModel()
+            AccountViewModel.setInstance(accountViewModel)
 
             // Initialize NewsViewModel
             newsViewModel = viewModel()
 
-            DUTAppForAndroidTheme(
+            MainActivityTheme(
                 dynamicColor = globalViewModel.dynamicColorEnabled.value,
                 darkTheme = (
                         (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
@@ -73,6 +73,8 @@ class MainActivity : ComponentActivity() {
                 ),
                 blackTheme = globalViewModel.blackTheme.value
             ) {
+                accountViewModel.reLogin()
+
                 // Initialize for NavController for main activity
                 val navController = rememberNavController()
                 // Nav Route
@@ -147,7 +149,7 @@ class MainActivity : ComponentActivity() {
             }
 
             composable(MainNavRoutes.Account.route) {
-                Account(accountViewModel)
+                Account(globalViewModel, accountViewModel)
             }
 
             composable(MainNavRoutes.Settings.route) {

@@ -9,8 +9,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.News
+import io.zoemeow.dutapi.objects.LinkItem
 import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapi.objects.NewsType
+import io.zoemeow.dutapp.android.model.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,9 @@ class NewsViewModel @Inject constructor() : ViewModel() {
      * This will save old item for cache and offline viewing for News Global.
      */
     val newsGlobalList: SnapshotStateList<NewsGlobalItem> = mutableStateListOf()
+
+    val newsGlobalListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
+    val newsSubjectListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
 
     /**
      * Check if a progress for get news global is running.
@@ -54,14 +59,19 @@ class NewsViewModel @Inject constructor() : ViewModel() {
      */
     private val newsSubjectPage: MutableState<Int> = mutableStateOf(1)
 
-    @SuppressWarnings("unchecked")
-    private fun <T> getNews(
-        newsType: NewsType,
-        newsState: MutableState<ProcessState>,
-        newsList: SnapshotStateList<T>,
-        newsPage: MutableState<Int>,
-        renewNewsList: Boolean = false
-    ) {
+    /**
+     * Get news from sv.dut.udn.vn (tab Thông báo chung).
+     *
+     * @param renewNewsList: Mark this function for delete all item in old list and add new one. Otherwise
+     * it will append to old one.
+     */
+    fun getNewsGlobal(renewNewsList: Boolean = false) {
+        val newsType = NewsType.Global
+        val newsState = newsGlobalState
+        val newsList = newsGlobalList
+        val newsListByDate = newsGlobalListByDate
+        val newsPage = newsGlobalPage
+
         // If another instance is running, will not run this instance.
         if (newsState.value == ProcessState.Running)
             return
@@ -72,7 +82,7 @@ class NewsViewModel @Inject constructor() : ViewModel() {
         // Use this instead of viewModelScope.launch {} to avoid freezing UI.
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                Log.d("NewsViewModel", "Triggered $newsType load with page ${newsPage.value}")
+                Log.d("NewsViewModel", "Triggered $newsType load with ${newsPage.value}")
 
                 val newsTemp = News.getNews(newsType, if (renewNewsList) 1 else newsPage.value)
                 if (newsTemp.size <= 0) {
@@ -81,10 +91,25 @@ class NewsViewModel @Inject constructor() : ViewModel() {
                 }
 
                 //
-                if (renewNewsList) newsList.clear()
-                for (newsTempItem in newsTemp) {
-                    newsList.add(newsTempItem as T)
+                if (renewNewsList) {
+                    newsList.clear()
+                    newsListByDate.clear()
                 }
+                newsTemp.forEach { item ->
+                    newsList.add(item)
+                    if (newsListByDate.firstOrNull { it.date == item.date } == null) {
+                        newsListByDate.add(
+                            NewsGroupByDate<NewsGlobalItem>(
+                                itemList = arrayListOf(item),
+                                date = item.date
+                            )
+                        )
+                    }
+                    else {
+                        newsListByDate.first { it.date == item.date }.itemList.add(item)
+                    }
+                }
+                newsListByDate.sortByDescending { it.date }
                 newsTemp.clear()
 
                 // If renew, will reset news state to default.
@@ -106,35 +131,74 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     }
 
     /**
-     * Get news from sv.dut.udn.vn (tab Thông báo chung).
-     *
-     * @param renewNewsList: Mark this function for delete all item in old list and add new one. Otherwise
-     * it will append to old one.
-     */
-    fun getNewsGlobal(renewNewsList: Boolean = false) {
-        getNews(
-            newsType = NewsType.Global,
-            newsState = newsGlobalState,
-            newsList = newsGlobalList,
-            newsPage = newsGlobalPage,
-            renewNewsList = renewNewsList
-        )
-    }
-
-    /**
      * Get news from sv.dut.udn.vn (tab Thông báo lớp học phần).
      *
      * @param renewNewsList: Mark this function for delete all item in old list and add new one. Otherwise
      * it will append to old one.
      */
     fun getNewsSubject(renewNewsList: Boolean = false) {
-        getNews(
-            newsType = NewsType.Subject,
-            newsState = newsSubjectState,
-            newsList = newsSubjectList,
-            newsPage = newsSubjectPage,
-            renewNewsList = renewNewsList
-        )
+        val newsType = NewsType.Subject
+        val newsState = newsSubjectState
+        val newsList = newsSubjectList
+        val newsListByDate = newsSubjectListByDate
+        val newsPage = newsSubjectPage
+
+        // If another instance is running, will not run this instance.
+        if (newsState.value == ProcessState.Running)
+            return
+
+        // Set to running to avoid another instance.
+        newsState.value = ProcessState.Running
+
+        // Use this instead of viewModelScope.launch {} to avoid freezing UI.
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                Log.d("NewsViewModel", "Triggered $newsType load with ${newsPage.value}")
+
+                val newsTemp = News.getNews(newsType, if (renewNewsList) 1 else newsPage.value)
+                if (newsTemp.size <= 0) {
+                    Log.w("NewsViewModel", "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet.")
+                    throw Exception("$newsType list is empty!")
+                }
+
+                //
+                if (renewNewsList) {
+                    newsList.clear()
+                    newsListByDate.clear()
+                }
+                newsTemp.forEach { item ->
+                    newsList.add(item)
+                    if (newsListByDate.firstOrNull { it.date == item.date } == null) {
+                        newsListByDate.add(
+                            NewsGroupByDate<NewsGlobalItem>(
+                                itemList = arrayListOf(item),
+                                date = item.date
+                            )
+                        )
+                    }
+                    else {
+                        newsListByDate.first { it.date == item.date }.itemList.add(item)
+                    }
+                }
+                newsListByDate.sortByDescending { it.date }
+                newsTemp.clear()
+
+                // If renew, will reset news state to default.
+                // Otherwise, increase news page by 1
+                newsPage.value = if (renewNewsList) 2 else newsPage.value + 1
+
+                newsState.value = ProcessState.Successful
+            }
+            // Any exception thrown will be result of failed.
+            catch (ex: Exception) {
+                globalViewModel.showMessageSnackBar(
+                    "We ran into a problem while getting your $newsType. " +
+                            "Check your internet connection and try again."
+                )
+                ex.printStackTrace()
+                newsState.value = ProcessState.Failed
+            }
+        }
     }
 
     val newsGlobalItemChose: MutableState<NewsGlobalItem?> = mutableStateOf(null)
