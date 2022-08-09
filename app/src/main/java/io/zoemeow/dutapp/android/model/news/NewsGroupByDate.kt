@@ -1,4 +1,4 @@
-package io.zoemeow.dutapp.android.model
+package io.zoemeow.dutapp.android.model.news
 
 import java.io.Serializable
 

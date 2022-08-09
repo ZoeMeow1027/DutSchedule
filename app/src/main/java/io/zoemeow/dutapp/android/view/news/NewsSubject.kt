@@ -1,14 +1,11 @@
 package io.zoemeow.dutapp.android.view.news
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -18,9 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapp.android.model.NewsGroupByDate
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
-import io.zoemeow.dutapp.android.utils.DateToString
 import io.zoemeow.dutapp.android.utils.LazyList_EndOfListHandler
 
 @Composable

@@ -5,13 +5,12 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
 import io.zoemeow.dutapp.android.model.ProcessState
-import io.zoemeow.dutapp.android.model.SchoolYearItem
+import io.zoemeow.dutapp.android.model.account.SchoolYearItem
 import io.zoemeow.dutapp.android.repository.AccountFileRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,17 +21,10 @@ import javax.inject.Inject
 class AccountViewModel @Inject constructor(
     private val accountFileRepository: AccountFileRepository
 ): ViewModel() {
-    companion object {
-        private val instance: MutableState<AccountViewModel?> = mutableStateOf(null)
-
-        fun getInstance(): AccountViewModel {
-            return instance.value!!
-        }
-
-        fun setInstance(accViewModel: AccountViewModel) {
-            this.instance.value = accViewModel
-        }
-    }
+    /**
+     * UIStatus
+     */
+    private val uiStatus: UIStatus = UIStatus.getInstance()
 
     /**
      * GlobalViewModel
@@ -78,6 +70,9 @@ class AccountViewModel @Inject constructor(
      * Your username (this means your student ID) after logged in.
      */
     val username: MutableState<String> = mutableStateOf(String())
+    private fun setUserName(username: String) {
+        this.username.value = username
+    }
 
     /**
      * Check if a progress for get account information is running.
@@ -108,67 +103,28 @@ class AccountViewModel @Inject constructor(
 
                 if (result) {
                     processStateLoggingIn.value = ProcessState.Successful
-
+                    // Set username
+                    setUserName(username)
                     // Set view to 1
-                    accountPage.value = 1
+                    uiStatus.accountCurrentPage.value = 1
 
-                    globalViewModel.showMessageSnackBar("Successfully login!")
-                }
-                else {
-                    processStateLoggingIn.value = ProcessState.Failed
-//                    globalViewModel.showMessageSnackBar(
-//                        "Something went wrong with your account! " +
-//                            "Make sure your username and password is correct."
-//                    )
-                }
-                checkIsLoggedIn()
-                getAccountInformation()
-            }
-            catch (ex: Exception) {
-                processStateLoggingIn.value = ProcessState.Failed
-//                globalViewModel.showMessageSnackBar(
-//                    "Something went wrong while logging you in! " +
-//                        "Don't worry, just try again."
-//                )
-            }
-        }
-    }
-
-    var reLoginFirstTime: Boolean = true
-
-    fun reLogin() {
-        if (!reLoginFirstTime)
-            return
-
-        if (processStateLoggingIn.value == ProcessState.Running)
-            return
-
-        viewModelScope.launch {
-            try {
-                processStateLoggingIn.value = ProcessState.Running
-
-                if (accountFileRepository.isLoggedIn() || accountFileRepository.login()) {
-                    processStateLoggingIn.value = ProcessState.Successful
                     checkIsLoggedIn()
 
-                    // Set view to 1
-                    accountPage.value = 1
+                    // Preload account information
+                    getSubjectSchedule()
+                    getSubjectFee()
+                    getAccountInformation()
+
+                    // Show snack bar
+                    uiStatus.showSnackBarMessage("Successfully login!")
                 }
-                else throw Exception("Session expired and your account is out-of-date.")
+                else throw Exception("Failed while logging in!")
             }
             catch (ex: Exception) {
                 processStateLoggingIn.value = ProcessState.Failed
-                ex.printStackTrace()
-                accountFileRepository.checkOrGetSessionId()
-//                globalViewModel.showMessageSnackBar(
-//                    "Something went wrong while logging you in! " +
-//                            "Don't worry, just try again. " +
-//                            "If still unsuccessful, try to logout and login again."
-//                )
+                checkIsLoggedIn()
             }
         }
-
-        reLoginFirstTime = false
     }
 
     /**
@@ -181,46 +137,22 @@ class AccountViewModel @Inject constructor(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                processStateLoggingIn.value = ProcessState.Running
+                accountFileRepository.logout()
 
-                val result = accountFileRepository.logout()
+                processStateLoggingIn.value = ProcessState.Successful
+                // Clear username
+                setUserName("")
+                // Reset view to 0
+                uiStatus.accountCurrentPage.value = 0
+                accountFileRepository.checkOrGetSessionId(true)
 
-                if (result) {
-                    processStateLoggingIn.value = ProcessState.Successful
-
-                    // Reset view to 0
-                    accountPage.value = 0
-
-                    globalViewModel.showMessageSnackBar("Successfully logout!")
-                }
-                else {
-                    processStateLoggingIn.value = ProcessState.Failed
-                    globalViewModel.showMessageSnackBar(
-                        "Something went wrong while logging you out! " +
-                                "Don't worry, just try again. " +
-                                "If still unsuccessful, try to logout and login again."
-                    )
-                }
+                uiStatus.showSnackBarMessage("Successfully logout!")
                 checkIsLoggedIn()
             }
             catch (ex: Exception) {
-                processStateLoggingIn.value = ProcessState.Failed
-                globalViewModel.showMessageSnackBar(
-                    "Something went wrong while logging you out! " +
-                            "Don't worry, just try again. " +
-                            "If still unsuccessful, try to logout and login again."
-                )
+                ex.printStackTrace()
             }
         }
-    }
-
-    /**
-     * Set custom Session ID, which can get from sv.dut.udn.vn.
-     * (FOR OFFLINE AND CACHE USING ONLY, USE THIS AT YOUR OWN RISK)
-     */
-    fun setSessionId(sessionId: String) {
-        accountFileRepository.setSessionId(sessionId)
-        checkIsLoggedIn()
     }
 
     /**
@@ -325,14 +257,52 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-
-    // View here
     /**
-     * Current page of account
-     * 0: Not logged in
-     * 1: Dashboard
-     * 2: Subject schedule
-     * 3: Subject fee
+     * Re-login your account (this will be triggered when you have saved account in application.
      */
-    val accountPage: MutableState<Int> = mutableStateOf(0)
+    private fun reLogin() {
+        // If another login process is running, this thread will terminate now.
+        if (processStateLoggingIn.value == ProcessState.Running)
+            return
+
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                // If session id is not working, create new session id and try to login again.
+                if (!isLoggedIn.value) {
+                    accountFileRepository.checkOrGetSessionId(true)
+                    accountFileRepository.login()
+                }
+
+                // If successful login, load account information here
+                if (isLoggedIn.value) {
+                    // Set username
+                    setUserName(accountFileRepository.getUsername() ?: "")
+
+                    // Set view to 1
+                    uiStatus.accountCurrentPage.value = 1
+
+                    // Get account information
+                    getSubjectSchedule(globalViewModel.schoolYear.value)
+                    getSubjectFee(globalViewModel.schoolYear.value)
+                    getAccountInformation()
+                }
+                // If still failed, throw a exception.
+                else throw Exception("Session expired and your account is out-of-date.")
+            }
+            catch (ex: Exception) {
+                ex.printStackTrace()
+                uiStatus.showSnackBarMessage(
+                    "Something went wrong while logging you in! " +
+                            "Don't worry, just try again. " +
+                            "If still unsuccessful, try to logout and login again."
+                )
+            }
+        }
+    }
+
+    init {
+        accountFileRepository.loadSettings()
+        checkIsLoggedIn()
+        reLogin()
+    }
 }

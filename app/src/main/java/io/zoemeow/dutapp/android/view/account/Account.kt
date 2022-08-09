@@ -19,12 +19,14 @@ import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.ProcessState
 import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Account(
     globalViewModel: GlobalViewModel,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
+    uiStatus: UIStatus
 ) {
     val barTitle: MutableState<String> = remember { mutableStateOf("") }
 
@@ -44,7 +46,7 @@ fun Account(
         accountViewModel.processStateSubjectFee.value,
     ) {
         if (!accountViewModel.isLoggedIn.value)
-            accountViewModel.accountPage.value = 0
+            uiStatus.accountCurrentPage.value = 0
 
         swipeRefreshStateSubjectSchedule.isRefreshing = accountViewModel.processStateSubjectSchedule.value == ProcessState.Running
         swipeRefreshStateSubjectFee.isRefreshing = accountViewModel.processStateSubjectFee.value == ProcessState.Running
@@ -52,9 +54,9 @@ fun Account(
 
     // Trigger when switch pages
     LaunchedEffect(
-        accountViewModel.accountPage.value
+        uiStatus.accountCurrentPage.value
     ) {
-        when (accountViewModel.accountPage.value) {
+        when (uiStatus.accountCurrentPage.value) {
             0 -> {
                 barTitle.value = "Not logged in"
             }
@@ -78,39 +80,39 @@ fun Account(
     BackHandler(
         enabled = (
                 if (accountViewModel.isLoggedIn.value) {
-                    accountViewModel.accountPage.value != 1
+                    uiStatus.accountCurrentPage.value != 1
                 }
-                else accountViewModel.accountPage.value != 0
+                else uiStatus.accountCurrentPage.value != 0
                 ),
         onBack = {
-            accountViewModel.accountPage.value =
+            uiStatus.accountCurrentPage.value =
                 if (accountViewModel.isLoggedIn.value) 1 else 0
         }
     )
 
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
+        contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    if (accountViewModel.accountPage.value >= 2) {
+                    if (uiStatus.accountCurrentPage.value >= 2) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
                                 .clickable {
-                                    accountViewModel.accountPage.value =
+                                    uiStatus.accountCurrentPage.value =
                                         if (accountViewModel.isLoggedIn.value) 1 else 0
                                 },
                             content = {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
+                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -123,7 +125,7 @@ fun Account(
                     }")
                 },
                 actions = {
-                    if (accountViewModel.accountPage.value == 1) {
+                    if (uiStatus.accountCurrentPage.value == 1) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
@@ -135,7 +137,7 @@ fun Account(
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_logout_24),
                                     contentDescription = "",
-                                    tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
+                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -145,7 +147,7 @@ fun Account(
             )
         },
         content = { padding ->
-            when (accountViewModel.accountPage.value) {
+            when (uiStatus.accountCurrentPage.value) {
                 0 -> {
                     AccountNotLoggedIn(
                         padding = padding,
@@ -154,8 +156,8 @@ fun Account(
                 }
                 1 -> {
                     AccountDashboard(
-                        globalViewModel = globalViewModel,
                         accountViewModel = accountViewModel,
+                        uiStatus = uiStatus,
                         padding = padding,
                     )
                 }

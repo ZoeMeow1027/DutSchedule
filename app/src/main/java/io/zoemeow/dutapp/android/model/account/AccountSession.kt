@@ -1,4 +1,4 @@
-package io.zoemeow.dutapp.android.model
+package io.zoemeow.dutapp.android.model.account
 
 import java.io.Serializable
 

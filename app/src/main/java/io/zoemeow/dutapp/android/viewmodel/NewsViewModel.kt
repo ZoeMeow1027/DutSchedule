@@ -1,7 +1,6 @@
 package io.zoemeow.dutapp.android.viewmodel
 
 import android.util.Log
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -9,10 +8,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.News
-import io.zoemeow.dutapi.objects.LinkItem
 import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapi.objects.NewsType
-import io.zoemeow.dutapp.android.model.NewsGroupByDate
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,17 +20,14 @@ import javax.inject.Inject
 @HiltViewModel
 class NewsViewModel @Inject constructor() : ViewModel() {
     /**
-     * GlobalViewModel
+     * UIStatus
      */
-    private val globalViewModel = GlobalViewModel.getInstance()
+    private val uiStatus: UIStatus = UIStatus.getInstance()
 
     /**
      * This will save old item for cache and offline viewing for News Global.
      */
-    val newsGlobalList: SnapshotStateList<NewsGlobalItem> = mutableStateListOf()
-
     val newsGlobalListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
-    val newsSubjectListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
 
     /**
      * Check if a progress for get news global is running.
@@ -47,7 +42,7 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     /**
      * This will save old item for cache and offline viewing for News Subject.
      */
-    val newsSubjectList: SnapshotStateList<NewsGlobalItem> = mutableStateListOf()
+    val newsSubjectListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
 
     /**
      * Check if a progress for get news subject is running.
@@ -68,7 +63,6 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     fun getNewsGlobal(renewNewsList: Boolean = false) {
         val newsType = NewsType.Global
         val newsState = newsGlobalState
-        val newsList = newsGlobalList
         val newsListByDate = newsGlobalListByDate
         val newsPage = newsGlobalPage
 
@@ -92,14 +86,12 @@ class NewsViewModel @Inject constructor() : ViewModel() {
 
                 //
                 if (renewNewsList) {
-                    newsList.clear()
                     newsListByDate.clear()
                 }
                 newsTemp.forEach { item ->
-                    newsList.add(item)
                     if (newsListByDate.firstOrNull { it.date == item.date } == null) {
                         newsListByDate.add(
-                            NewsGroupByDate<NewsGlobalItem>(
+                            NewsGroupByDate(
                                 itemList = arrayListOf(item),
                                 date = item.date
                             )
@@ -120,7 +112,7 @@ class NewsViewModel @Inject constructor() : ViewModel() {
             }
             // Any exception thrown will be result of failed.
             catch (ex: Exception) {
-                globalViewModel.showMessageSnackBar(
+                uiStatus.showSnackBarMessage(
                     "We ran into a problem while getting your $newsType. " +
                             "Check your internet connection and try again."
                 )
@@ -139,7 +131,6 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     fun getNewsSubject(renewNewsList: Boolean = false) {
         val newsType = NewsType.Subject
         val newsState = newsSubjectState
-        val newsList = newsSubjectList
         val newsListByDate = newsSubjectListByDate
         val newsPage = newsSubjectPage
 
@@ -163,14 +154,12 @@ class NewsViewModel @Inject constructor() : ViewModel() {
 
                 //
                 if (renewNewsList) {
-                    newsList.clear()
                     newsListByDate.clear()
                 }
                 newsTemp.forEach { item ->
-                    newsList.add(item)
                     if (newsListByDate.firstOrNull { it.date == item.date } == null) {
                         newsListByDate.add(
-                            NewsGroupByDate<NewsGlobalItem>(
+                            NewsGroupByDate(
                                 itemList = arrayListOf(item),
                                 date = item.date
                             )
@@ -191,34 +180,12 @@ class NewsViewModel @Inject constructor() : ViewModel() {
             }
             // Any exception thrown will be result of failed.
             catch (ex: Exception) {
-                globalViewModel.showMessageSnackBar(
+                uiStatus.showSnackBarMessage(
                     "We ran into a problem while getting your $newsType. " +
                             "Check your internet connection and try again."
                 )
                 ex.printStackTrace()
                 newsState.value = ProcessState.Failed
-            }
-        }
-    }
-
-    val newsGlobalItemChose: MutableState<NewsGlobalItem?> = mutableStateOf(null)
-    val newsSubjectItemChose: MutableState<NewsGlobalItem?> = mutableStateOf(null)
-
-    lateinit var lazyListNewsGlobalState: LazyListState
-    lateinit var lazyListNewsSubjectState: LazyListState
-    lateinit var scope: CoroutineScope
-
-    fun scrollNewsListToTop() {
-        if (this::lazyListNewsGlobalState.isInitialized && this::scope.isInitialized) {
-            scope.launch {
-                if (!lazyListNewsGlobalState.isScrollInProgress)
-                    lazyListNewsGlobalState.animateScrollToItem(index = 0)
-            }
-        }
-        if (this::lazyListNewsGlobalState.isInitialized && this::scope.isInitialized) {
-            scope.launch {
-                if (!lazyListNewsSubjectState.isScrollInProgress)
-                    lazyListNewsSubjectState.animateScrollToItem(index = 0)
             }
         }
     }

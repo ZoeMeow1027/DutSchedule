@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import io.zoemeow.dutapp.android.BuildConfig
-import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.ui.custom.CustomDivider
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionHeader
@@ -20,11 +19,13 @@ import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemClickable
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemSwitch
 import io.zoemeow.dutapp.android.utils.openLink
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings() {
     val globalViewModel = GlobalViewModel.getInstance()
+    val uiStatus = UIStatus.getInstance()
     val context: MutableState<Context?> = remember { mutableStateOf(null) }
     context.value = LocalContext.current
 
@@ -35,7 +36,7 @@ fun Settings() {
 
     // Just trigger to recompose, this doesn't do anything special!
     val text1 = remember { mutableStateOf("Layout") }
-    LaunchedEffect(globalViewModel.triggerUpdateVar.value) {
+    LaunchedEffect(uiStatus.triggerUpdateComposeUI.value) {
         text1.value = "Layout"
     }
 
@@ -44,14 +45,19 @@ fun Settings() {
         "Default browser custom tab",
         "External browser"
     )
+    val backgroundImageOptionList = listOf(
+        "Unset",
+        "From device wallpaper",
+        "Specific a image"
+    )
 
-    SettingsSchoolYear(schoolYearSettingsEnabled, globalViewModel)
-    SettingsAppTheme(appThemeSettingsEnabled, globalViewModel)
-    SettingsBackgroundImage(backgroundImageSettingsEnabled, globalViewModel)
-    SettingsOpenLinkType(openLinkTypeSettingsEnabled, globalViewModel)
+    SettingsSchoolYear(schoolYearSettingsEnabled, globalViewModel, uiStatus)
+    SettingsAppTheme(appThemeSettingsEnabled, globalViewModel, uiStatus)
+    SettingsBackgroundImage(backgroundImageSettingsEnabled, globalViewModel, uiStatus)
+    SettingsOpenLinkType(openLinkTypeSettingsEnabled, globalViewModel, uiStatus)
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
+        contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -97,12 +103,7 @@ fun Settings() {
                     )
                     SettingsOptionItemClickable(
                         title = "Background Image",
-                        description = when (globalViewModel.backgroundImage.value.option) {
-                            BackgroundImageType.Unset -> "Unset"
-                            BackgroundImageType.FromWallpaper -> "From phone wallpaper"
-                            BackgroundImageType.FromItemYouSpecific -> "Specific a image (" +
-                                    "${globalViewModel.backgroundImage.value.path})"
-                        },
+                        description = backgroundImageOptionList[globalViewModel.backgroundImage.value.option.ordinal],
                         clickable = {
                             backgroundImageSettingsEnabled.value = true
                         }

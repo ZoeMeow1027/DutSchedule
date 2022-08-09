@@ -7,7 +7,6 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -26,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.web.*
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.ui.theme.DefaultActivityTheme
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 class BuiltInCustomTab: ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +42,7 @@ class BuiltInCustomTab: ComponentActivity() {
                     finish()
                 }
 
-                val globalViewModel = GlobalViewModel.getInstance()
+                val uiStatus: UIStatus = UIStatus.getInstance()
 
                 // Title and url, which will display to SmallTopAppBar
                 val barTitle: MutableState<String?> = remember { mutableStateOf("") }
@@ -115,7 +114,7 @@ class BuiltInCustomTab: ComponentActivity() {
                                     Icon(
                                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_close_24),
                                         contentDescription = "",
-                                        tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black
+                                        tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                                     )
                                 }
                             },

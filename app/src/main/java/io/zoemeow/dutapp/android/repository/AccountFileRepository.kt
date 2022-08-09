@@ -19,16 +19,16 @@ import javax.inject.Inject
 class AccountFileRepository @Inject constructor(
     @Transient private val file: File
 ): Serializable {
-    @SerializedName("username")
+    @SerializedName("account.username")
     private var username: String? = null
 
-    @SerializedName("password")
+    @SerializedName("account.password")
     private var password: String? = null
 
-    @SerializedName("session_id")
+    @SerializedName("session.id")
     private var sessionId: String? = null
 
-    @SerializedName("session_id_lastrequest")
+    @SerializedName("session.lastrequest")
     private var sessionIdLastRequest: Long = 0
 
     @Transient
@@ -40,19 +40,6 @@ class AccountFileRepository @Inject constructor(
 
     private fun isSessionIdExpired(): Boolean {
         return System.currentTimeMillis() - sessionIdLastRequest >= (1000 * 60 * 30)
-    }
-
-    fun setSessionId(sessionId: String) {
-        this.sessionId = sessionId
-
-        if (Account.isLoggedIn(sessionId)) {
-            sessionIdLastRequest = System.currentTimeMillis()
-        }
-        else {
-            sessionIdLastRequest = 0
-            this.sessionId = null
-        }
-        saveSettings()
     }
 
     fun getUsername(): String? {
@@ -100,15 +87,16 @@ class AccountFileRepository @Inject constructor(
 
     fun logout(): Boolean {
         return try {
-            if (isLoggedIn()) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    kotlin.runCatching {
-                        Account.logout(sessionId)
-                    }
+            this.username = null
+            this.password = null
+            CoroutineScope(Dispatchers.IO).launch {
+                kotlin.runCatching {
+                    Account.logout(sessionId)
                 }
-                this.sessionId = null
-                this.sessionIdLastRequest = 0
             }
+            this.sessionId = null
+            this.sessionIdLastRequest = 0
+
             saveSettings()
             true
         }
@@ -169,7 +157,7 @@ class AccountFileRepository @Inject constructor(
         }
     }
 
-    private fun loadSettings() {
+    fun loadSettings() {
         try {
             Log.d("AccountRead", "Triggered account reading...")
             readyToSave = false

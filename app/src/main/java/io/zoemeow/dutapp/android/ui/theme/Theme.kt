@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -47,7 +47,7 @@ fun MainActivityTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val globalViewModel = GlobalViewModel.getInstance()
+    val uiStatus = UIStatus.getInstance()
 
     var colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
@@ -71,14 +71,16 @@ fun MainActivityTheme(
     }
 
     // Trigger for dark mode detection.
-    globalViewModel.isDarkMode.value = darkTheme
+    uiStatus.mainActivityIsDarkTheme.value = darkTheme
 
+    // Load background image if needed
     BackgroundImage(
-        drawable = if (globalViewModel.backgroundDrawable.value != null)
-            globalViewModel.backgroundDrawable.value
+        drawable = if (uiStatus.mainActivityBackgroundDrawable.value != null)
+            uiStatus.mainActivityBackgroundDrawable.value
         else ColorDrawable(colorScheme.background.hashCode())
     )
 
+    // Start compose UI
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

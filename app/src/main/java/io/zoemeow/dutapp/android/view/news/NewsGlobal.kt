@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.news
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapp.android.model.NewsGroupByDate
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
 import io.zoemeow.dutapp.android.utils.LazyList_EndOfListHandler
 

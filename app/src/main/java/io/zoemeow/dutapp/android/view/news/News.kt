@@ -1,10 +1,8 @@
 package io.zoemeow.dutapp.android.view.news
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,23 +10,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
-import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.utils.openLink
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun News(
     newsViewModel: NewsViewModel,
+    uiStatus: UIStatus
 ) {
     val globalViewModel = GlobalViewModel.getInstance()
 
@@ -39,36 +40,48 @@ fun News(
     val pagerState = rememberPagerState(initialPage = 0)
     val context = LocalContext.current
 
-    newsViewModel.lazyListNewsGlobalState = rememberLazyListState()
-    newsViewModel.lazyListNewsSubjectState = rememberLazyListState()
-    newsViewModel.scope = rememberCoroutineScope()
+    uiStatus.newsLazyListGlobalState = rememberLazyListState()
+    uiStatus.newsLazyListSubjectState = rememberLazyListState()
 
     BackHandler(
-        enabled = newsViewModel.newsGlobalItemChose.value != null || newsViewModel.newsSubjectItemChose.value != null,
-        onBack = {
-            newsViewModel.newsGlobalItemChose.value = null
-            newsViewModel.newsSubjectItemChose.value = null
-        }
+        enabled = uiStatus.newsDetectItemChosen(needClear = false),
+        onBack = { uiStatus.newsDetectItemChosen(needClear = true) }
     )
 
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (globalViewModel.isDarkMode.value) Color.White else Color.Black,
+        contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
+                navigationIcon = {
+                    if (uiStatus.newsDetectItemChosen(needClear = false)) {
+                        Box(
+                            modifier = Modifier
+                                .width(48.dp)
+                                .height(48.dp)
+                                .clickable { uiStatus.newsDetectItemChosen(needClear = true) },
+                            content = {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
+                                    contentDescription = "",
+                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        )
+                    }
+                },
                 title = { Text(stringResource(id = R.string.navbar_news)) },
                 actions = {
-                    if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
+                    if (!uiStatus.newsDetectItemChosen(needClear = false)) {
                         var count = 0
                         for (tabItem in tabList) {
                             val count2: Int = count
                             Button(
-                                onClick = {
-                                    newsViewModel.scope.launch { pagerState.animateScrollToPage(count2) }
-                                },
+                                onClick = { uiStatus.scope.launch { pagerState.animateScrollToPage(count2) } },
                                 colors = ButtonDefaults.buttonColors(
                                     if (pagerState.currentPage == count2) MaterialTheme.colorScheme.secondaryContainer
                                     else MaterialTheme.colorScheme.background
@@ -77,14 +90,7 @@ fun News(
                             ) {
                                 Text(
                                     text = tabItem,
-                                    color = (
-                                            if (
-                                                (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
-                                                        isSystemInDarkTheme()) ||
-                                                globalViewModel.appTheme.value == AppTheme.DarkMode
-                                            ) Color.White
-                                            else Color.Black
-                                            )
+                                    color = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                                 )
                             }
                             count += 1
@@ -110,19 +116,21 @@ fun News(
 //            }
         },
         content = { padding ->
-            if (newsViewModel.newsGlobalItemChose.value != null) {
+            if (uiStatus.newsItemChosenGlobal.value != null) {
                 NewsDetailsGlobal(
                     padding = padding,
-                    news = newsViewModel.newsGlobalItemChose.value!!,
+                    news = uiStatus.newsItemChosenGlobal.value!!,
+                    uiStatus = uiStatus,
                     linkClicked = {
                         openLink(it, context, globalViewModel.openLinkType.value)
                     }
                 )
             }
-            else if (newsViewModel.newsSubjectItemChose.value != null) {
+            else if (uiStatus.newsItemChosenSubject.value != null) {
                 NewsDetailsSubject(
                     padding = padding,
-                    news = newsViewModel.newsSubjectItemChose.value!!,
+                    news = uiStatus.newsItemChosenSubject.value!!,
+                    uiStatus = uiStatus,
                     linkClicked = {
                         openLink(it, context, globalViewModel.openLinkType.value)
                     }
@@ -139,25 +147,23 @@ fun News(
                             0 -> NewsGlobal(
                                 newsGlobalList = newsViewModel.newsGlobalListByDate,
                                 isLoading = newsViewModel.newsGlobalState,
-                                lazyListState = newsViewModel.lazyListNewsGlobalState,
+                                lazyListState = uiStatus.newsLazyListGlobalState,
                                 reloadRequested = {
                                     newsViewModel.getNewsGlobal(it)
                                 },
                                 itemClicked = {
-                                    // newsViewModel.openNewsDetailsGlobalActivity(it)
-                                    newsViewModel.newsGlobalItemChose.value = it
+                                    uiStatus.newsItemChosenGlobal.value = it
                                 }
                             )
                             1 -> NewsSubject(
                                 newsSubjectList = newsViewModel.newsSubjectListByDate,
                                 isLoading = newsViewModel.newsSubjectState,
-                                lazyListState = newsViewModel.lazyListNewsSubjectState,
+                                lazyListState = uiStatus.newsLazyListSubjectState,
                                 reloadRequested = {
                                     newsViewModel.getNewsSubject(it)
                                 },
                                 itemClicked = {
-//                                    newsViewModel.openNewsDetailsSubjectActivity(it)
-                                    newsViewModel.newsSubjectItemChose.value = it
+                                    uiStatus.newsItemChosenSubject.value = it
                                 }
                             )
                         }
