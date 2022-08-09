@@ -1,9 +1,7 @@
 package io.zoemeow.dutapp.android.view.settings
 
 import android.os.Build
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,12 +16,14 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsAppTheme(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel
+    globalViewModel: GlobalViewModel,
+    uiStatus: UIStatus,
 ) {
     val themeList = listOf("Follow device theme", "Dark mode", "Light mode")
     val selectedThemeList = remember { mutableStateOf("") }
@@ -39,7 +39,8 @@ fun SettingsAppTheme(
         globalViewModel.appTheme.value = AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
         globalViewModel.dynamicColorEnabled.value = dynamicColorEnabled.value
         globalViewModel.requestSaveSettings()
-        globalViewModel.update()
+
+        uiStatus.updateComposeUI()
         enabled.value = false
     }
 
@@ -126,7 +127,7 @@ fun SettingsAppTheme(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black
+                            tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
                         Text("Your OS needs at least:\n - Android 9 to follow device theme,\n - Android 12 to enable dynamic color.")
                     }

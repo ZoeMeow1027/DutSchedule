@@ -14,12 +14,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsOpenLinkType(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel
+    globalViewModel: GlobalViewModel,
+    uiStatus: UIStatus
 ) {
     val optionList = listOf(
         "Built-in browser",
@@ -35,7 +37,8 @@ fun SettingsOpenLinkType(
     fun commitChanges() {
         globalViewModel.openLinkType.value = OpenLinkType.values()[selectedOptionList.value]
         globalViewModel.requestSaveSettings()
-        globalViewModel.update()
+
+        uiStatus.updateComposeUI()
         enabled.value = false
 
         // TODO: Find better solution instead of doing this here!!!
@@ -56,7 +59,7 @@ fun SettingsOpenLinkType(
                 enabled.value = false
             },
             title = {
-                Text("When you click a link, open it in:")
+                Text("When you click a link, open it in")
             },
             confirmButton = {
 

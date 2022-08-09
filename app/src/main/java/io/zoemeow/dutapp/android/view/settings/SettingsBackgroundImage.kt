@@ -1,8 +1,9 @@
 package io.zoemeow.dutapp.android.view.settings
 
-import androidx.compose.foundation.Image
+import android.Manifest
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -11,19 +12,26 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
+import androidx.core.app.ComponentActivity
 import io.zoemeow.dutapp.android.R
-import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsBackgroundImage(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel
+    globalViewModel: GlobalViewModel,
+    uiStatus: UIStatus,
 ) {
     val optionList = listOf("Unset", "From device wallpaper", "Specific a image")
     val selectedOptionList = remember { mutableStateOf("") }
@@ -34,15 +42,26 @@ fun SettingsBackgroundImage(
 
     fun commitChanges() {
         globalViewModel.backgroundImage.value.option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
-
-        globalViewModel.loadBackground()
+        Log.d("Log", "${globalViewModel.backgroundImage.value.option}")
         globalViewModel.requestSaveSettings()
-        globalViewModel.update()
+
+        uiStatus.updateComposeUI()
         enabled.value = false
 
         // TODO: Find better solution instead of doing this here!!!
         globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
         globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
+
+
+        CoroutineScope(Dispatchers.IO).launch {
+            uiStatus.checkPermissionAndReloadAppBackground(
+                type = globalViewModel.backgroundImage.value.option,
+                onRequested = {
+                    Log.d("Log", "${selectedOptionList.value}")
+                    uiStatus.requestPermissionAppBackground()
+                }
+            )
+        }
     }
 
     if (enabled.value) {
@@ -113,7 +132,7 @@ fun SettingsBackgroundImage(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (globalViewModel.isDarkMode.value) Color.White else Color.Black
+                            tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
                         Text(
                             "- Remember, this feature is still in beta, so it isn't working well yet.\n" +

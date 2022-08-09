@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">DUT</string>
     <string name="news_tab_global">Chung</string>
-    <string name="news_tab_subject">Lớp học phần</string>
+    <string name="news_tab_subject">Lớp HP</string>
     <string name="navbar_news">Tin tức</string>
     <string name="navbar_account">Tài khoản</string>
     <string name="topbar_news">Tin tức</string>

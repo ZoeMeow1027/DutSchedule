@@ -19,12 +19,13 @@ import io.zoemeow.dutapp.android.ui.custom.NewsScreenCore
 import io.zoemeow.dutapp.android.utils.CalculateDayAgo
 import io.zoemeow.dutapp.android.utils.DateToString
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
 @Composable
 fun NewsDetailsGlobal(
     padding: PaddingValues,
     news: NewsGlobalItem,
+    uiStatus: UIStatus,
     linkClicked: (String) -> Unit
 ) {
     val globalViewModel = GlobalViewModel.getInstance()
@@ -62,7 +63,7 @@ fun NewsDetailsGlobal(
                         append(news.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (globalViewModel.isDarkMode.value) Color.White else Color.Black),
+                            style = SpanStyle(color = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black),
                             start = 0,
                             end = news.contentString.length
                         )
