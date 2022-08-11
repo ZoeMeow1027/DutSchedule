@@ -48,8 +48,10 @@ fun Account(
         if (!accountViewModel.isLoggedIn.value)
             uiStatus.accountCurrentPage.value = 0
 
-        swipeRefreshStateSubjectSchedule.isRefreshing = accountViewModel.processStateSubjectSchedule.value == ProcessState.Running
-        swipeRefreshStateSubjectFee.isRefreshing = accountViewModel.processStateSubjectFee.value == ProcessState.Running
+        swipeRefreshStateSubjectSchedule.isRefreshing =
+            accountViewModel.processStateSubjectSchedule.value == ProcessState.Running
+        swipeRefreshStateSubjectFee.isRefreshing =
+            accountViewModel.processStateSubjectFee.value == ProcessState.Running
     }
 
     // Trigger when switch pages
@@ -81,8 +83,7 @@ fun Account(
         enabled = (
                 if (accountViewModel.isLoggedIn.value) {
                     uiStatus.accountCurrentPage.value != 1
-                }
-                else uiStatus.accountCurrentPage.value != 0
+                } else uiStatus.accountCurrentPage.value != 0
                 ),
         onBack = {
             uiStatus.accountCurrentPage.value =
@@ -120,9 +121,11 @@ fun Account(
                     }
                 },
                 title = {
-                    Text(text = "${stringResource(id = R.string.topbar_account)}${
-                        if (barTitle.value.isNotEmpty()) " (${barTitle.value})" else ""
-                    }")
+                    Text(
+                        text = "${stringResource(id = R.string.topbar_account)}${
+                            if (barTitle.value.isNotEmpty()) " (${barTitle.value})" else ""
+                        }"
+                    )
                 },
                 actions = {
                     if (uiStatus.accountCurrentPage.value == 1) {

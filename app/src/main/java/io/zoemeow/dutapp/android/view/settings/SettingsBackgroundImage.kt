@@ -1,8 +1,6 @@
 package io.zoemeow.dutapp.android.view.settings
 
-import android.Manifest
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -12,12 +10,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ComponentActivity
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
@@ -41,7 +36,8 @@ fun SettingsBackgroundImage(
     }
 
     fun commitChanges() {
-        globalViewModel.backgroundImage.value.option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
+        globalViewModel.backgroundImage.value.option =
+            BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
         Log.d("Log", "${globalViewModel.backgroundImage.value.option}")
         globalViewModel.requestSaveSettings()
 
@@ -136,7 +132,7 @@ fun SettingsBackgroundImage(
                         )
                         Text(
                             "- Remember, this feature is still in beta, so it isn't working well yet.\n" +
-                                "- \"Specific a image\" option is temporary disabled due to not working yet."
+                                    "- \"Specific a image\" option is temporary disabled due to not working yet."
                         )
                     }
                 }

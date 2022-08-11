@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
@@ -40,7 +41,7 @@ val LightColorScheme = lightColorScheme(
 @Composable
 fun MainActivityTheme(
     // Set app mode layout
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    darkMode: AppTheme = AppTheme.FollowSystem,
     // Set app black background (for AMOLED)
     blackTheme: Boolean = false,
     // Dynamic color is available on Android 12+
@@ -49,10 +50,17 @@ fun MainActivityTheme(
 ) {
     val uiStatus = UIStatus.getInstance()
 
+    val darkTheme: Boolean = when (darkMode) {
+        AppTheme.FollowSystem -> isSystemInDarkTheme()
+        AppTheme.DarkMode -> true
+        AppTheme.LightMode -> false
+    }
     var colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+
+            if (darkTheme) dynamicDarkColorScheme(context)
+                else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme

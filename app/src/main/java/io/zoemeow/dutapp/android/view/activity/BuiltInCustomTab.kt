@@ -27,7 +27,7 @@ import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.ui.theme.DefaultActivityTheme
 import io.zoemeow.dutapp.android.viewmodel.UIStatus
 
-class BuiltInCustomTab: ComponentActivity() {
+class BuiltInCustomTab : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +66,7 @@ class BuiltInCustomTab: ComponentActivity() {
                 }
 
                 val webViewClient = remember {
-                    object: AccompanistWebViewClient() {
+                    object : AccompanistWebViewClient() {
                         override fun shouldOverrideUrlLoading(
                             view: WebView?,
                             request: WebResourceRequest?
@@ -80,7 +80,7 @@ class BuiltInCustomTab: ComponentActivity() {
                 }
 
                 val webChromeClient = remember {
-                    object: AccompanistWebChromeClient() {
+                    object : AccompanistWebChromeClient() {
                         override fun onReceivedTitle(view: WebView?, title: String?) {
                             super.onReceivedTitle(view, title)
                             barTitle.value = title

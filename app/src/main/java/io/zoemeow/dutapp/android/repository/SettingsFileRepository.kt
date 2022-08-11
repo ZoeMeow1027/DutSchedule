@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 class SettingsFileRepository @Inject constructor(
     @Transient private val file: File
-): Serializable {
+) : Serializable {
     // App mode layout
     @Transient
     val appTheme: MutableState<AppTheme> = mutableStateOf(AppTheme.FollowSystem)
@@ -40,7 +40,7 @@ class SettingsFileRepository @Inject constructor(
 
     // Open link in
     @Transient
-    var openLinkType: MutableState<OpenLinkType> = mutableStateOf(OpenLinkType.InCustomTabs)
+    val openLinkType: MutableState<OpenLinkType> = mutableStateOf(OpenLinkType.InCustomTabs)
 
     @Transient
     private var readyToSave: Boolean = false
@@ -56,7 +56,7 @@ class SettingsFileRepository @Inject constructor(
 
             val dataFromFile = Gson().fromJson<AppSettings>(
                 inputStr,
-                (object: TypeToken<AppSettings>() {}.type)
+                (object : TypeToken<AppSettings>() {}.type)
             )
 
             appTheme.value = dataFromFile.appTheme
@@ -65,11 +65,9 @@ class SettingsFileRepository @Inject constructor(
             dynamicColorEnabled.value = dataFromFile.dynamicColorEnabled
             schoolYear.value = dataFromFile.schoolYear
             openLinkType.value = dataFromFile.builtInBrowserOpenLinkType
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             ex.printStackTrace()
-        }
-        finally {
+        } finally {
             readyToSave = true
             saveSettings()
         }
@@ -91,8 +89,7 @@ class SettingsFileRepository @Inject constructor(
 
                 val str = Gson().toJson(data)
                 file.writeText(str)
-            }
-            catch (ex: Exception) {
+            } catch (ex: Exception) {
                 ex.printStackTrace()
             }
         }

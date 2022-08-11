@@ -22,7 +22,7 @@
         <activity
             android:name=".view.activity.BuiltInCustomTab"
             android:exported="false"
-            android:theme="@style/Theme.DUTAppForAndroid"/>
+            android:theme="@style/Theme.DUTAppForAndroid" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -48,7 +48,13 @@ fun NewsDetailsGlobal(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Posted on ${DateToString(news.date, "dd/MM/yyyy", "UTC")} (${CalculateDayAgo(news.date) ?: "..."})",
+                    text = "Posted on ${
+                        DateToString(
+                            news.date,
+                            "dd/MM/yyyy",
+                            "UTC"
+                        )
+                    } (${CalculateDayAgo(news.date) ?: "..."})",
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.size(10.dp))
@@ -88,15 +94,19 @@ fun NewsDetailsGlobal(
                     style = MaterialTheme.typography.bodyMedium,
                     onClick = {
                         try {
-                            news.links?.forEach {
-                                    item ->
+                            news.links?.forEach { item ->
                                 annotatedString
                                     .getStringAnnotations(item.position!!.toString(), it, it)
                                     .firstOrNull()
                                     ?.let { url ->
                                         var urlTemp = url.item
-                                        urlTemp = urlTemp.replace("http://", "http://", ignoreCase = true)
-                                        urlTemp = urlTemp.replace("https://", "https://", ignoreCase = true)
+                                        urlTemp =
+                                            urlTemp.replace("http://", "http://", ignoreCase = true)
+                                        urlTemp = urlTemp.replace(
+                                            "https://",
+                                            "https://",
+                                            ignoreCase = true
+                                        )
                                         linkClicked(urlTemp)
                                     }
                             }

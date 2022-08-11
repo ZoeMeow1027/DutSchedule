@@ -36,7 +36,8 @@ fun SettingsAppTheme(
     }
 
     fun commitChanges() {
-        globalViewModel.appTheme.value = AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
+        globalViewModel.appTheme.value =
+            AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
         globalViewModel.dynamicColorEnabled.value = dynamicColorEnabled.value
         globalViewModel.requestSaveSettings()
 
@@ -82,7 +83,8 @@ fun SettingsAppTheme(
                                 .fillMaxWidth()
                                 .clickable {
                                     if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && option == themeList[0]) ||
-                                            option != themeList[0])
+                                        option != themeList[0]
+                                    )
                                         selectedThemeList.value = option
                                 }
                         ) {
@@ -90,7 +92,8 @@ fun SettingsAppTheme(
                                 selected = (option == selectedThemeList.value),
                                 onClick = {
                                     if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && option == themeList[0]) ||
-                                            option != themeList[0])
+                                        option != themeList[0]
+                                    )
                                         selectedThemeList.value = option
                                 }
                             )
