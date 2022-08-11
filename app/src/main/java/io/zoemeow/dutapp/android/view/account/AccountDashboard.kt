@@ -66,7 +66,9 @@ fun AccountDashboard(
                 .wrapContentHeight(),
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().wrapContentHeight()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
                     .padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.Start,

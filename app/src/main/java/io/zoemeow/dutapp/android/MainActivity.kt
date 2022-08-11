@@ -1,16 +1,11 @@
 package io.zoemeow.dutapp.android
 
-import android.Manifest
-import android.content.Context
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
-import android.util.AttributeSet
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -55,16 +49,16 @@ class MainActivity : ComponentActivity() {
         permitAllPolicy()
 
         setContent {
-            // Initialize GlobalViewModel
-            globalViewModel = viewModel()
-            GlobalViewModel.setInstance(globalViewModel)
-
             // Create scope for uiStatus
             uiStatus.scope = rememberCoroutineScope()
             // Set SnackBar in MainActivity Scaffold
             uiStatus.mainActivitySetSnackBarState(SnackbarHostState())
             // Set Activity
             uiStatus.setMainActivity(this)
+
+            // Initialize GlobalViewModel
+            globalViewModel = viewModel()
+            GlobalViewModel.setInstance(globalViewModel)
 
             // Initialize AccountViewModel
             accountViewModel = viewModel()
@@ -91,11 +85,12 @@ class MainActivity : ComponentActivity() {
 
             MainActivityTheme(
                 dynamicColor = globalViewModel.dynamicColorEnabled.value,
-                darkTheme = (
-                        (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
-                                isSystemInDarkTheme()) ||
-                        globalViewModel.appTheme.value == AppTheme.DarkMode
-                ),
+//                darkTheme = (
+//                        (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
+//                                isSystemInDarkTheme()) ||
+//                                globalViewModel.appTheme.value == AppTheme.DarkMode
+//                        ),
+                darkMode = globalViewModel.appTheme.value,
                 blackTheme = globalViewModel.blackTheme.value
             ) {
                 // Initialize for NavController for main activity
@@ -107,7 +102,9 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     snackbarHost = { SnackbarHost(hostState = uiStatus.mainActivityGetSnackBarState()) },
                     containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.Unset)
-                        MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+                        MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
+                        alpha = 0.8f
+                    ),
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
                         MainBottomNavigationBar(
@@ -117,13 +114,11 @@ class MainActivity : ComponentActivity() {
                                 if (it.route == MainNavRoutes.News.route) {
                                     if (!uiStatus.newsDetectItemChosen(needClear = true))
                                         uiStatus.newsScrollListToTop()
-                                }
-                                else if (it.route == MainNavRoutes.Account.route) {
+                                } else if (it.route == MainNavRoutes.Account.route) {
                                     if (accountViewModel.isLoggedIn.value) {
                                         if (uiStatus.accountCurrentPage.value != 1)
                                             uiStatus.accountCurrentPage.value = 1
-                                    }
-                                    else {
+                                    } else {
                                         if (uiStatus.accountCurrentPage.value != 0)
                                             uiStatus.accountCurrentPage.value = 0
                                     }

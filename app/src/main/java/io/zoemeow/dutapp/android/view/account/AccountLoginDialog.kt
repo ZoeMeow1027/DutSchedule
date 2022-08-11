@@ -58,7 +58,7 @@ fun AccountLoginDialog(
             enabledControl.value = true
 
             if (
-                // Process done but not logged in
+            // Process done but not logged in
                 (!accountViewModel.isLoggedIn.value && accountViewModel.processStateLoggingIn.value != ProcessState.Running) ||
                 // Self process failed
                 accountViewModel.processStateLoggingIn.value == ProcessState.Failed
@@ -67,7 +67,8 @@ fun AccountLoginDialog(
             }
             // Successfully logged in!
             else if (accountViewModel.isLoggedIn.value &&
-                accountViewModel.processStateLoggingIn.value == ProcessState.Successful) {
+                accountViewModel.processStateLoggingIn.value == ProcessState.Successful
+            ) {
                 enabled.value = false
                 enabledControl.value = true
             }
@@ -138,7 +139,8 @@ fun AccountLoginDialog(
                         ),
                     )
                     OutlinedTextField(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .focusRequester(passTextFieldFocusRequester),
                         enabled = enabledControl.value,
                         value = password.value,
@@ -173,16 +175,16 @@ fun AccountLoginDialog(
                         Text("Remember your login")
                     }
                     if (accountViewModel.processStateLoggingIn.value == ProcessState.Running ||
-                        accountViewModel.processStateLoggingIn.value == ProcessState.Failed)
-                    {
+                        accountViewModel.processStateLoggingIn.value == ProcessState.Failed
+                    ) {
                         Spacer(modifier = Modifier.size(15.dp))
                         Text(
                             text = if (accountViewModel.processStateLoggingIn.value == ProcessState.Running)
                                 "We are logging you in. Please wait..."
-                        else
-                            "Something went wrong with your account! " +
-                                    "Make sure your username and password is correct." +
-                                    "\nIf everything is ok, don't worry, just try again."
+                            else
+                                "Something went wrong with your account! " +
+                                        "Make sure your username and password is correct." +
+                                        "\nIf everything is ok, don't worry, just try again."
                         )
                     }
                 }

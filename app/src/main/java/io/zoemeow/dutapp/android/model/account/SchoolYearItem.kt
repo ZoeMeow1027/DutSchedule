@@ -7,4 +7,4 @@ data class SchoolYearItem(
     var year: Int = 22,
     // School semester (in range 1-3, ex. 1 for semester 1, 3 for semester in summer).
     var semester: Int = 1
-): Serializable
+) : Serializable

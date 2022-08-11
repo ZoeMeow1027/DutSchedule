@@ -80,13 +80,13 @@ fun Settings() {
                         title = "App theme",
                         description = (
                                 themeList[globalViewModel.appTheme.value.ordinal] +
-                                        " ${if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                                        {
-                                            if (globalViewModel.dynamicColorEnabled.value)
-                                                "(dynamic color enabled)"
-                                            else ""
-                                        }
-                                        else ""}"
+                                        " ${
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                                if (globalViewModel.dynamicColorEnabled.value)
+                                                    "(dynamic color enabled)"
+                                                else ""
+                                            } else ""
+                                        }"
                                 ),
                         clickable = {
                             appThemeSettingsEnabled.value = true

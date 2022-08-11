@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AccountViewModel @Inject constructor(
     private val accountFileRepository: AccountFileRepository
-): ViewModel() {
+) : ViewModel() {
     /**
      * UIStatus
      */
@@ -49,7 +49,8 @@ class AccountViewModel @Inject constructor(
     /**
      * Check if a progress for get subject schedule is running.
      */
-    val processStateSubjectSchedule: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
+    val processStateSubjectSchedule: MutableState<ProcessState> =
+        mutableStateOf(ProcessState.NotRun)
 
     /**
      * List of your subject fee in your account of sv.dut.udn.vn.
@@ -80,14 +81,6 @@ class AccountViewModel @Inject constructor(
     val processStateAccInfo: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
 
     /**
-     * Get login state.
-     * Result will return to ```isLoggedIn```.
-     */
-    private fun checkIsLoggedIn() {
-        isLoggedIn.value = accountFileRepository.isLoggedIn()
-    }
-
-    /**
      * Login account using username and password to sv.dut.udn.vn.
      * Result will return to ```isLoggedIn``` via checkIsLoggedIn().
      */
@@ -99,30 +92,40 @@ class AccountViewModel @Inject constructor(
             try {
                 processStateLoggingIn.value = ProcessState.Running
 
-                val result = accountFileRepository.login(username, password, remember)
+                accountFileRepository.login(
+                    username = username,
+                    password = password,
+                    remember = remember,
+                    forceReLogin = true,
+                    onResult = { result ->
+                        if (result) {
+                            // Set username
+                            setUserName(username)
 
-                if (result) {
-                    processStateLoggingIn.value = ProcessState.Successful
-                    // Set username
-                    setUserName(username)
-                    // Set view to 1
-                    uiStatus.accountCurrentPage.value = 1
+                            // Set view to 1
+                            uiStatus.accountCurrentPage.value = 1
 
-                    checkIsLoggedIn()
+                            // Set process status to successful
+                            processStateLoggingIn.value = ProcessState.Successful
 
-                    // Preload account information
-                    getSubjectSchedule()
-                    getSubjectFee()
-                    getAccountInformation()
+                            // Set isLoggedIn to true
+                            isLoggedIn.value = true
 
-                    // Show snack bar
-                    uiStatus.showSnackBarMessage("Successfully login!")
-                }
-                else throw Exception("Failed while logging in!")
-            }
-            catch (ex: Exception) {
+                            // Preload account information
+                            getSubjectSchedule()
+                            getSubjectFee()
+                            getAccountInformation()
+
+                            // Show snack bar
+                            uiStatus.showSnackBarMessage("Successfully login!")
+                        } else {
+                            isLoggedIn.value = false
+                            throw Exception("Failed while logging in!")
+                        }
+                    }
+                )
+            } catch (ex: Exception) {
                 processStateLoggingIn.value = ProcessState.Failed
-                checkIsLoggedIn()
             }
         }
     }
@@ -136,22 +139,23 @@ class AccountViewModel @Inject constructor(
             return
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                accountFileRepository.logout()
+            accountFileRepository.logout(
+                onResult = { result ->
+                    if (result) {
+                        // Set process status to not run (known as not logged in)
+                        processStateLoggingIn.value = ProcessState.NotRun
 
-                processStateLoggingIn.value = ProcessState.Successful
-                // Clear username
-                setUserName("")
-                // Reset view to 0
-                uiStatus.accountCurrentPage.value = 0
-                accountFileRepository.checkOrGetSessionId(true)
+                        // Clear username
+                        setUserName("")
 
-                uiStatus.showSnackBarMessage("Successfully logout!")
-                checkIsLoggedIn()
-            }
-            catch (ex: Exception) {
-                ex.printStackTrace()
-            }
+                        // Reset view to 0
+                        uiStatus.accountCurrentPage.value = 0
+
+                        // Show snack bar
+                        uiStatus.showSnackBarMessage("Successfully logout!")
+                    }
+                }
+            )
         }
     }
 
@@ -160,7 +164,7 @@ class AccountViewModel @Inject constructor(
      * Adjust year and semester in ```schoolYearItem```, or pass arguments directly in function.
      * Result will return to ```subjectScheduleList```.
      */
-    fun getSubjectSchedule(schoolYearItemInput: SchoolYearItem? = null) {
+    fun getSubjectSchedule(schoolYearItemInput: SchoolYearItem = globalViewModel.schoolYear.value) {
         if (processStateSubjectSchedule.value == ProcessState.Running)
             return
 
@@ -171,23 +175,20 @@ class AccountViewModel @Inject constructor(
             try {
                 processStateSubjectSchedule.value = ProcessState.Running
 
-                val subTemp = if (schoolYearItemInput != null)
-                    accountFileRepository.getSubjectSchedule(
-                        schoolYearItemInput.year,
-                        schoolYearItemInput.semester
-                    )
-                else accountFileRepository.getSubjectSchedule(
-                    globalViewModel.schoolYear.value.year,
-                    globalViewModel.schoolYear.value.semester
+                accountFileRepository.getSubjectSchedule(
+                    schoolYearItemInput,
+                    onResult = { arrayList ->
+                        if (arrayList != null) {
+                            subjectScheduleList.clear()
+                            subjectScheduleList.addAll(arrayList)
+                            arrayList.clear()
+                            processStateSubjectSchedule.value = ProcessState.Successful
+                        } else {
+                            processStateSubjectSchedule.value = ProcessState.Failed
+                        }
+                    }
                 )
-
-                subjectScheduleList.clear()
-                subjectScheduleList.addAll(subTemp)
-                subTemp.clear()
-
-                processStateSubjectSchedule.value = ProcessState.Successful
-            }
-            catch (ex: Exception) {
+            } catch (ex: Exception) {
                 processStateSubjectSchedule.value = ProcessState.Failed
             }
         }
@@ -198,7 +199,7 @@ class AccountViewModel @Inject constructor(
      * Adjust year and semester in ```schoolYearItem```, or pass arguments directly in function.
      * Result will return to ```subjectFeeList```.
      */
-    fun getSubjectFee(schoolYearItemInput: SchoolYearItem? = null) {
+    fun getSubjectFee(schoolYearItemInput: SchoolYearItem = globalViewModel.schoolYear.value) {
         if (processStateSubjectFee.value == ProcessState.Running)
             return
 
@@ -209,23 +210,20 @@ class AccountViewModel @Inject constructor(
             try {
                 processStateSubjectFee.value = ProcessState.Running
 
-                val subTemp: ArrayList<SubjectFeeItem> = if (schoolYearItemInput != null)
-                    accountFileRepository.getSubjectFee(
-                        schoolYearItemInput.year,
-                        schoolYearItemInput.semester
-                    )
-                else accountFileRepository.getSubjectFee(
-                    globalViewModel.schoolYear.value.year,
-                    globalViewModel.schoolYear.value.semester
+                accountFileRepository.getSubjectFee(
+                    schoolYearItemInput,
+                    onResult = { arrayList ->
+                        if (arrayList != null) {
+                            subjectFeeList.clear()
+                            subjectFeeList.addAll(arrayList)
+                            arrayList.clear()
+                            processStateSubjectFee.value = ProcessState.Successful
+                        } else {
+                            processStateSubjectFee.value = ProcessState.Failed
+                        }
+                    }
                 )
-
-                subjectFeeList.clear()
-                subjectFeeList.addAll(subTemp)
-                subTemp.clear()
-
-                processStateSubjectFee.value = ProcessState.Successful
-            }
-            catch (ex: Exception) {
+            } catch (ex: Exception) {
                 processStateSubjectFee.value = ProcessState.Failed
             }
         }
@@ -246,12 +244,18 @@ class AccountViewModel @Inject constructor(
             try {
                 processStateAccInfo.value = ProcessState.Running
 
-                accountInformation.value = accountFileRepository.getAccountInformation()
-                username.value = accountInformation.value?.studentId ?: ""
-
-                processStateAccInfo.value = ProcessState.Successful
-            }
-            catch (ex: Exception) {
+                accountFileRepository.getAccountInformation(
+                    onResult = { item ->
+                        if (item != null) {
+                            accountInformation.value = item
+                            setUserName(accountInformation.value?.studentId ?: "")
+                            processStateAccInfo.value = ProcessState.Successful
+                        } else {
+                            processStateAccInfo.value = ProcessState.Failed
+                        }
+                    }
+                )
+            } catch (ex: Exception) {
                 processStateAccInfo.value = ProcessState.Failed
             }
         }
@@ -265,44 +269,35 @@ class AccountViewModel @Inject constructor(
         if (processStateLoggingIn.value == ProcessState.Running)
             return
 
-        CoroutineScope(Dispatchers.Main).launch {
-            try {
-                // If session id is not working, create new session id and try to login again.
-                if (!isLoggedIn.value) {
-                    accountFileRepository.checkOrGetSessionId(true)
-                    accountFileRepository.login()
-                }
-
-                // If successful login, load account information here
-                if (isLoggedIn.value) {
-                    // Set username
-                    setUserName(accountFileRepository.getUsername() ?: "")
-
+        CoroutineScope(Dispatchers.IO).launch {
+            accountFileRepository.checkIsLoggedIn { result ->
+                if (result) {
                     // Set view to 1
                     uiStatus.accountCurrentPage.value = 1
 
-                    // Get account information
+                    isLoggedIn.value = true
+
+                    // Pre-load account information
                     getSubjectSchedule(globalViewModel.schoolYear.value)
                     getSubjectFee(globalViewModel.schoolYear.value)
                     getAccountInformation()
+                } else {
+                    // Reset view to 0
+                    uiStatus.accountCurrentPage.value = 0
+
+                    isLoggedIn.value = false
+                    // Show snack bar
+//                        uiStatus.showSnackBarMessage(
+//                            "Something went wrong while logging you in! " +
+//                                    "Don't worry, just try again. " +
+//                                    "If still unsuccessful, try to logout and login again."
+//                        )
                 }
-                // If still failed, throw a exception.
-                else throw Exception("Session expired and your account is out-of-date.")
-            }
-            catch (ex: Exception) {
-                ex.printStackTrace()
-                uiStatus.showSnackBarMessage(
-                    "Something went wrong while logging you in! " +
-                            "Don't worry, just try again. " +
-                            "If still unsuccessful, try to logout and login again."
-                )
             }
         }
     }
 
     init {
-        accountFileRepository.loadSettings()
-        checkIsLoggedIn()
         reLogin()
     }
 }

@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.utils.LazyList_EndOfListHandler
 
 @Composable

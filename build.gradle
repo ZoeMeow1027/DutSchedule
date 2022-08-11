@@ -19,8 +19,3 @@ plugins {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
-Properties properties = new Properties()
-if (project.rootProject.file('local.properties').canRead()) {
-    properties.load(project.rootProject.file("local.properties").newDataInputStream())
-}

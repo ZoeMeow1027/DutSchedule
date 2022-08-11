@@ -52,7 +52,12 @@ fun AccountSubjectSchedule(
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+                        modifier = Modifier.padding(
+                            start = 15.dp,
+                            end = 15.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
                     ) {
                         Text(
                             text = "ID: ${item.id}",
@@ -107,7 +112,13 @@ fun AccountSubjectSchedule(
                         )
                         Spacer(modifier = Modifier.size(5.dp))
                         Text(
-                            text = "Schedule exam date: ${DateToString(item.subjectExam.date, "dd/MM/yyyy HH:mm", "GMT+7")}",
+                            text = "Schedule exam date: ${
+                                DateToString(
+                                    item.subjectExam.date,
+                                    "dd/MM/yyyy HH:mm",
+                                    "GMT+7"
+                                )
+                            }",
                             style = MaterialTheme.typography.bodyLarge,
                         )
                         Spacer(modifier = Modifier.size(5.dp))
@@ -129,7 +140,7 @@ fun AccountSubjectSchedule(
                 ) {
                     Spacer(modifier = Modifier.size(10.dp))
                     Text(
-                        text = "Total credit: ${subjectScheduleList.sumOf{ it.credit }}"
+                        text = "Total credit: ${subjectScheduleList.sumOf { it.credit }}"
                     )
                 }
             }

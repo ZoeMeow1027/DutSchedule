@@ -2,31 +2,21 @@ package io.zoemeow.dutapp.android.viewmodel
 
 import android.Manifest
 import android.app.Activity
-import android.app.PendingIntent
 import android.app.WallpaperManager
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ComponentActivity
 import androidx.core.content.ContextCompat
-import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapp.android.MainActivity
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.coroutines.suspendCoroutine
 
 class UIStatus @Inject constructor() {
     companion object {
@@ -86,11 +76,14 @@ class UIStatus @Inject constructor() {
         onSuccessful: (() -> Unit)? = null,
         onRequested: (() -> Unit)? = null,
     ) {
-        if (ContextCompat.checkSelfPermission(pMainActivity.value!!, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                pMainActivity.value!!,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             reloadAppBackground(type)
             if (onSuccessful != null) onSuccessful()
-        }
-        else {
+        } else {
             if (onRequested != null) onRequested()
         }
     }
@@ -121,13 +114,11 @@ class UIStatus @Inject constructor() {
                 ) {
                     val wallpaperManager = WallpaperManager.getInstance(pMainActivity.value)
                     mainActivityBackgroundDrawable.value = wallpaperManager.drawable
-                }
-                else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
+                } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
             }
             // Otherwise set to null
             else mainActivityBackgroundDrawable.value = null
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             ex.printStackTrace()
         }
     }

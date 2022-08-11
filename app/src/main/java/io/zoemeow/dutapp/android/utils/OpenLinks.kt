@@ -3,7 +3,6 @@ package io.zoemeow.dutapp.android.utils
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import io.zoemeow.dutapp.android.model.enums.OpenLinkType

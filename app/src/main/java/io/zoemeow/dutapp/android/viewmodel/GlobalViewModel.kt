@@ -10,7 +10,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GlobalViewModel @Inject constructor(
     private val settingsFileRepository: SettingsFileRepository
-): ViewModel() {
+) : ViewModel() {
     companion object {
         private val instance: MutableState<GlobalViewModel?> = mutableStateOf(null)
 

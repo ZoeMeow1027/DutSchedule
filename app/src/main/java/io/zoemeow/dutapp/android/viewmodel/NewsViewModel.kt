@@ -10,8 +10,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.News
 import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapi.objects.NewsType
-import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.model.ProcessState
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -27,7 +27,8 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     /**
      * This will save old item for cache and offline viewing for News Global.
      */
-    val newsGlobalListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
+    val newsGlobalListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> =
+        mutableStateListOf()
 
     /**
      * Check if a progress for get news global is running.
@@ -42,7 +43,8 @@ class NewsViewModel @Inject constructor() : ViewModel() {
     /**
      * This will save old item for cache and offline viewing for News Subject.
      */
-    val newsSubjectListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
+    val newsSubjectListByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> =
+        mutableStateListOf()
 
     /**
      * Check if a progress for get news subject is running.
@@ -80,7 +82,10 @@ class NewsViewModel @Inject constructor() : ViewModel() {
 
                 val newsTemp = News.getNews(newsType, if (renewNewsList) 1 else newsPage.value)
                 if (newsTemp.size <= 0) {
-                    Log.w("NewsViewModel", "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet.")
+                    Log.w(
+                        "NewsViewModel",
+                        "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet."
+                    )
                     throw Exception("$newsType list is empty!")
                 }
 
@@ -96,8 +101,7 @@ class NewsViewModel @Inject constructor() : ViewModel() {
                                 date = item.date
                             )
                         )
-                    }
-                    else {
+                    } else {
                         newsListByDate.first { it.date == item.date }.itemList.add(item)
                     }
                 }
@@ -148,7 +152,10 @@ class NewsViewModel @Inject constructor() : ViewModel() {
 
                 val newsTemp = News.getNews(newsType, if (renewNewsList) 1 else newsPage.value)
                 if (newsTemp.size <= 0) {
-                    Log.w("NewsViewModel", "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet.")
+                    Log.w(
+                        "NewsViewModel",
+                        "$newsType list in page ${newsPage.value} is empty! Make sure connected to internet."
+                    )
                     throw Exception("$newsType list is empty!")
                 }
 
@@ -164,8 +171,7 @@ class NewsViewModel @Inject constructor() : ViewModel() {
                                 date = item.date
                             )
                         )
-                    }
-                    else {
+                    } else {
                         newsListByDate.first { it.date == item.date }.itemList.add(item)
                     }
                 }

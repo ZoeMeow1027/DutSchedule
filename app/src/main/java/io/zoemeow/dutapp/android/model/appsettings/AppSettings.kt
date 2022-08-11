@@ -13,4 +13,4 @@ data class AppSettings(
     @SerializedName("appearance.dynamiccolorenabled") val dynamicColorEnabled: Boolean,
     @SerializedName("account.schoolyear") val schoolYear: SchoolYearItem,
     @SerializedName("builtinbrowser.openlinktype") val builtInBrowserOpenLinkType: OpenLinkType,
-): Serializable
+) : Serializable

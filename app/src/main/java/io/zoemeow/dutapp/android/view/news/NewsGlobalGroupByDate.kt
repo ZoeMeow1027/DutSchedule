@@ -23,7 +23,7 @@ fun NewsGlobalGroupByDate(
         Text(
             text = DateToString(newsGroupByDate.date, "dd/MM/yyyy"),
         )
-        newsGroupByDate.itemList.forEach {item ->
+        newsGroupByDate.itemList.forEach { item ->
             NewsGlobalItem(
                 title = item.title ?: "",
                 summary = item.contentString ?: "",

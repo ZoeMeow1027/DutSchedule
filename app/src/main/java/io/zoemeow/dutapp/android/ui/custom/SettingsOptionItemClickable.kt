@@ -22,7 +22,14 @@ fun SettingsOptionItemClickable(
             .clickable { if (clickable != null) clickable() },
         contentAlignment = Alignment.CenterStart,
     ) {
-        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 15.dp, bottom = 15.dp)) {
+        Column(
+            modifier = Modifier.padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = 15.dp,
+                bottom = 15.dp
+            )
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,

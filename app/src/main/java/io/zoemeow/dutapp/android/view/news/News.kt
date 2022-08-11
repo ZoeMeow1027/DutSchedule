@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -81,7 +80,13 @@ fun News(
                         for (tabItem in tabList) {
                             val count2: Int = count
                             Button(
-                                onClick = { uiStatus.scope.launch { pagerState.animateScrollToPage(count2) } },
+                                onClick = {
+                                    uiStatus.scope.launch {
+                                        pagerState.animateScrollToPage(
+                                            count2
+                                        )
+                                    }
+                                },
                                 colors = ButtonDefaults.buttonColors(
                                     if (pagerState.currentPage == count2) MaterialTheme.colorScheme.secondaryContainer
                                     else MaterialTheme.colorScheme.background
@@ -125,8 +130,7 @@ fun News(
                         openLink(it, context, globalViewModel.openLinkType.value)
                     }
                 )
-            }
-            else if (uiStatus.newsItemChosenSubject.value != null) {
+            } else if (uiStatus.newsItemChosenSubject.value != null) {
                 NewsDetailsSubject(
                     padding = padding,
                     news = uiStatus.newsItemChosenSubject.value!!,
@@ -135,8 +139,7 @@ fun News(
                         openLink(it, context, globalViewModel.openLinkType.value)
                     }
                 )
-            }
-            else {
+            } else {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Top,

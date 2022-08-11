@@ -50,7 +50,12 @@ fun AccountSubjectFee(
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 10.dp)
+                        modifier = Modifier.padding(
+                            start = 15.dp,
+                            end = 15.dp,
+                            top = 10.dp,
+                            bottom = 10.dp
+                        )
                     ) {
                         Text(
                             text = "ID: ${item.id}",
@@ -91,10 +96,12 @@ fun AccountSubjectFee(
                 ) {
                     Spacer(modifier = Modifier.size(10.dp))
                     Text(
-                        text = "Total credit: ${subjectFeeList.sumOf{ it.credit }}"
+                        text = "Total credit: ${subjectFeeList.sumOf { it.credit }}"
                     )
                     Text(
-                        text = "Total money you will pay: ${subjectFeeList.sumOf { it.price }.toLong()} VND"
+                        text = "Total money you will pay: ${
+                            subjectFeeList.sumOf { it.price }.toLong()
+                        } VND"
                     )
                 }
             }
