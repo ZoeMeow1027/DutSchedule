@@ -10,6 +10,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -25,7 +26,11 @@ fun SettingsAppTheme(
     globalViewModel: GlobalViewModel,
     uiStatus: UIStatus,
 ) {
-    val themeList = listOf("Follow device theme", "Dark mode", "Light mode")
+    val themeList = listOf(
+        stringResource(id = R.string.settings_apptheme_followsystem),
+        stringResource(id = R.string.settings_apptheme_dark),
+        stringResource(id = R.string.settings_apptheme_light),
+    )
     val selectedThemeList = remember { mutableStateOf("") }
     val dynamicColorEnabled = remember { mutableStateOf(true) }
 
@@ -58,7 +63,7 @@ fun SettingsAppTheme(
                 enabled.value = false
             },
             title = {
-                Text("Select app theme")
+                Text(stringResource(id = R.string.settings_apptheme_name))
             },
             confirmButton = {
                 TextButton(
@@ -66,7 +71,7 @@ fun SettingsAppTheme(
                         commitChanges()
                     },
                     content = {
-                        Text("OK")
+                        Text(stringResource(id = R.string.option_ok))
                     }
                 )
             },
@@ -119,7 +124,7 @@ fun SettingsAppTheme(
                                     dynamicColorEnabled.value = it
                             },
                         )
-                        Text(text = "Enable dynamic color")
+                        Text(stringResource(id = R.string.settings_apptheme_dynamiccolor_enable))
                     }
                     Spacer(modifier = Modifier.size(15.dp))
                     Column(
@@ -132,7 +137,7 @@ fun SettingsAppTheme(
                             contentDescription = "info_icon",
                             tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
-                        Text("Your OS needs at least:\n - Android 9 to follow device theme,\n - Android 12 to enable dynamic color.")
+                        Text(stringResource(id = R.string.settings_apptheme_note))
                     }
                 }
             }

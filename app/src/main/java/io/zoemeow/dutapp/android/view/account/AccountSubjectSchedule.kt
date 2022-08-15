@@ -24,7 +24,7 @@ fun AccountSubjectSchedule(
     padding: PaddingValues,
     subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
     swipeRefreshState: SwipeRefreshState,
-    reloadRequested: () -> Unit
+    reloadRequested: () -> Unit,
 ) {
     SwipeRefresh(
         state = swipeRefreshState,
@@ -43,7 +43,7 @@ fun AccountSubjectSchedule(
             items(subjectScheduleList) { item ->
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
                         .padding(15.dp)
                         // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
                         .clip(RoundedCornerShape(10.dp))

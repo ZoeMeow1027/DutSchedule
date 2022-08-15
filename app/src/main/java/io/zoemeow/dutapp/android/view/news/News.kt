@@ -1,5 +1,6 @@
 package io.zoemeow.dutapp.android.view.news
 
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,11 +15,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.utils.openLink
+import io.zoemeow.dutapp.android.viewmodel.AppCacheViewModel
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
 import io.zoemeow.dutapp.android.viewmodel.UIStatus
@@ -27,8 +30,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun News(
+    uiStatus: UIStatus,
+    appCacheViewModel: AppCacheViewModel,
     newsViewModel: NewsViewModel,
-    uiStatus: UIStatus
 ) {
     val globalViewModel = GlobalViewModel.getInstance()
 
@@ -41,6 +45,8 @@ fun News(
 
     uiStatus.newsLazyListGlobalState = rememberLazyListState()
     uiStatus.newsLazyListSubjectState = rememberLazyListState()
+
+    NavHostController(context)
 
     BackHandler(
         enabled = uiStatus.newsDetectItemChosen(needClear = false),
@@ -148,7 +154,7 @@ fun News(
                     HorizontalPager(count = tabList.size, state = pagerState) { index ->
                         when (index) {
                             0 -> NewsGlobal(
-                                newsGlobalList = newsViewModel.newsGlobalListByDate,
+                                newsGlobalList = appCacheViewModel.newsGlobalListByDate,
                                 isLoading = newsViewModel.newsGlobalState,
                                 lazyListState = uiStatus.newsLazyListGlobalState,
                                 reloadRequested = {
@@ -159,7 +165,7 @@ fun News(
                                 }
                             )
                             1 -> NewsSubject(
-                                newsSubjectList = newsViewModel.newsSubjectListByDate,
+                                newsSubjectList = appCacheViewModel.newsSubjectListByDate,
                                 isLoading = newsViewModel.newsSubjectState,
                                 lazyListState = uiStatus.newsLazyListSubjectState,
                                 reloadRequested = {

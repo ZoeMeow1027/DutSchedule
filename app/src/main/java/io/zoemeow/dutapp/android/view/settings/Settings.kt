@@ -11,7 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import io.zoemeow.dutapp.android.BuildConfig
+import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.ui.custom.CustomDivider
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionHeader
@@ -40,15 +42,20 @@ fun Settings() {
         text1.value = "Layout"
     }
 
-    val openAppInOptionList = listOf(
-        "Built-in browser",
-        "Default browser custom tab",
-        "External browser"
+    val openLinkInOptionList = listOf(
+        stringResource(id = R.string.settings_openlinkin_builtinbrowser),
+        stringResource(id = R.string.settings_openlinkin_customtab),
+        stringResource(id = R.string.settings_openlinkin_external),
     )
     val backgroundImageOptionList = listOf(
         "Unset",
         "From device wallpaper",
         "Specific a image"
+    )
+    val appThemeOptionList = listOf(
+        stringResource(id = R.string.settings_apptheme_followsystem),
+        stringResource(id = R.string.settings_apptheme_dark),
+        stringResource(id = R.string.settings_apptheme_light),
     )
 
     SettingsSchoolYear(schoolYearSettingsEnabled, globalViewModel, uiStatus)
@@ -64,7 +71,7 @@ fun Settings() {
                     containerColor = Color.Transparent
                 ),
                 title = {
-                    Text(text = "Settings")
+                    Text(text = stringResource(id = R.string.navbar_settings))
                 }
             )
         },
@@ -75,15 +82,14 @@ fun Settings() {
                     .verticalScroll(rememberScrollState()),
                 content = {
                     SettingsOptionHeader(headerText = text1.value)
-                    val themeList = listOf("Follow device theme", "Dark mode", "Light mode")
                     SettingsOptionItemClickable(
-                        title = "App theme",
+                        title = stringResource(id = R.string.settings_apptheme_name),
                         description = (
-                                themeList[globalViewModel.appTheme.value.ordinal] +
+                                appThemeOptionList[globalViewModel.appTheme.value.ordinal] +
                                         " ${
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                                 if (globalViewModel.dynamicColorEnabled.value)
-                                                    "(dynamic color enabled)"
+                                                    stringResource(id = R.string.settings_apptheme_dynamiccolor_enabled)
                                                 else ""
                                             } else ""
                                         }"
@@ -93,8 +99,8 @@ fun Settings() {
                         }
                     )
                     SettingsOptionItemSwitch(
-                        title = "Black background",
-                        description = "Useful if your device has AMOLED display. Requires dark mode enabled.",
+                        title = stringResource(id = R.string.settings_blacktheme_name),
+                        description = stringResource(id = R.string.settings_blacktheme_description),
                         value = globalViewModel.blackTheme.value,
                         onValueChanged = {
                             globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
@@ -102,16 +108,16 @@ fun Settings() {
                         }
                     )
                     SettingsOptionItemClickable(
-                        title = "Background Image",
+                        title = stringResource(id = R.string.settings_backgroundimage_name),
                         description = backgroundImageOptionList[globalViewModel.backgroundImage.value.option.ordinal],
                         clickable = {
                             backgroundImageSettingsEnabled.value = true
                         }
                     )
                     CustomDivider()
-                    SettingsOptionHeader(headerText = "Accounts")
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
                     SettingsOptionItemClickable(
-                        title = "Change school year",
+                        title = "School year",
                         description = "School year: " +
                                 "20${globalViewModel.schoolYear.value.year}-" +
                                 "20${globalViewModel.schoolYear.value.year + 1}, " +
@@ -126,23 +132,23 @@ fun Settings() {
                         }
                     )
                     CustomDivider()
-                    SettingsOptionHeader(headerText = "Miscellaneous")
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_miscellaneous))
                     SettingsOptionItemClickable(
-                        title = "Open link in",
-                        description = openAppInOptionList.get(globalViewModel.openLinkType.value.ordinal),
+                        title = stringResource(id = R.string.settings_openlinkin_name),
+                        description = openLinkInOptionList[globalViewModel.openLinkType.value.ordinal],
                         clickable = {
                             openLinkTypeSettingsEnabled.value = true
                         }
                     )
                     CustomDivider()
-                    SettingsOptionHeader(headerText = "About Application")
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_aboutapplication))
                     SettingsOptionItemClickable(
-                        title = "Version",
+                        title = stringResource(id = R.string.settings_version_name),
                         description = BuildConfig.VERSION_NAME,
                     )
                     SettingsOptionItemClickable(
-                        title = "Changelog",
-                        description = "Click here to view changelog for this application.",
+                        title = stringResource(id = R.string.settings_changelog_name),
+                        description = stringResource(id = R.string.settings_changelog_description),
                         clickable = {
                             openLink(
                                 "https://github.com/ZoeMeow5466/DUTApp.Android",
@@ -152,7 +158,7 @@ fun Settings() {
                         }
                     )
                     SettingsOptionItemClickable(
-                        title = "GitHub (click to open in browser)",
+                        title = stringResource(id = R.string.settings_github_name),
                         description = "https://github.com/ZoeMeow5466/DUTApp.Android",
                         clickable = {
                             openLink(

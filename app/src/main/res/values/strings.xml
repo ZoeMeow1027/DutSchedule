@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DUT</string>
     <string name="news_tab_global">Global</string>
@@ -6,4 +7,30 @@
     <string name="navbar_account">Account</string>
     <string name="topbar_news">News</string>
     <string name="topbar_account">Account</string>
+    <string name="settings_openlinkin_builtinbrowser">Built-in app browser</string>
+    <string name="settings_openlinkin_customtab">Default browser custom tab</string>
+    <string name="settings_openlinkin_external">External browser</string>
+    <string name="settings_openlinkin_name">Open link in</string>
+    <string name="settings_openlinkin_description">This will open link you clicked in application to browser you will choose above.</string>
+    <string name="option_cancel">Cancel</string>
+    <string name="settings_apptheme_name">App theme</string>
+    <string name="settings_apptheme_followsystem">Follow device theme</string>
+    <string name="settings_apptheme_dark">Dark mode</string>
+    <string name="settings_apptheme_light">Light mode</string>
+    <string name="settings_apptheme_dynamiccolor_enable">Enable dynamic color</string>
+    <string name="settings_apptheme_dynamiccolor_enabled">(dynamic color enabled)</string>
+    <string name="option_ok">OK</string>
+    <string name="settings_apptheme_note">Your OS needs at least:\n- Android 9 to follow device theme,\n- Android 12 to enable dynamic color.</string>
+    <string name="settings_github_name">GitHub (click to open repo)</string>
+    <string name="settings_changelog_name">Changelog</string>
+    <string name="settings_changelog_description">Click here to view changelog for this application.</string>
+    <string name="settings_version_name">Version</string>
+    <string name="settings_category_aboutapplication">About Application</string>
+    <string name="settings_category_miscellaneous">Miscellaneous</string>
+    <string name="settings_category_account">Account</string>
+    <string name="navbar_settings">Settings</string>
+    <string name="settings_blacktheme_name">Black backgrounds</string>
+    <string name="settings_blacktheme_description">Useful if your device has AMOLED display to save battery backup. Requires dark mode enabled.</string>
+    <string name="settings_backgroundimage_name">App background image</string>
+    <string name="navbar_main">Main</string>
 </resources>

@@ -24,6 +24,15 @@ class AccountFileRepository @Inject constructor(
     private var accountSession: AccountSession = AccountSession()
 
     /**
+     * Detect if a account is exist in system.
+     *
+     * @return true if exist, otherwise false.
+     */
+    fun hasSavedLogin(): Boolean {
+        return (accountSession.username != null && accountSession.password != null)
+    }
+
+    /**
      * Check if your account has logged in.
      *
      * @param onResult Result when this function completed execute. True means logged in,
@@ -37,7 +46,8 @@ class AccountFileRepository @Inject constructor(
         // If Session ID is exist before 30 minutes, return true.
         if (
             accountSession.sessionId != null &&
-            System.currentTimeMillis() - accountSession.sessionIdLastRequest >= sessionIdDuration
+            System.currentTimeMillis() - accountSession.sessionIdLastRequest >= sessionIdDuration &&
+            Account.isLoggedIn(accountSession.sessionId)
         ) loggedIn = true
         // If not, false here!
         else {
@@ -162,6 +172,13 @@ class AccountFileRepository @Inject constructor(
         }
     }
 
+    /**
+     * Logout your account from sv.dut.udn.vn. If you have account exist in system,
+     * it will be removed there to avoid auto logging in.
+     *
+     * @param onResult Result when this function completed execute. True means completed,
+     * logout, exception and otherwise false.
+     */
     fun logout(
         onResult: ((Boolean) -> Unit)? = null
     ) {
@@ -205,6 +222,7 @@ class AccountFileRepository @Inject constructor(
             ex.printStackTrace()
             if (onResult != null) onResult(null)
         }
+        saveSettings()
     }
 
     fun getSubjectFee(
@@ -226,6 +244,7 @@ class AccountFileRepository @Inject constructor(
             ex.printStackTrace()
             if (onResult != null) onResult(null)
         }
+        saveSettings()
     }
 
     fun getAccountInformation(
@@ -242,18 +261,18 @@ class AccountFileRepository @Inject constructor(
             ex.printStackTrace()
             if (onResult != null) onResult(null)
         }
+        saveSettings()
     }
 
     fun loadSettings() {
         try {
             Log.d("AccountRead", "Triggered account reading...")
 
-            val buffer: BufferedReader = file.bufferedReader()
-            val inputStr = buffer.use { it.readText() }
-            buffer.close()
-
-            val itemType = object : TypeToken<AccountSession>() {}.type
-            accountSession = Gson().fromJson(inputStr, itemType)
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                accountSession = Gson().fromJson(text, (object : TypeToken<AccountSession>() {}.type))
+                this.close()
+            }
         } catch (ex: Exception) {
             ex.printStackTrace()
         } finally {
