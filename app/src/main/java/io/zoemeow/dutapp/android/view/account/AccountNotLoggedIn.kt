@@ -43,7 +43,7 @@ fun AccountNotLoggedIn(
         Spacer(modifier = Modifier.size(5.dp))
         Button(
             onClick = {
-                accountViewModel.processStateLoggingIn.value = ProcessState.NotRun
+                accountViewModel.processStateLoggingIn.value = ProcessState.NotRanYet
                 dialogLoginEnabled.value = true
             },
             content = { Text("Login") }

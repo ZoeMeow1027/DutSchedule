@@ -1,12 +1,12 @@
 package io.zoemeow.dutapp.android.view.account
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,16 +46,17 @@ fun AccountDashboard(
                     .wrapContentWidth()
                     .wrapContentHeight()
                     .clip(CircleShape)
-                    .border(1.dp, Color.Gray, CircleShape)
+                    .border(1.dp, if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black, CircleShape)
                     .align(Alignment.Center)
             ) {
-                Image(
+                Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_person_24),
                     contentDescription = "Account Avatar",
                     modifier = Modifier
                         .size(64.dp)
                         .align(Alignment.CenterHorizontally)
                         .padding(5.dp),
+                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                 )
             }
         }
@@ -96,7 +97,7 @@ fun AccountDashboard(
                 .clip(RoundedCornerShape(15.dp))
                 .background(MaterialTheme.colorScheme.secondaryContainer)
                 .clickable {
-
+                    uiStatus.accountCurrentPage.value = 4
                 },
             contentAlignment = Alignment.Center,
         ) {

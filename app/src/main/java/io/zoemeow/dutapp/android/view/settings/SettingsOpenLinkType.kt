@@ -2,16 +2,18 @@ package io.zoemeow.dutapp.android.view.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
 import io.zoemeow.dutapp.android.viewmodel.UIStatus
@@ -24,9 +26,9 @@ fun SettingsOpenLinkType(
     uiStatus: UIStatus
 ) {
     val optionList = listOf(
-        "Built-in browser",
-        "Default browser custom tab",
-        "External browser"
+        stringResource(id = R.string.settings_openlinkin_builtinbrowser),
+        stringResource(id = R.string.settings_openlinkin_customtab),
+        stringResource(id = R.string.settings_openlinkin_external),
     )
     val selectedOptionList = remember { mutableStateOf(0) }
 
@@ -59,7 +61,7 @@ fun SettingsOpenLinkType(
                 enabled.value = false
             },
             title = {
-                Text("When you click a link, open it in")
+                Text(stringResource(id = R.string.settings_openlinkin_name))
             },
             confirmButton = {
 
@@ -70,7 +72,7 @@ fun SettingsOpenLinkType(
                         enabled.value = false
                     },
                     content = {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.option_cancel))
                     }
                 )
             },
@@ -100,6 +102,19 @@ fun SettingsOpenLinkType(
                             Spacer(modifier = Modifier.size(5.dp))
                             Text(text = option)
                         }
+                    }
+                    Spacer(modifier = Modifier.size(15.dp))
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start,
+                        modifier = Modifier.wrapContentSize()
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
+                            contentDescription = "info_icon",
+                            tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                        )
+                        Text(stringResource(id = R.string.settings_openlinkin_description))
                     }
                 }
             }

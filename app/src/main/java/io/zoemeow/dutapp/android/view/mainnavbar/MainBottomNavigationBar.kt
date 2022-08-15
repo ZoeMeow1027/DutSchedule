@@ -3,6 +3,7 @@ package io.zoemeow.dutapp.android.view.mainnavbar
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -30,13 +31,13 @@ fun MainBottomNavigationBar(
                 icon = {
                     Icon(
                         imageVector = ImageVector.vectorResource(id = navItem.iconId),
-                        contentDescription = navItem.title
+                        contentDescription = stringResource(id = navItem.titleByStringId)
                     )
                 },
                 label = {
                     Text(
-                        text = navItem.title,
-                        style = MaterialTheme.typography.titleSmall
+                        text = stringResource(id = navItem.titleByStringId),
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 },
             )

@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.zoemeow.dutapp.android.repository.AccountFileRepository
+import io.zoemeow.dutapp.android.repository.CacheFileRepository
 import io.zoemeow.dutapp.android.repository.SettingsFileRepository
 import java.io.File
 import javax.inject.Singleton
@@ -20,6 +21,16 @@ object FileModule {
         val filePath = "${context.filesDir.path}/accounts.json"
         val file = File(filePath)
         return AccountFileRepository(file)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCacheFileRepository(@ApplicationContext context: Context): CacheFileRepository {
+        val filePath = "${context.cacheDir.path}/newsCacheGlobal.json"
+        val file = File(filePath)
+        val filePath2 = "${context.cacheDir.path}/newsCacheSubject.json"
+        val file2 = File(filePath2)
+        return CacheFileRepository(file, file2)
     }
 
     @Provides

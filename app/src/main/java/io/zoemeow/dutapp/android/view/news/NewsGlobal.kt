@@ -27,7 +27,7 @@ fun NewsGlobal(
     reloadRequested: (Boolean) -> Unit,
     itemClicked: (NewsGlobalItem) -> Unit
 ) {
-    val swipeRefreshState = rememberSwipeRefreshState(true)
+    val swipeRefreshState = rememberSwipeRefreshState(false)
     swipeRefreshState.isRefreshing = isLoading.value == ProcessState.Running
 
     LazyList_EndOfListHandler(

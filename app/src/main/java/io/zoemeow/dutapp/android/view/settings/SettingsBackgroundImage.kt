@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.settings
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,6 +9,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -38,7 +38,6 @@ fun SettingsBackgroundImage(
     fun commitChanges() {
         globalViewModel.backgroundImage.value.option =
             BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
-        Log.d("Log", "${globalViewModel.backgroundImage.value.option}")
         globalViewModel.requestSaveSettings()
 
         uiStatus.updateComposeUI()
@@ -53,7 +52,6 @@ fun SettingsBackgroundImage(
             uiStatus.checkPermissionAndReloadAppBackground(
                 type = globalViewModel.backgroundImage.value.option,
                 onRequested = {
-                    Log.d("Log", "${selectedOptionList.value}")
                     uiStatus.requestPermissionAppBackground()
                 }
             )
@@ -73,7 +71,7 @@ fun SettingsBackgroundImage(
                 enabled.value = false
             },
             title = {
-                Text("Select your background image")
+                Text(stringResource(id = R.string.settings_backgroundimage_name))
             },
             confirmButton = {
 
@@ -84,7 +82,7 @@ fun SettingsBackgroundImage(
                         enabled.value = false
                     },
                     content = {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.option_cancel))
                     }
                 )
             },

@@ -1,27 +1,32 @@
 package io.zoemeow.dutapp.android
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
+import io.zoemeow.dutapp.android.services.RefreshNewsService
 import io.zoemeow.dutapp.android.ui.theme.MainActivityTheme
 import io.zoemeow.dutapp.android.view.account.Account
 import io.zoemeow.dutapp.android.view.main.Main
@@ -29,26 +34,38 @@ import io.zoemeow.dutapp.android.view.mainnavbar.MainBottomNavigationBar
 import io.zoemeow.dutapp.android.view.mainnavbar.MainNavRoutes
 import io.zoemeow.dutapp.android.view.news.News
 import io.zoemeow.dutapp.android.view.settings.Settings
-import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.viewmodel.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val uiStatus = UIStatus.getInstance()
+    private lateinit var uiStatus: UIStatus
+    private lateinit var appCacheViewModel: AppCacheViewModel
     private lateinit var accountViewModel: AccountViewModel
     private lateinit var newsViewModel: NewsViewModel
     private lateinit var globalViewModel: GlobalViewModel
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted
         permitAllPolicy()
 
+        // Register notifications channel for news service
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            createNotificationChannelService()
+        // Start services
+        Intent(applicationContext, RefreshNewsService::class.java).also { intent ->
+            // https://stackoverflow.com/a/47654126
+            startService(intent)
+        }
+
         setContent {
+            // Initialize app cache
+            appCacheViewModel = viewModel()
+            AppCacheViewModel.setInstance(appCacheViewModel)
+
+            // Initialize UIStatus
+            uiStatus = UIStatus.getInstance()
             // Create scope for uiStatus
             uiStatus.scope = rememberCoroutineScope()
             // Set SnackBar in MainActivity Scaffold
@@ -85,56 +102,88 @@ class MainActivity : ComponentActivity() {
 
             MainActivityTheme(
                 dynamicColor = globalViewModel.dynamicColorEnabled.value,
-//                darkTheme = (
-//                        (globalViewModel.appTheme.value == AppTheme.FollowSystem &&
-//                                isSystemInDarkTheme()) ||
-//                                globalViewModel.appTheme.value == AppTheme.DarkMode
-//                        ),
                 darkMode = globalViewModel.appTheme.value,
                 blackTheme = globalViewModel.blackTheme.value
             ) {
-                // Initialize for NavController for main activity
-                val navController = rememberNavController()
-                // Nav Route
-                val backStackEntry by navController.currentBackStackEntryAsState()
-                val currentRoute = backStackEntry?.destination?.route
-                // A scaffold container using the 'background' color from the theme
-                Scaffold(
-                    snackbarHost = { SnackbarHost(hostState = uiStatus.mainActivityGetSnackBarState()) },
-                    containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.Unset)
-                        MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
-                        alpha = 0.8f
-                    ),
-                    modifier = Modifier.fillMaxSize(),
-                    bottomBar = {
-                        MainBottomNavigationBar(
-                            navController = navController,
-                            currentRoute = currentRoute,
-                            onClick = {
-                                if (it.route == MainNavRoutes.News.route) {
-                                    if (!uiStatus.newsDetectItemChosen(needClear = true))
-                                        uiStatus.newsScrollListToTop()
-                                } else if (it.route == MainNavRoutes.Account.route) {
-                                    if (accountViewModel.isLoggedIn.value) {
-                                        if (uiStatus.accountCurrentPage.value != 1)
-                                            uiStatus.accountCurrentPage.value = 1
-                                    } else {
-                                        if (uiStatus.accountCurrentPage.value != 0)
-                                            uiStatus.accountCurrentPage.value = 0
-                                    }
-                                }
-                            }
-                        )
-                    },
-                    content = { contentPadding ->
-                        NavigationHost(
-                            navController = navController,
-                            padding = contentPadding
-                        )
-                    },
-                )
+                MainScreen()
             }
         }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun MainScreen() {
+        // Initialize for NavController for main activity
+        val navController = rememberNavController()
+        // Nav Route
+        val backStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = backStackEntry?.destination?.route
+
+        // A scaffold container using the 'background' color from the theme
+        Scaffold(
+            snackbarHost = { SnackbarHost(hostState = uiStatus.mainActivityGetSnackBarState()) },
+            containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.Unset)
+                MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
+            contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            modifier = Modifier.fillMaxSize(),
+            bottomBar = {
+                MainBottomNavigationBar(
+                    navController = navController,
+                    currentRoute = currentRoute,
+                    onClick = {
+                        if (it.route == MainNavRoutes.News.route) {
+                            if (!uiStatus.newsDetectItemChosen(needClear = true))
+                                uiStatus.newsScrollListToTop()
+                        } else if (it.route == MainNavRoutes.Account.route) {
+                            if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) {
+                                if (uiStatus.accountCurrentPage.value != 1)
+                                    uiStatus.accountCurrentPage.value = 1
+                            } else {
+                                if (uiStatus.accountCurrentPage.value != 0)
+                                    uiStatus.accountCurrentPage.value = 0
+                            }
+                        }
+                    }
+                )
+            },
+            content = { contentPadding ->
+                NavHost(
+                    navController = navController,
+                    startDestination = MainNavRoutes.Main.route,
+                    modifier = Modifier.padding(contentPadding)
+                ) {
+                    composable(MainNavRoutes.Main.route) {
+                        Main()
+                    }
+
+                    composable(MainNavRoutes.News.route) {
+                        News(
+                            uiStatus = uiStatus,
+                            appCacheViewModel = appCacheViewModel,
+                            newsViewModel = newsViewModel,
+                        )
+                    }
+
+                    composable(MainNavRoutes.Account.route) {
+                        Account(
+                            uiStatus = uiStatus,
+                            globalViewModel = globalViewModel,
+                            accountViewModel = accountViewModel,
+                        )
+                    }
+
+                    composable(MainNavRoutes.Settings.route) {
+                        Settings()
+                    }
+                }
+            },
+        )
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (this::accountViewModel.isInitialized)
+            accountViewModel.reLogin()
     }
 
     @Deprecated("Deprecated in Java")
@@ -178,32 +227,13 @@ class MainActivity : ComponentActivity() {
         StrictMode.setThreadPolicy(policy)
     }
 
-    @Composable
-    private fun NavigationHost(
-        navController: NavHostController,
-        padding: PaddingValues
-    ) {
-        NavHost(
-            navController = navController,
-            startDestination = MainNavRoutes.Main.route,
-            modifier = Modifier.padding(padding)
-        ) {
-            composable(MainNavRoutes.Main.route) {
-                Main()
-            }
-
-            composable(MainNavRoutes.News.route) {
-                News(newsViewModel, uiStatus)
-            }
-
-            composable(MainNavRoutes.Account.route) {
-                Account(globalViewModel, accountViewModel, uiStatus)
-            }
-
-            composable(MainNavRoutes.Settings.route) {
-                Settings()
-            }
-        }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun createNotificationChannelService() {
+        val channel = NotificationChannel("dut_service", "Services", NotificationManager.IMPORTANCE_NONE)
+        channel.lightColor = android.graphics.Color.BLUE
+        channel.lockscreenVisibility = Notification.VISIBILITY_SECRET
+        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        service.createNotificationChannel(channel)
     }
 }
 

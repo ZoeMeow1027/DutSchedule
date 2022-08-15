@@ -1,10 +1,15 @@
 package io.zoemeow.dutapp.android.viewmodel
 
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
@@ -12,9 +17,7 @@ import io.zoemeow.dutapi.objects.SubjectScheduleItem
 import io.zoemeow.dutapp.android.model.ProcessState
 import io.zoemeow.dutapp.android.model.account.SchoolYearItem
 import io.zoemeow.dutapp.android.repository.AccountFileRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,9 +40,14 @@ class AccountViewModel @Inject constructor(
     val isLoggedIn: MutableState<Boolean> = mutableStateOf(false)
 
     /**
+     * Check if you have logged in (remember - for launch app)
+     */
+    val isRememberLoggedIn: MutableState<Boolean> = mutableStateOf(false)
+
+    /**
      * Check if a progress for log in is running.
      */
-    val processStateLoggingIn: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
+    val processStateLoggingIn: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
 
     /**
      * List of your subject schedule in your account of sv.dut.udn.vn.
@@ -50,7 +58,7 @@ class AccountViewModel @Inject constructor(
      * Check if a progress for get subject schedule is running.
      */
     val processStateSubjectSchedule: MutableState<ProcessState> =
-        mutableStateOf(ProcessState.NotRun)
+        mutableStateOf(ProcessState.NotRanYet)
 
     /**
      * List of your subject fee in your account of sv.dut.udn.vn.
@@ -60,7 +68,7 @@ class AccountViewModel @Inject constructor(
     /**
      * Check if a progress for get subject fee is running.
      */
-    val processStateSubjectFee: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
+    val processStateSubjectFee: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
 
     /**
      * Your account information of sv.dut.udn.vn.
@@ -78,7 +86,7 @@ class AccountViewModel @Inject constructor(
     /**
      * Check if a progress for get account information is running.
      */
-    val processStateAccInfo: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRun)
+    val processStateAccInfo: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
 
     /**
      * Login account using username and password to sv.dut.udn.vn.
@@ -111,6 +119,9 @@ class AccountViewModel @Inject constructor(
                             // Set isLoggedIn to true
                             isLoggedIn.value = true
 
+                            // Enable remember login
+                            isRememberLoggedIn.value = true
+
                             // Preload account information
                             getSubjectSchedule()
                             getSubjectFee()
@@ -138,19 +149,22 @@ class AccountViewModel @Inject constructor(
         if (processStateLoggingIn.value == ProcessState.Running)
             return
 
-        CoroutineScope(Dispatchers.IO).launch {
+        // Set process status to not run (known as not logged in)
+        processStateSubjectSchedule.value = ProcessState.NotRanYet
+
+        // Clear username
+        setUserName("")
+
+        // Disable remember login
+        isRememberLoggedIn.value = false
+
+        // Reset view to 0
+        uiStatus.accountCurrentPage.value = 0
+
+        viewModelScope.launch(Dispatchers.IO) {
             accountFileRepository.logout(
                 onResult = { result ->
                     if (result) {
-                        // Set process status to not run (known as not logged in)
-                        processStateLoggingIn.value = ProcessState.NotRun
-
-                        // Clear username
-                        setUserName("")
-
-                        // Reset view to 0
-                        uiStatus.accountCurrentPage.value = 0
-
                         // Show snack bar
                         uiStatus.showSnackBarMessage("Successfully logout!")
                     }
@@ -171,26 +185,30 @@ class AccountViewModel @Inject constructor(
         if (!isLoggedIn.value)
             return
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                processStateSubjectSchedule.value = ProcessState.Running
-
-                accountFileRepository.getSubjectSchedule(
-                    schoolYearItemInput,
-                    onResult = { arrayList ->
-                        if (arrayList != null) {
-                            subjectScheduleList.clear()
-                            subjectScheduleList.addAll(arrayList)
-                            arrayList.clear()
-                            processStateSubjectSchedule.value = ProcessState.Successful
-                        } else {
-                            processStateSubjectSchedule.value = ProcessState.Failed
+        processStateSubjectSchedule.value = ProcessState.Running
+        var processResult: ProcessState = ProcessState.NotRanYet
+        viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    accountFileRepository.getSubjectSchedule(
+                        schoolYearItem = schoolYearItemInput,
+                        onResult = { arrayList ->
+                            if (arrayList != null) {
+                                subjectScheduleList.clear()
+                                subjectScheduleList.addAll(arrayList)
+                                arrayList.clear()
+                            } else throw Exception("Subject Schedule - Load data failed.")
                         }
-                    }
-                )
-            } catch (ex: Exception) {
-                processStateSubjectSchedule.value = ProcessState.Failed
+                    )
+                }.onSuccess {
+                    processResult = ProcessState.Successful
+                }.onFailure {
+                    it.printStackTrace()
+                    processResult = ProcessState.Failed
+                }
             }
+        }.invokeOnCompletion {
+            processStateSubjectSchedule.value = processResult
         }
     }
 
@@ -206,26 +224,31 @@ class AccountViewModel @Inject constructor(
         if (!isLoggedIn.value)
             return
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                processStateSubjectFee.value = ProcessState.Running
+        processStateSubjectFee.value = ProcessState.Running
 
-                accountFileRepository.getSubjectFee(
-                    schoolYearItemInput,
-                    onResult = { arrayList ->
-                        if (arrayList != null) {
-                            subjectFeeList.clear()
-                            subjectFeeList.addAll(arrayList)
-                            arrayList.clear()
-                            processStateSubjectFee.value = ProcessState.Successful
-                        } else {
-                            processStateSubjectFee.value = ProcessState.Failed
+        var processResult: ProcessState = ProcessState.NotRanYet
+        viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    accountFileRepository.getSubjectFee(
+                        schoolYearItemInput,
+                        onResult = { arrayList ->
+                            if (arrayList != null) {
+                                subjectFeeList.clear()
+                                subjectFeeList.addAll(arrayList)
+                                arrayList.clear()
+                            } else throw Exception("Subject Fee - Load data failed.")
                         }
-                    }
-                )
-            } catch (ex: Exception) {
-                processStateSubjectFee.value = ProcessState.Failed
+                    )
+                }.onSuccess {
+                    processResult = ProcessState.Successful
+                }.onFailure {
+                    it.printStackTrace()
+                    processResult = ProcessState.Failed
+                }
             }
+        }.invokeOnCompletion {
+            processStateSubjectFee.value = processResult
         }
     }
 
@@ -240,64 +263,71 @@ class AccountViewModel @Inject constructor(
         if (!isLoggedIn.value)
             return
 
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                processStateAccInfo.value = ProcessState.Running
+        processStateAccInfo.value = ProcessState.Running
 
-                accountFileRepository.getAccountInformation(
-                    onResult = { item ->
-                        if (item != null) {
-                            accountInformation.value = item
-                            setUserName(accountInformation.value?.studentId ?: "")
-                            processStateAccInfo.value = ProcessState.Successful
-                        } else {
-                            processStateAccInfo.value = ProcessState.Failed
+        var processResult: ProcessState = ProcessState.NotRanYet
+        viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    Log.d("Account Information", "Triggered")
+                    accountFileRepository.getAccountInformation(
+                        onResult = { item ->
+                            if (item != null) {
+                                accountInformation.value = item
+                                setUserName(accountInformation.value?.studentId ?: "")
+                            } else throw Exception("Account Information - Load data failed.")
                         }
-                    }
-                )
-            } catch (ex: Exception) {
-                processStateAccInfo.value = ProcessState.Failed
+                    )
+                }.onSuccess {
+                    processResult = ProcessState.Successful
+                }.onFailure {
+                    it.printStackTrace()
+                    processResult = ProcessState.Failed
+                }
             }
+        }.invokeOnCompletion {
+            processStateAccInfo.value = processResult
         }
     }
 
     /**
      * Re-login your account (this will be triggered when you have saved account in application.
      */
-    private fun reLogin() {
+    fun reLogin() {
         // If another login process is running, this thread will terminate now.
         if (processStateLoggingIn.value == ProcessState.Running)
             return
 
-        CoroutineScope(Dispatchers.IO).launch {
-            accountFileRepository.checkIsLoggedIn { result ->
-                if (result) {
-                    // Set view to 1
-                    uiStatus.accountCurrentPage.value = 1
+        if (accountFileRepository.hasSavedLogin())
+            isRememberLoggedIn.value = true
 
-                    isLoggedIn.value = true
-
-                    // Pre-load account information
-                    getSubjectSchedule(globalViewModel.schoolYear.value)
-                    getSubjectFee(globalViewModel.schoolYear.value)
-                    getAccountInformation()
-                } else {
-                    // Reset view to 0
-                    uiStatus.accountCurrentPage.value = 0
-
-                    isLoggedIn.value = false
-                    // Show snack bar
-//                        uiStatus.showSnackBarMessage(
-//                            "Something went wrong while logging you in! " +
-//                                    "Don't worry, just try again. " +
-//                                    "If still unsuccessful, try to logout and login again."
-//                        )
+        var loggedIn = false
+        viewModelScope.launch(Dispatchers.Main) {
+            withContext(Dispatchers.IO) {
+                accountFileRepository.checkIsLoggedIn { result ->
+                    loggedIn = result
                 }
+            }
+        }.invokeOnCompletion {
+            if (loggedIn) {
+                if (uiStatus.accountCurrentPage.value < 1)
+                    uiStatus.accountCurrentPage.value = 1
+                isLoggedIn.value = true
+                getAccountInformation()
+            }
+            else {
+                uiStatus.accountCurrentPage.value = 0
+                isLoggedIn.value = false
             }
         }
     }
 
     init {
         reLogin()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        isLoggedIn.value = accountFileRepository.hasSavedLogin()
     }
 }

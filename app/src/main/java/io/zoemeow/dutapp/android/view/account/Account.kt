@@ -39,24 +39,32 @@ fun Account(
 
     val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
     val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
+    val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
     LaunchedEffect(
         accountViewModel.isLoggedIn.value,
+        accountViewModel.isRememberLoggedIn.value,
         accountViewModel.processStateSubjectSchedule.value,
         accountViewModel.processStateSubjectFee.value,
+        accountViewModel.processStateAccInfo.value
     ) {
-        if (!accountViewModel.isLoggedIn.value)
+        if (!accountViewModel.isLoggedIn.value) {
             uiStatus.accountCurrentPage.value = 0
+        } else if (accountViewModel.isRememberLoggedIn.value && uiStatus.accountCurrentPage.value < 1) {
+            uiStatus.accountCurrentPage.value = 1
+        }
 
         swipeRefreshStateSubjectSchedule.isRefreshing =
             accountViewModel.processStateSubjectSchedule.value == ProcessState.Running
         swipeRefreshStateSubjectFee.isRefreshing =
             accountViewModel.processStateSubjectFee.value == ProcessState.Running
+        swipeRefreshStateAccInfo.isRefreshing =
+            accountViewModel.processStateAccInfo.value == ProcessState.Running
     }
 
     // Trigger when switch pages
     LaunchedEffect(
-        uiStatus.accountCurrentPage.value
+        uiStatus.accountCurrentPage.value,
     ) {
         when (uiStatus.accountCurrentPage.value) {
             0 -> {
@@ -75,19 +83,24 @@ fun Account(
                 if (accountViewModel.subjectFeeList.size == 0)
                     accountViewModel.getSubjectFee(globalViewModel.schoolYear.value)
             }
+            4 -> {
+                barTitle.value = "Account Information"
+                if (accountViewModel.accountInformation.value == null)
+                    accountViewModel.getAccountInformation()
+            }
         }
     }
 
     // If logout, will return to not logged in screen
     BackHandler(
         enabled = (
-                if (accountViewModel.isLoggedIn.value) {
-                    uiStatus.accountCurrentPage.value != 1
-                } else uiStatus.accountCurrentPage.value != 0
+                if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) {
+                    uiStatus.accountCurrentPage.value > 1
+                } else uiStatus.accountCurrentPage.value > 0
                 ),
         onBack = {
             uiStatus.accountCurrentPage.value =
-                if (accountViewModel.isLoggedIn.value) 1 else 0
+                if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) 1 else 0
         }
     )
 
@@ -181,6 +194,16 @@ fun Account(
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
                             accountViewModel.getSubjectFee(globalViewModel.schoolYear.value)
+                        }
+                    )
+                }
+                4 -> {
+                    AccountInformation(
+                        padding = padding,
+                        accountInformation = accountViewModel.accountInformation.value,
+                        swipeRefreshState = swipeRefreshStateAccInfo,
+                        reloadRequested = {
+                            accountViewModel.getAccountInformation()
                         }
                     )
                 }
