@@ -15,8 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,34 +24,37 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsBackgroundImage(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel,
-    uiStatus: UIStatus,
+    mainViewModel: MainViewModel,
 ) {
-    val optionList = listOf("Unset", "From device wallpaper", "Specific a image")
+    val optionList = listOf(
+        stringResource(id = R.string.settings_backgroundimage_none),
+        stringResource(id = R.string.settings_backgroundimage_fromsystem),
+        stringResource(id = R.string.settings_backgroundimage_specific),
+    )
     val selectedOptionList = remember { mutableStateOf("") }
 
     LaunchedEffect(enabled.value) {
-        selectedOptionList.value = optionList[globalViewModel.backgroundImage.value.option.ordinal]
+        selectedOptionList.value = optionList[mainViewModel.settings.backgroundImage.value.option.ordinal]
     }
 
     fun commitChanges() {
-        globalViewModel.backgroundImage.value.option =
+        mainViewModel.settings.backgroundImage.value.option =
             BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
-        globalViewModel.requestSaveSettings()
+        mainViewModel.requestSaveChanges()
 
-        uiStatus.updateComposeUI()
+        mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
 
         // TODO: Find better solution instead of doing this here!!!
-        globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
-        globalViewModel.blackTheme.value = !globalViewModel.blackTheme.value
+        mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
+        mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
 
 
         CoroutineScope(Dispatchers.IO).launch {
-            uiStatus.checkPermissionAndReloadAppBackground(
-                type = globalViewModel.backgroundImage.value.option,
+            mainViewModel.uiStatus.checkPermissionAndReloadAppBackground(
+                type = mainViewModel.settings.backgroundImage.value.option,
                 onRequested = {
-                    uiStatus.requestPermissionAppBackground()
+                    mainViewModel.uiStatus.requestPermissionAppBackground()
                 }
             )
         }
@@ -126,12 +128,9 @@ fun SettingsBackgroundImage(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                            tint = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
-                        Text(
-                            "- Remember, this feature is still in beta, so it isn't working well yet.\n" +
-                                    "- \"Specific a image\" option is temporary disabled due to not working yet."
-                        )
+                        Text(stringResource(id = R.string.settings_backgroundimage_note))
                     }
                 }
             }

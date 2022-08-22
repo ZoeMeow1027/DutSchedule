@@ -17,24 +17,21 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.ProcessState
-import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.model.enums.LoginState
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Account(
-    globalViewModel: GlobalViewModel,
-    accountViewModel: AccountViewModel,
-    uiStatus: UIStatus
+    mainViewModel: MainViewModel,
 ) {
     val barTitle: MutableState<String> = remember { mutableStateOf("") }
 
     // Module for Logout alert dialog
     val dialogLogoutEnabled = remember { mutableStateOf(false) }
-    AccountLogoutDialog(
+    AccountDialogLogout(
         enabled = dialogLogoutEnabled,
-        logoutRequest = { accountViewModel.logout() }
+        logoutRequest = { mainViewModel.logout() }
     )
 
     val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
@@ -42,31 +39,33 @@ fun Account(
     val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
     LaunchedEffect(
-        accountViewModel.isLoggedIn.value,
-        accountViewModel.isRememberLoggedIn.value,
-        accountViewModel.processStateSubjectSchedule.value,
-        accountViewModel.processStateSubjectFee.value,
-        accountViewModel.processStateAccInfo.value
+        mainViewModel.uiStatus.procAccSubSch.value,
+        mainViewModel.uiStatus.procAccSubFee.value,
+        mainViewModel.uiStatus.procAccInfo.value
     ) {
-        if (!accountViewModel.isLoggedIn.value) {
-            uiStatus.accountCurrentPage.value = 0
-        } else if (accountViewModel.isRememberLoggedIn.value && uiStatus.accountCurrentPage.value < 1) {
-            uiStatus.accountCurrentPage.value = 1
-        }
-
         swipeRefreshStateSubjectSchedule.isRefreshing =
-            accountViewModel.processStateSubjectSchedule.value == ProcessState.Running
+            mainViewModel.uiStatus.procAccSubSch.value == ProcessState.Running
         swipeRefreshStateSubjectFee.isRefreshing =
-            accountViewModel.processStateSubjectFee.value == ProcessState.Running
+            mainViewModel.uiStatus.procAccSubFee.value == ProcessState.Running
         swipeRefreshStateAccInfo.isRefreshing =
-            accountViewModel.processStateAccInfo.value == ProcessState.Running
+            mainViewModel.uiStatus.procAccInfo.value == ProcessState.Running
+    }
+
+    LaunchedEffect(mainViewModel.uiStatus.loginState.value) {
+        if (mainViewModel.isStoreAccount()) {
+            if (mainViewModel.uiStatus.accountCurrentPage.value < 1)
+                mainViewModel.uiStatus.accountCurrentPage.value = 1
+        }
+        else {
+            mainViewModel.uiStatus.accountCurrentPage.value = 0
+        }
     }
 
     // Trigger when switch pages
     LaunchedEffect(
-        uiStatus.accountCurrentPage.value,
+        mainViewModel.uiStatus.accountCurrentPage.value,
     ) {
-        when (uiStatus.accountCurrentPage.value) {
+        when (mainViewModel.uiStatus.accountCurrentPage.value) {
             0 -> {
                 barTitle.value = "Not logged in"
             }
@@ -75,18 +74,18 @@ fun Account(
             }
             2 -> {
                 barTitle.value = "Subject Schedule"
-                if (accountViewModel.subjectScheduleList.size == 0)
-                    accountViewModel.getSubjectSchedule(globalViewModel.schoolYear.value)
+                if (mainViewModel.uiStatus.subjectSchedule.size == 0)
+                    mainViewModel.fetchSubjectSchedule(mainViewModel.settings.schoolYear.value)
             }
             3 -> {
                 barTitle.value = "Subject Fee"
-                if (accountViewModel.subjectFeeList.size == 0)
-                    accountViewModel.getSubjectFee(globalViewModel.schoolYear.value)
+                if (mainViewModel.uiStatus.subjectFee.size == 0)
+                    mainViewModel.fetchSubjectFee(mainViewModel.settings.schoolYear.value)
             }
             4 -> {
                 barTitle.value = "Account Information"
-                if (accountViewModel.accountInformation.value == null)
-                    accountViewModel.getAccountInformation()
+                if (mainViewModel.uiStatus.accountInformation.value == null)
+                    mainViewModel.fetchAccountInformation()
             }
         }
     }
@@ -94,39 +93,39 @@ fun Account(
     // If logout, will return to not logged in screen
     BackHandler(
         enabled = (
-                if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) {
-                    uiStatus.accountCurrentPage.value > 1
-                } else uiStatus.accountCurrentPage.value > 0
+                if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value)) {
+                    mainViewModel.uiStatus.accountCurrentPage.value > 1
+                } else mainViewModel.uiStatus.accountCurrentPage.value > 0
                 ),
         onBack = {
-            uiStatus.accountCurrentPage.value =
-                if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) 1 else 0
+            mainViewModel.uiStatus.accountCurrentPage.value =
+                if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value)) 1 else 0
         }
     )
 
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    if (uiStatus.accountCurrentPage.value >= 2) {
+                    if (mainViewModel.uiStatus.accountCurrentPage.value >= 2) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
                                 .clickable {
-                                    uiStatus.accountCurrentPage.value =
-                                        if (accountViewModel.isLoggedIn.value) 1 else 0
+                                    mainViewModel.uiStatus.accountCurrentPage.value =
+                                        if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value))
+                                            1 else 0
                                 },
                             content = {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -141,7 +140,7 @@ fun Account(
                     )
                 },
                 actions = {
-                    if (uiStatus.accountCurrentPage.value == 1) {
+                    if (mainViewModel.uiStatus.accountCurrentPage.value == 1) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
@@ -153,7 +152,7 @@ fun Account(
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_logout_24),
                                     contentDescription = "",
-                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -163,47 +162,46 @@ fun Account(
             )
         },
         content = { padding ->
-            when (uiStatus.accountCurrentPage.value) {
+            when (mainViewModel.uiStatus.accountCurrentPage.value) {
                 0 -> {
-                    AccountNotLoggedIn(
+                    AccountPageNotLoggedIn(
                         padding = padding,
-                        accountViewModel = accountViewModel
+                        mainViewModel = mainViewModel
                     )
                 }
                 1 -> {
-                    AccountDashboard(
-                        accountViewModel = accountViewModel,
-                        uiStatus = uiStatus,
+                    AccountPageDashboard(
+                        mainViewModel = mainViewModel,
                         padding = padding,
                     )
                 }
                 2 -> {
-                    AccountSubjectSchedule(
+                    AccountPageSubjectSchedule(
                         padding = padding,
-                        subjectScheduleList = accountViewModel.subjectScheduleList,
+                        subjectScheduleList = mainViewModel.uiStatus.subjectSchedule,
                         swipeRefreshState = swipeRefreshStateSubjectSchedule,
                         reloadRequested = {
-                            accountViewModel.getSubjectSchedule(globalViewModel.schoolYear.value)
+                            mainViewModel.fetchSubjectSchedule(mainViewModel.settings.schoolYear.value)
                         }
                     )
                 }
                 3 -> {
-                    AccountSubjectFee(
+                    AccountPageSubjectFee(
                         padding = padding,
-                        subjectFeeList = accountViewModel.subjectFeeList,
+                        subjectFeeList = mainViewModel.uiStatus.subjectFee,
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
-                            accountViewModel.getSubjectFee(globalViewModel.schoolYear.value)
+                            mainViewModel.fetchSubjectFee(mainViewModel.settings.schoolYear.value)
                         }
                     )
                 }
                 4 -> {
-                    AccountInformation(
+                    AccountPageInformation(
                         padding = padding,
-                        accountInformation = accountViewModel.accountInformation.value,
+                        accountInformation = mainViewModel.uiStatus.accountInformation.value,
                         swipeRefreshState = swipeRefreshStateAccInfo,
                         reloadRequested = {
-                            accountViewModel.getAccountInformation()
+                            mainViewModel.fetchAccountInformation()
                         }
                     )
                 }

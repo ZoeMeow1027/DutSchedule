@@ -6,17 +6,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsSchoolYear(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel,
-    uiStatus: UIStatus
+    mainViewModel: MainViewModel,
 ) {
     @Composable
     fun SchoolYearOption(
@@ -69,16 +69,16 @@ fun SettingsSchoolYear(
     val schoolSemesterOptionVal = remember { mutableStateOf(3) }
 
     LaunchedEffect(enabled.value) {
-        schoolYearOptionVal.value = globalViewModel.schoolYear.value.year
-        schoolSemesterOptionVal.value = globalViewModel.schoolYear.value.semester
+        schoolYearOptionVal.value = mainViewModel.settings.schoolYear.value.year
+        schoolSemesterOptionVal.value = mainViewModel.settings.schoolYear.value.semester
     }
 
     fun commitChanges() {
-        globalViewModel.schoolYear.value.year = schoolYearOptionVal.value
-        globalViewModel.schoolYear.value.semester = schoolSemesterOptionVal.value
-        globalViewModel.requestSaveSettings()
+        mainViewModel.settings.schoolYear.value.year = schoolYearOptionVal.value
+        mainViewModel.settings.schoolYear.value.semester = schoolSemesterOptionVal.value
+        mainViewModel.requestSaveChanges()
 
-        uiStatus.updateComposeUI()
+        mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 
@@ -103,7 +103,7 @@ fun SettingsSchoolYear(
                         enabled.value = false
                     },
                     content = {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.option_cancel))
                     }
                 )
             },
@@ -114,7 +114,7 @@ fun SettingsSchoolYear(
                         commitChanges()
                     },
                     content = {
-                        Text("OK")
+                        Text(stringResource(id = R.string.option_ok))
                     }
                 )
             },

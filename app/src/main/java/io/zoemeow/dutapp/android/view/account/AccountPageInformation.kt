@@ -11,7 +11,7 @@ import com.google.accompanist.swiperefresh.SwipeRefreshState
 import io.zoemeow.dutapi.objects.AccountInformation
 
 @Composable
-fun AccountInformation(
+fun AccountPageInformation(
     padding: PaddingValues,
     accountInformation: AccountInformation?,
     swipeRefreshState: SwipeRefreshState,

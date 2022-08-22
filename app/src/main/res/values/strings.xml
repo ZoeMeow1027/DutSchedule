@@ -7,11 +7,8 @@
     <string name="navbar_account">Account</string>
     <string name="topbar_news">News</string>
     <string name="topbar_account">Account</string>
-    <string name="settings_openlinkin_builtinbrowser">Built-in app browser</string>
-    <string name="settings_openlinkin_customtab">Default browser custom tab</string>
-    <string name="settings_openlinkin_external">External browser</string>
-    <string name="settings_openlinkin_name">Open link in</string>
-    <string name="settings_openlinkin_description">This will open link you clicked in application to browser you will choose above.</string>
+    <string name="settings_openlinkincustomtab_name">Open link in custom tabs</string>
+    <string name="settings_openlinkincustomtab_description">This will open link you clicked in application to browser you will choose above.</string>
     <string name="option_cancel">Cancel</string>
     <string name="settings_apptheme_name">App theme</string>
     <string name="settings_apptheme_followsystem">Follow device theme</string>
@@ -33,4 +30,13 @@
     <string name="settings_blacktheme_description">Useful if your device has AMOLED display to save battery backup. Requires dark mode enabled.</string>
     <string name="settings_backgroundimage_name">App background image</string>
     <string name="navbar_main">Main</string>
+    <string name="settings_backgroundimage_none">None</string>
+    <string name="settings_backgroundimage_fromsystem">From device wallpaper</string>
+    <string name="settings_backgroundimage_specific">Specific a image</string>
+    <string name="settings_backgroundimage_note">Note:\n- Remember, this feature is still in beta, so it isn\'t working well yet.\n- \"Specific a image\" option is temporary disabled due to not working yet.</string>
+    <string name="account_page_notloggedin">Not logged in</string>
+    <string name="account_page_dashboard">Dashboard</string>
+    <string name="account_page_subjectschedule">Subject Schedule</string>
+    <string name="account_page_subjectfee">Subject Fee</string>
+    <string name="account_page_accinfo">Account Information</string>
 </resources>

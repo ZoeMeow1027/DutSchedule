@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -48,7 +48,7 @@ fun MainActivityTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val uiStatus = UIStatus.getInstance()
+    val mainViewModel = MainViewModel.getInstance()
 
     val darkTheme: Boolean = when (darkMode) {
         AppTheme.FollowSystem -> isSystemInDarkTheme()
@@ -79,48 +79,16 @@ fun MainActivityTheme(
     }
 
     // Trigger for dark mode detection.
-    uiStatus.mainActivityIsDarkTheme.value = darkTheme
+    mainViewModel.uiStatus.mainActivityIsDarkTheme.value = darkTheme
 
     // Load background image if needed
     BackgroundImage(
-        drawable = if (uiStatus.mainActivityBackgroundDrawable.value != null)
-            uiStatus.mainActivityBackgroundDrawable.value
+        drawable = if (mainViewModel.uiStatus.mainActivityBackgroundDrawable.value != null)
+            mainViewModel.uiStatus.mainActivityBackgroundDrawable.value
         else ColorDrawable(colorScheme.background.hashCode())
     )
 
     // Start compose UI
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
-}
-
-@Composable
-fun DefaultActivityTheme(
-    // Set app mode layout
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
-
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            (view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
-            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
-        }
-    }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

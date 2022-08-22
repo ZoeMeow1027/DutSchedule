@@ -15,7 +15,7 @@ import androidx.compose.ui.window.DialogProperties
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun AccountLogoutDialog(
+fun AccountDialogLogout(
     enabled: MutableState<Boolean>,
     logoutRequest: () -> Unit
 ) {

@@ -9,7 +9,6 @@ import io.zoemeow.dutapp.android.model.account.SchoolYearItem
 import io.zoemeow.dutapp.android.model.appsettings.AppSettings
 import io.zoemeow.dutapp.android.model.appsettings.BackgroundImage
 import io.zoemeow.dutapp.android.model.enums.AppTheme
-import io.zoemeow.dutapp.android.model.enums.OpenLinkType
 import java.io.BufferedReader
 import java.io.File
 import java.io.Serializable
@@ -40,7 +39,7 @@ class SettingsFileRepository @Inject constructor(
 
     // Open link in
     @Transient
-    val openLinkType: MutableState<OpenLinkType> = mutableStateOf(OpenLinkType.InCustomTabs)
+    val openLinkInCustomTab: MutableState<Boolean> = mutableStateOf(true)
 
     @Transient
     private var readyToSave: Boolean = false
@@ -64,7 +63,7 @@ class SettingsFileRepository @Inject constructor(
             blackTheme.value = dataFromFile.blackThemeEnabled
             dynamicColorEnabled.value = dataFromFile.dynamicColorEnabled
             schoolYear.value = dataFromFile.schoolYear
-            openLinkType.value = dataFromFile.builtInBrowserOpenLinkType
+            openLinkInCustomTab.value = dataFromFile.openLinkInCustomTab
         } catch (ex: Exception) {
             ex.printStackTrace()
         } finally {
@@ -75,7 +74,7 @@ class SettingsFileRepository @Inject constructor(
 
     fun saveSettings() {
         if (readyToSave) {
-            Log.d("SettingsWrite", "Triggered settings writing...")
+            Log.d("Settings", "Triggered settings writing...")
 
             try {
                 val data = AppSettings(
@@ -84,7 +83,7 @@ class SettingsFileRepository @Inject constructor(
                     blackThemeEnabled = blackTheme.value,
                     dynamicColorEnabled = dynamicColorEnabled.value,
                     schoolYear = schoolYear.value,
-                    builtInBrowserOpenLinkType = openLinkType.value
+                    openLinkInCustomTab = openLinkInCustomTab.value
                 )
 
                 val str = Gson().toJson(data)
@@ -93,9 +92,5 @@ class SettingsFileRepository @Inject constructor(
                 ex.printStackTrace()
             }
         }
-    }
-
-    init {
-        loadSettings()
     }
 }
