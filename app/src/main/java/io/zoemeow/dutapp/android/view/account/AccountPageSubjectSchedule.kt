@@ -16,11 +16,11 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
-import io.zoemeow.dutapp.android.utils.DateToString
-import io.zoemeow.dutapp.android.utils.DayOfWeekInString
+import io.zoemeow.dutapp.android.utils.dateToString
+import io.zoemeow.dutapp.android.utils.getDayOfWeekToString
 
 @Composable
-fun AccountSubjectSchedule(
+fun AccountPageSubjectSchedule(
     padding: PaddingValues,
     subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
     swipeRefreshState: SwipeRefreshState,
@@ -86,7 +86,7 @@ fun AccountSubjectSchedule(
                         var schList = ""
                         for (schStudyItem in item.subjectStudy.scheduleList) {
                             schList += (if (schList.isNotEmpty()) "; " else "") +
-                                    "${DayOfWeekInString(schStudyItem.dayOfWeek)}," +
+                                    "${getDayOfWeekToString(schStudyItem.dayOfWeek)}," +
                                     "${schStudyItem.lesson.start}-${schStudyItem.lesson.end}," +
                                     schStudyItem.room
                         }
@@ -113,7 +113,7 @@ fun AccountSubjectSchedule(
                         Spacer(modifier = Modifier.size(5.dp))
                         Text(
                             text = "Schedule exam date: ${
-                                DateToString(
+                                dateToString(
                                     item.subjectExam.date,
                                     "dd/MM/yyyy HH:mm",
                                     "GMT+7"

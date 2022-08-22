@@ -26,23 +26,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
+import io.zoemeow.dutapp.android.model.enums.LoginState
 import io.zoemeow.dutapp.android.services.RefreshNewsService
 import io.zoemeow.dutapp.android.ui.theme.MainActivityTheme
 import io.zoemeow.dutapp.android.view.account.Account
-import io.zoemeow.dutapp.android.view.main.Main
-import io.zoemeow.dutapp.android.view.mainnavbar.MainBottomNavigationBar
-import io.zoemeow.dutapp.android.view.mainnavbar.MainNavRoutes
+import io.zoemeow.dutapp.android.view.navbar.MainBottomNavigationBar
+import io.zoemeow.dutapp.android.view.navbar.MainNavRoutes
 import io.zoemeow.dutapp.android.view.news.News
 import io.zoemeow.dutapp.android.view.settings.Settings
 import io.zoemeow.dutapp.android.viewmodel.*
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var uiStatus: UIStatus
-    private lateinit var appCacheViewModel: AppCacheViewModel
-    private lateinit var accountViewModel: AccountViewModel
-    private lateinit var newsViewModel: NewsViewModel
-    private lateinit var globalViewModel: GlobalViewModel
+    private lateinit var mainViewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,49 +46,39 @@ class MainActivity : ComponentActivity() {
         // https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted
         permitAllPolicy()
 
-        // Register notifications channel for news service
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            createNotificationChannelService()
-        // Start services
-        Intent(applicationContext, RefreshNewsService::class.java).also { intent ->
-            // https://stackoverflow.com/a/47654126
-            startService(intent)
-        }
-
         setContent {
-            // Initialize app cache
-            appCacheViewModel = viewModel()
-            AppCacheViewModel.setInstance(appCacheViewModel)
+            // Initialize Main View Model
+            mainViewModel = viewModel()
+            MainViewModel.setInstance(mainViewModel)
 
-            // Initialize UIStatus
-            uiStatus = UIStatus.getInstance()
             // Create scope for uiStatus
-            uiStatus.scope = rememberCoroutineScope()
+            mainViewModel.uiStatus.scope = rememberCoroutineScope()
             // Set SnackBar in MainActivity Scaffold
-            uiStatus.mainActivitySetSnackBarState(SnackbarHostState())
+            mainViewModel.uiStatus.setSnackBarState(SnackbarHostState())
             // Set Activity
-            uiStatus.setMainActivity(this)
+            mainViewModel.uiStatus.setActivity(this)
 
-            // Initialize GlobalViewModel
-            globalViewModel = viewModel()
-            GlobalViewModel.setInstance(globalViewModel)
+//            // Register notifications channel for news service
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                createNotificationChannelService()
+//            }
 
-            // Initialize AccountViewModel
-            accountViewModel = viewModel()
-
-            // Initialize NewsViewModel
-            newsViewModel = viewModel()
+            // Start services
+            Intent(applicationContext, RefreshNewsService::class.java).also { intent ->
+                // https://stackoverflow.com/a/47654126
+                startService(intent)
+            }
 
             // Check permission with background image option
             // Only one request when user start app.
             val firstTimeRequest = remember { mutableStateOf(true) }
-            if (firstTimeRequest.value && (globalViewModel.backgroundImage.value.option != BackgroundImageType.Unset)) {
+            if (firstTimeRequest.value && (mainViewModel.settings.backgroundImage.value.option != BackgroundImageType.Unset)) {
                 // Check permission with background image option
-                uiStatus.checkPermissionAndReloadAppBackground(
-                    type = globalViewModel.backgroundImage.value.option,
+                mainViewModel.uiStatus.checkPermissionAndReloadAppBackground(
+                    type = mainViewModel.settings.backgroundImage.value.option,
                     onRequested = {
                         if (firstTimeRequest.value)
-                            uiStatus.requestPermissionAppBackground()
+                            mainViewModel.uiStatus.requestPermissionAppBackground()
 
                         // Disable this value to avoid another request.
                         firstTimeRequest.value = false
@@ -101,9 +87,9 @@ class MainActivity : ComponentActivity() {
             }
 
             MainActivityTheme(
-                dynamicColor = globalViewModel.dynamicColorEnabled.value,
-                darkMode = globalViewModel.appTheme.value,
-                blackTheme = globalViewModel.blackTheme.value
+                dynamicColor = mainViewModel.settings.dynamicColorEnabled.value,
+                darkMode = mainViewModel.settings.appTheme.value,
+                blackTheme = mainViewModel.settings.blackTheme.value
             ) {
                 MainScreen()
             }
@@ -121,10 +107,10 @@ class MainActivity : ComponentActivity() {
 
         // A scaffold container using the 'background' color from the theme
         Scaffold(
-            snackbarHost = { SnackbarHost(hostState = uiStatus.mainActivityGetSnackBarState()) },
-            containerColor = if (globalViewModel.backgroundImage.value.option == BackgroundImageType.Unset)
+            snackbarHost = { SnackbarHost(hostState = mainViewModel.uiStatus.getSnackBarState()) },
+            containerColor = if (mainViewModel.settings.backgroundImage.value.option == BackgroundImageType.Unset)
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(alpha = 0.8f),
-            contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 MainBottomNavigationBar(
@@ -132,15 +118,15 @@ class MainActivity : ComponentActivity() {
                     currentRoute = currentRoute,
                     onClick = {
                         if (it.route == MainNavRoutes.News.route) {
-                            if (!uiStatus.newsDetectItemChosen(needClear = true))
-                                uiStatus.newsScrollListToTop()
+                            if (!mainViewModel.uiStatus.newsDetectItemChosen(needClear = true))
+                                mainViewModel.uiStatus.newsScrollListToTop()
                         } else if (it.route == MainNavRoutes.Account.route) {
-                            if (accountViewModel.isLoggedIn.value || accountViewModel.isRememberLoggedIn.value) {
-                                if (uiStatus.accountCurrentPage.value != 1)
-                                    uiStatus.accountCurrentPage.value = 1
+                            if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value)) {
+                                if (mainViewModel.uiStatus.accountCurrentPage.value != 1)
+                                    mainViewModel.uiStatus.accountCurrentPage.value = 1
                             } else {
-                                if (uiStatus.accountCurrentPage.value != 0)
-                                    uiStatus.accountCurrentPage.value = 0
+                                if (mainViewModel.uiStatus.accountCurrentPage.value != 0)
+                                    mainViewModel.uiStatus.accountCurrentPage.value = 0
                             }
                         }
                     }
@@ -149,31 +135,25 @@ class MainActivity : ComponentActivity() {
             content = { contentPadding ->
                 NavHost(
                     navController = navController,
-                    startDestination = MainNavRoutes.Main.route,
+                    startDestination = MainNavRoutes.Account.route,
                     modifier = Modifier.padding(contentPadding)
                 ) {
-                    composable(MainNavRoutes.Main.route) {
-                        Main()
-                    }
-
                     composable(MainNavRoutes.News.route) {
                         News(
-                            uiStatus = uiStatus,
-                            appCacheViewModel = appCacheViewModel,
-                            newsViewModel = newsViewModel,
+                            mainViewModel = mainViewModel,
                         )
                     }
 
                     composable(MainNavRoutes.Account.route) {
                         Account(
-                            uiStatus = uiStatus,
-                            globalViewModel = globalViewModel,
-                            accountViewModel = accountViewModel,
+                            mainViewModel = mainViewModel,
                         )
                     }
 
                     composable(MainNavRoutes.Settings.route) {
-                        Settings()
+                        Settings(
+                            mainViewModel = mainViewModel,
+                        )
                     }
                 }
             },
@@ -182,8 +162,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (this::accountViewModel.isInitialized)
-            accountViewModel.reLogin()
+        if (this::mainViewModel.isInitialized)
+            mainViewModel.reLogin(silent = true)
     }
 
     @Deprecated("Deprecated in Java")
@@ -195,18 +175,18 @@ class MainActivity : ComponentActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         if (requestCode == 0) {
-            uiStatus.checkPermissionAndReloadAppBackground(
-                type = globalViewModel.backgroundImage.value.option,
+            mainViewModel.uiStatus.checkPermissionAndReloadAppBackground(
+                type = mainViewModel.settings.backgroundImage.value.option,
                 onSuccessful = {
                     Log.d("Permission", "Triggered successful")
-                    uiStatus.updateComposeUI()
+                    mainViewModel.uiStatus.updateComposeUI()
                 },
                 onRequested = {
                     Log.d("Permission", "Triggered request -> failed")
-                    globalViewModel.backgroundImage.value.option = BackgroundImageType.Unset
-                    globalViewModel.requestSaveSettings()
-                    uiStatus.updateComposeUI()
-                    uiStatus.showSnackBarMessage(
+                    mainViewModel.settings.backgroundImage.value.option = BackgroundImageType.Unset
+                    mainViewModel.requestSaveChanges()
+                    mainViewModel.uiStatus.updateComposeUI()
+                    mainViewModel.uiStatus.showSnackBarMessage(
                         "Missing permission: READ_EXTERNAL_STORAGE. " +
                                 "This will revert background image option is unset."
                     )
@@ -227,13 +207,13 @@ class MainActivity : ComponentActivity() {
         StrictMode.setThreadPolicy(policy)
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannelService() {
-        val channel = NotificationChannel("dut_service", "Services", NotificationManager.IMPORTANCE_NONE)
-        channel.lightColor = android.graphics.Color.BLUE
-        channel.lockscreenVisibility = Notification.VISIBILITY_SECRET
-        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        service.createNotificationChannel(channel)
-    }
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    private fun createNotificationChannelService() {
+//        val channel = NotificationChannel("dut_service", "Services", NotificationManager.IMPORTANCE_NONE)
+//        channel.lightColor = android.graphics.Color.BLUE
+//        channel.lockscreenVisibility = Notification.VISIBILITY_SECRET
+//        val service = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//        service.createNotificationChannel(channel)
+//    }
 }
 

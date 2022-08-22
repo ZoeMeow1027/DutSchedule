@@ -7,11 +7,8 @@
     <string name="navbar_account">Tài khoản</string>
     <string name="topbar_news">Tin tức</string>
     <string name="topbar_account">Tài khoản</string>
-    <string name="settings_openlinkin_builtinbrowser">Trình duyệt có sẵn của ứng dụng</string>
-    <string name="settings_openlinkin_customtab">Cửa sổ tùy chỉnh của trình duyệt mặc định</string>
-    <string name="settings_openlinkin_external">Trình duyệt mặc định</string>
-    <string name="settings_openlinkin_name">Mở liên kết trong</string>
-    <string name="settings_openlinkin_description">Điều này sẽ mở liên kết bạn đã nhấn trong ứng dụng đến trình duyệt bạn sẽ chọn ở trên.</string>
+    <string name="settings_openlinkincustomtab_name">Mở liên kết trong ứng dụng</string>
+    <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định.</string>
     <string name="option_cancel">Hủy</string>
     <string name="settings_apptheme_name">Chủ đề ứng dụng</string>
     <string name="settings_apptheme_followsystem">Theo chủ đề hệ thống</string>
@@ -33,4 +30,13 @@
     <string name="settings_blacktheme_description">Rất hữu ích trên thiết bị có màn hình AMOLED vì có thể tiết kiệm pin. Yêu cầu chế độ tối cần được bật.</string>
     <string name="settings_backgroundimage_name">Hình nền của ứng dụng</string>
     <string name="navbar_main">Chính</string>
+    <string name="settings_backgroundimage_none">Không</string>
+    <string name="settings_backgroundimage_fromsystem">Từ hình nền thiết bị</string>
+    <string name="settings_backgroundimage_specific">Chọn một ảnh</string>
+    <string name="settings_backgroundimage_note">Lưu ý:\n - Hãy nhớ rằng tùy chọn này vẫn đang ở trong giai đoạn thử nghiệm, nó có thể không hoạt động tốt.\n - \"Chọn một ảnh\" tạm thời bị vô hiệu hóa do chưa thể hoạt động.</string>
+    <string name="account_page_notloggedin">Chưa đăng nhập</string>
+    <string name="account_page_dashboard">Dashboard</string>
+    <string name="account_page_subjectschedule">Lịch học</string>
+    <string name="account_page_subjectfee">Học phí</string>
+    <string name="account_page_accinfo">Thông tin tài khoản</string>
 </resources>

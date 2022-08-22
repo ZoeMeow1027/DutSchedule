@@ -16,19 +16,17 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapp.android.ui.custom.NewsScreenCore
-import io.zoemeow.dutapp.android.utils.CalculateDayAgo
-import io.zoemeow.dutapp.android.utils.DateToString
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.utils.calculateDayAgoFromNews
+import io.zoemeow.dutapp.android.utils.dateToString
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @Composable
 fun NewsDetailsSubject(
+    mainViewModel: MainViewModel,
     padding: PaddingValues,
     news: NewsGlobalItem,
-    uiStatus: UIStatus,
     linkClicked: (String) -> Unit
 ) {
-    val globalViewModel = GlobalViewModel.getInstance()
     NewsScreenCore {
         val optionsScrollState = rememberScrollState()
         Box(
@@ -49,12 +47,12 @@ fun NewsDetailsSubject(
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
                     text = "Posted on ${
-                        DateToString(
+                        dateToString(
                             news.date,
                             "dd/MM/yyyy",
                             "UTC"
                         )
-                    } (${CalculateDayAgo(news.date) ?: "..."})",
+                    } (${calculateDayAgoFromNews(news.date)})",
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.size(10.dp))
@@ -69,7 +67,7 @@ fun NewsDetailsSubject(
                         append(news.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black),
+                            style = SpanStyle(color = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black),
                             start = 0,
                             end = news.contentString.length
                         )

@@ -17,14 +17,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutapp.android.model.ProcessState
-import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
+import io.zoemeow.dutapp.android.model.enums.LoginState
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun AccountLoginDialog(
+fun AccountDialogLogin(
     enabled: MutableState<Boolean>,
-    accountViewModel: AccountViewModel
+    mainViewModel: MainViewModel,
 ) {
     val passTextFieldFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
@@ -33,6 +33,34 @@ fun AccountLoginDialog(
     val username: MutableState<String> = remember { mutableStateOf("") }
     val password: MutableState<String> = remember { mutableStateOf("") }
     val rememberLogin: MutableState<Boolean> = remember { mutableStateOf(false) }
+
+    fun login() {
+        focusManager.clearFocus()
+        mainViewModel.login(
+            username = username.value,
+            password = password.value,
+            remembered = rememberLogin.value
+        )
+    }
+
+    @Composable
+    fun LoggingIn(loginState: LoginState) {
+        when (loginState) {
+            LoginState.LoggingIn -> {
+                Text("We are logging you in. Please wait...")
+            }
+            LoginState.NotLoggedIn, LoginState.NotLoggedInButRemembered -> {
+                Text(
+                    "Something went wrong with your account! " +
+                            "Make sure your username and password is correct." +
+                            "\nIf everything is ok, don't worry, just try again."
+                )
+            }
+            else -> {
+
+            }
+        }
+    }
 
     LaunchedEffect(enabled.value) {
         if (enabled.value) {
@@ -43,33 +71,27 @@ fun AccountLoginDialog(
         }
     }
 
-    LaunchedEffect(
-        accountViewModel.isLoggedIn.value,
-        accountViewModel.processStateLoggingIn.value
-    ) {
-        // If is logging in
-        if (accountViewModel.processStateLoggingIn.value == ProcessState.Running) {
-            // Disable controls here to avoid editing
-            enabledControl.value = false
-        }
-        // Otherwise
-        else {
-            // Enable controls again
-            enabledControl.value = true
-
-            if (
-            // Process done but not logged in
-                (!accountViewModel.isLoggedIn.value && accountViewModel.processStateLoggingIn.value != ProcessState.Running) ||
-                // Self process failed
-                accountViewModel.processStateLoggingIn.value == ProcessState.Failed
-            ) {
+    LaunchedEffect(mainViewModel.uiStatus.loginState.value) {
+        when (mainViewModel.uiStatus.loginState.value) {
+            LoginState.NotLoggedIn, LoginState.NotLoggedInButRemembered, LoginState.NotTriggered -> {
+                // Enable controls again
+                enabledControl.value = true
                 // TODO: Notify login failed here!
             }
+            // If is logging in
+            LoginState.LoggingIn -> {
+                // Disable controls here to avoid editing
+                enabledControl.value = false
+            }
             // Successfully logged in!
-            else if (accountViewModel.isLoggedIn.value &&
-                accountViewModel.processStateLoggingIn.value == ProcessState.Successful
-            ) {
+            LoginState.LoggedIn -> {
                 enabled.value = false
+                // Enable controls again
+                enabledControl.value = true
+            }
+            // Account locked
+            LoginState.AccountLocked -> {
+                // Enable controls again
                 enabledControl.value = true
             }
         }
@@ -112,7 +134,7 @@ fun AccountLoginDialog(
                 TextButton(
                     enabled = enabledControl.value,
                     onClick = {
-                        accountViewModel.login(username.value, password.value)
+                        login()
                     },
                     content = {
                         Text("Login")
@@ -153,8 +175,7 @@ fun AccountLoginDialog(
                         ),
                         keyboardActions = KeyboardActions(
                             onGo = {
-                                focusManager.clearFocus()
-                                accountViewModel.login(username.value, password.value)
+                                login()
                             }
                         )
                     )
@@ -174,19 +195,8 @@ fun AccountLoginDialog(
                         Spacer(modifier = Modifier.size(5.dp))
                         Text("Remember your login")
                     }
-                    if (accountViewModel.processStateLoggingIn.value == ProcessState.Running ||
-                        accountViewModel.processStateLoggingIn.value == ProcessState.Failed
-                    ) {
-                        Spacer(modifier = Modifier.size(15.dp))
-                        Text(
-                            text = if (accountViewModel.processStateLoggingIn.value == ProcessState.Running)
-                                "We are logging you in. Please wait..."
-                            else
-                                "Something went wrong with your account! " +
-                                        "Make sure your username and password is correct." +
-                                        "\nIf everything is ok, don't worry, just try again."
-                        )
-                    }
+                    Spacer(modifier = Modifier.size(15.dp))
+                    LoggingIn(mainViewModel.uiStatus.loginState.value)
                 }
             }
         )

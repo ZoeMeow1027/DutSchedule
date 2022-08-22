@@ -18,7 +18,7 @@ import com.google.accompanist.swiperefresh.SwipeRefreshState
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 
 @Composable
-fun AccountSubjectFee(
+fun AccountPageSubjectFee(
     padding: PaddingValues,
     subjectFeeList: SnapshotStateList<SubjectFeeItem>,
     swipeRefreshState: SwipeRefreshState,

@@ -13,8 +13,8 @@ android {
         applicationId "io.zoemeow.dutapp.android"
         minSdk 21
         targetSdk 33
-        versionCode 89
-        versionName "0.8-alpha4"
+        versionCode 125
+        versionName "0.9-alpha1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -68,6 +68,9 @@ dependencies {
 
     implementation 'com.google.android.material:material:1.6.1'
 
+    // Kotlinx-kotlin-datetime
+    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
+
     // required to avoid crash on Android 12 API 31
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
 
@@ -85,8 +88,6 @@ dependencies {
     implementation 'com.google.accompanist:accompanist-pager-indicators:0.24.11-rc'
     // Accompanist - Drawable Painter
     implementation 'com.google.accompanist:accompanist-drawablepainter:0.23.1'
-    // Accompanist - WebView
-    implementation "com.google.accompanist:accompanist-webview:0.26.0-alpha"
 
     // https://developer.chrome.com/docs/android/custom-tabs/integration-guide/
     implementation "androidx.browser:browser:1.4.0"

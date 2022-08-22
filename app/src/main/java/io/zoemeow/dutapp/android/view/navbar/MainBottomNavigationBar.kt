@@ -1,4 +1,4 @@
-package io.zoemeow.dutapp.android.view.mainnavbar
+package io.zoemeow.dutapp.android.view.navbar
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -12,7 +12,7 @@ import androidx.navigation.NavHostController
 fun MainBottomNavigationBar(
     navController: NavHostController,
     currentRoute: String?,
-    onClick: (route: MainNavBarItems) -> Unit
+    onClick: (route: NavBarItems) -> Unit
 ) {
     NavigationBar {
         MainNavBarItemObject.MainBarItems.forEach { navItem ->
@@ -37,7 +37,7 @@ fun MainBottomNavigationBar(
                 label = {
                     Text(
                         text = stringResource(id = navItem.titleByStringId),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.titleSmall,
                     )
                 },
             )

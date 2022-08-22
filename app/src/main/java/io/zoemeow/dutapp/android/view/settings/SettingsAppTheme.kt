@@ -16,15 +16,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.AppTheme
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsAppTheme(
     enabled: MutableState<Boolean>,
-    globalViewModel: GlobalViewModel,
-    uiStatus: UIStatus,
+    mainViewModel: MainViewModel,
 ) {
     val themeList = listOf(
         stringResource(id = R.string.settings_apptheme_followsystem),
@@ -35,18 +33,18 @@ fun SettingsAppTheme(
     val dynamicColorEnabled = remember { mutableStateOf(true) }
 
     LaunchedEffect(enabled.value) {
-        selectedThemeList.value = themeList[globalViewModel.appTheme.value.ordinal]
+        selectedThemeList.value = themeList[mainViewModel.settings.appTheme.value.ordinal]
         dynamicColorEnabled.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            globalViewModel.dynamicColorEnabled.value else false
+            mainViewModel.settings.dynamicColorEnabled.value else false
     }
 
     fun commitChanges() {
-        globalViewModel.appTheme.value =
+        mainViewModel.settings.appTheme.value =
             AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
-        globalViewModel.dynamicColorEnabled.value = dynamicColorEnabled.value
-        globalViewModel.requestSaveSettings()
+        mainViewModel.settings.dynamicColorEnabled.value = dynamicColorEnabled.value
+        mainViewModel.requestSaveChanges()
 
-        uiStatus.updateComposeUI()
+        mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 
@@ -135,7 +133,7 @@ fun SettingsAppTheme(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                            tint = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
                         Text(stringResource(id = R.string.settings_apptheme_note))
                     }

@@ -1,6 +1,5 @@
 package io.zoemeow.dutapp.android.view.news
 
-import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,21 +20,14 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.utils.openLink
-import io.zoemeow.dutapp.android.viewmodel.AppCacheViewModel
-import io.zoemeow.dutapp.android.viewmodel.GlobalViewModel
-import io.zoemeow.dutapp.android.viewmodel.NewsViewModel
-import io.zoemeow.dutapp.android.viewmodel.UIStatus
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun News(
-    uiStatus: UIStatus,
-    appCacheViewModel: AppCacheViewModel,
-    newsViewModel: NewsViewModel,
+    mainViewModel: MainViewModel,
 ) {
-    val globalViewModel = GlobalViewModel.getInstance()
-
     val tabList = listOf(
         stringResource(id = R.string.news_tab_global),
         stringResource(id = R.string.news_tab_subject)
@@ -43,36 +35,36 @@ fun News(
     val pagerState = rememberPagerState(initialPage = 0)
     val context = LocalContext.current
 
-    uiStatus.newsLazyListGlobalState = rememberLazyListState()
-    uiStatus.newsLazyListSubjectState = rememberLazyListState()
+    mainViewModel.uiStatus.newsLazyListGlobalState = rememberLazyListState()
+    mainViewModel.uiStatus.newsLazyListSubjectState = rememberLazyListState()
 
     NavHostController(context)
 
     BackHandler(
-        enabled = uiStatus.newsDetectItemChosen(needClear = false),
-        onBack = { uiStatus.newsDetectItemChosen(needClear = true) }
+        enabled = mainViewModel.uiStatus.newsDetectItemChosen(needClear = false),
+        onBack = { mainViewModel.uiStatus.newsDetectItemChosen(needClear = true) }
     )
 
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+        contentColor = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
             SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
                 navigationIcon = {
-                    if (uiStatus.newsDetectItemChosen(needClear = false)) {
+                    if (mainViewModel.uiStatus.newsDetectItemChosen(needClear = false)) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
-                                .clickable { uiStatus.newsDetectItemChosen(needClear = true) },
+                                .clickable { mainViewModel.uiStatus.newsDetectItemChosen(needClear = true) },
                             content = {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -81,13 +73,13 @@ fun News(
                 },
                 title = { Text(stringResource(id = R.string.navbar_news)) },
                 actions = {
-                    if (!uiStatus.newsDetectItemChosen(needClear = false)) {
+                    if (!mainViewModel.uiStatus.newsDetectItemChosen(needClear = false)) {
                         var count = 0
                         for (tabItem in tabList) {
                             val count2: Int = count
                             Button(
                                 onClick = {
-                                    uiStatus.scope.launch {
+                                    mainViewModel.uiStatus.scope.launch {
                                         pagerState.animateScrollToPage(
                                             count2
                                         )
@@ -101,7 +93,7 @@ fun News(
                             ) {
                                 Text(
                                     text = tabItem,
-                                    color = if (uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                                    color = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black
                                 )
                             }
                             count += 1
@@ -127,22 +119,22 @@ fun News(
 //            }
         },
         content = { padding ->
-            if (uiStatus.newsItemChosenGlobal.value != null) {
+            if (mainViewModel.uiStatus.newsItemChosenGlobal.value != null) {
                 NewsDetailsGlobal(
+                    mainViewModel = mainViewModel,
                     padding = padding,
-                    news = uiStatus.newsItemChosenGlobal.value!!,
-                    uiStatus = uiStatus,
+                    news = mainViewModel.uiStatus.newsItemChosenGlobal.value!!,
                     linkClicked = {
-                        openLink(it, context, globalViewModel.openLinkType.value)
+                        openLink(it, context, mainViewModel.settings.openLinkInCustomTab.value)
                     }
                 )
-            } else if (uiStatus.newsItemChosenSubject.value != null) {
+            } else if (mainViewModel.uiStatus.newsItemChosenSubject.value != null) {
                 NewsDetailsSubject(
+                    mainViewModel = mainViewModel,
                     padding = padding,
-                    news = uiStatus.newsItemChosenSubject.value!!,
-                    uiStatus = uiStatus,
+                    news = mainViewModel.uiStatus.newsItemChosenSubject.value!!,
                     linkClicked = {
-                        openLink(it, context, globalViewModel.openLinkType.value)
+                        openLink(it, context, mainViewModel.settings.openLinkInCustomTab.value)
                     }
                 )
             } else {
@@ -154,25 +146,25 @@ fun News(
                     HorizontalPager(count = tabList.size, state = pagerState) { index ->
                         when (index) {
                             0 -> NewsGlobal(
-                                newsGlobalList = appCacheViewModel.newsGlobalListByDate,
-                                isLoading = newsViewModel.newsGlobalState,
-                                lazyListState = uiStatus.newsLazyListGlobalState,
+                                newsGlobalList = mainViewModel.appCache.newsGlobalListByDate,
+                                isLoading = mainViewModel.news.newsGlobalState,
+                                lazyListState = mainViewModel.uiStatus.newsLazyListGlobalState,
                                 reloadRequested = {
-                                    newsViewModel.getNewsGlobal(it)
+                                    mainViewModel.news.getNewsGlobal(it)
                                 },
                                 itemClicked = {
-                                    uiStatus.newsItemChosenGlobal.value = it
+                                    mainViewModel.uiStatus.newsItemChosenGlobal.value = it
                                 }
                             )
                             1 -> NewsSubject(
-                                newsSubjectList = appCacheViewModel.newsSubjectListByDate,
-                                isLoading = newsViewModel.newsSubjectState,
-                                lazyListState = uiStatus.newsLazyListSubjectState,
+                                newsSubjectList = mainViewModel.appCache.newsSubjectListByDate,
+                                isLoading = mainViewModel.news.newsSubjectState,
+                                lazyListState = mainViewModel.uiStatus.newsLazyListSubjectState,
                                 reloadRequested = {
-                                    newsViewModel.getNewsSubject(it)
+                                    mainViewModel.news.getNewsSubject(it)
                                 },
                                 itemClicked = {
-                                    uiStatus.newsItemChosenSubject.value = it
+                                    mainViewModel.uiStatus.newsItemChosenSubject.value = it
                                 }
                             )
                         }

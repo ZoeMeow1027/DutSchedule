@@ -12,7 +12,6 @@ import io.zoemeow.dutapp.android.model.account.SchoolYearItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
 import java.io.File
 import javax.inject.Inject
 

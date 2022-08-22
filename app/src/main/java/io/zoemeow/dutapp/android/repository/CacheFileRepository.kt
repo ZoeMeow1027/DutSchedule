@@ -5,7 +5,6 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapp.android.model.account.AccountSession
 import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import java.io.File
 import javax.inject.Inject
@@ -41,8 +40,6 @@ class CacheFileRepository @Inject constructor(
                 arrayList.clear()
                 this.close()
             }
-
-            // TODO: Load cache here!
         }.onFailure {
             it.printStackTrace()
         }
@@ -57,9 +54,5 @@ class CacheFileRepository @Inject constructor(
         }.onFailure {
             it.printStackTrace()
         }
-    }
-
-    init {
-        loadCache()
     }
 }

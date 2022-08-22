@@ -10,19 +10,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.zoemeow.dutapp.android.model.ProcessState
-import io.zoemeow.dutapp.android.viewmodel.AccountViewModel
+import io.zoemeow.dutapp.android.model.enums.LoginState
+import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @Composable
-fun AccountNotLoggedIn(
+fun AccountPageNotLoggedIn(
     padding: PaddingValues,
-    accountViewModel: AccountViewModel
+    mainViewModel: MainViewModel,
 ) {
     val dialogLoginEnabled = remember { mutableStateOf(false) }
 
-    AccountLoginDialog(
+    AccountDialogLogin(
         enabled = dialogLoginEnabled,
-        accountViewModel = accountViewModel
+        mainViewModel = mainViewModel,
     )
     Column(
         modifier = Modifier
@@ -43,7 +43,7 @@ fun AccountNotLoggedIn(
         Spacer(modifier = Modifier.size(5.dp))
         Button(
             onClick = {
-                accountViewModel.processStateLoggingIn.value = ProcessState.NotRanYet
+                mainViewModel.uiStatus.loginState.value = LoginState.NotTriggered
                 dialogLoginEnabled.value = true
             },
             content = { Text("Login") }
