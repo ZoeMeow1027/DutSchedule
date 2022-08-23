@@ -93,13 +93,13 @@ fun Account(
     // If logout, will return to not logged in screen
     BackHandler(
         enabled = (
-                if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value)) {
-                    mainViewModel.uiStatus.accountCurrentPage.value > 1
-                } else mainViewModel.uiStatus.accountCurrentPage.value > 0
+                if (arrayListOf(LoginState.NotTriggered, LoginState.NotLoggedIn).contains(mainViewModel.uiStatus.loginState.value)) {
+                    mainViewModel.uiStatus.accountCurrentPage.value > 0
+                } else mainViewModel.uiStatus.accountCurrentPage.value > 1
                 ),
         onBack = {
             mainViewModel.uiStatus.accountCurrentPage.value =
-                if (arrayListOf(LoginState.NotLoggedInButRemembered, LoginState.LoggedIn).contains(mainViewModel.uiStatus.loginState.value)) 1 else 0
+                if (arrayListOf(LoginState.NotTriggered, LoginState.NotLoggedIn).contains(mainViewModel.uiStatus.loginState.value)) 0 else 1
         }
     )
 

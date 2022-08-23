@@ -33,11 +33,11 @@ fun Settings(
     val appThemeSettingsEnabled = remember { mutableStateOf(false) }
     val backgroundImageSettingsEnabled = remember { mutableStateOf(false) }
 
-    // Just trigger to recompose, this doesn't do anything special!
-    val text1 = remember { mutableStateOf("Layout") }
-    LaunchedEffect(mainViewModel.uiStatus.triggerUpdateComposeUI.value) {
-        text1.value = "Layout"
-    }
+//    // Just trigger to recompose, this doesn't do anything special!
+//    val text1 = remember { mutableStateOf("Layout") }
+//    LaunchedEffect(mainViewModel.uiStatus.triggerUpdateComposeUI.value) {
+//        text1.value = "Layout"
+//    }
 
     val backgroundImageOptionList = listOf(
         stringResource(id = R.string.settings_backgroundimage_none),
@@ -81,7 +81,7 @@ fun Settings(
                     .padding(padding)
                     .verticalScroll(rememberScrollState()),
                 content = {
-                    SettingsOptionHeader(headerText = text1.value)
+                    SettingsOptionHeader(headerText = "Layout")
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_apptheme_name),
                         description = (

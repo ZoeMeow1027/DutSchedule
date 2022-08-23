@@ -25,20 +25,53 @@ fun AccountPageDashboard(
         schoolClass: String? = null,
         trainingProgramPlan: String? = null
     ) {
-        Text(
-            text = "Basic account information",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(bottom = 5.dp)
-        )
-        Text(
-            text = "Username: ${username ?: "(unknown)" }",
-        )
-        Text(
-            text = "Class: ${schoolClass ?: "(unknown)"}",
-        )
-        Text(
-            text = "Training Program plan: ${trainingProgramPlan ?: "(unknown)"}",
-        )
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start,
+            modifier = Modifier.fillMaxWidth()
+                .wrapContentHeight()
+        ) {
+            Text(
+                text = "Basic account information",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 10.dp),
+            )
+            Text(
+                text = "Username: ${username ?: "(unknown)" }",
+                modifier = Modifier.padding(bottom = 5.dp),
+            )
+            Text(
+                text = "Class: ${schoolClass ?: "(unknown)"}",
+                modifier = Modifier.padding(bottom = 5.dp),
+            )
+            Text(
+                text = "Training Program plan: ${trainingProgramPlan ?: "(unknown)"}",
+                modifier = Modifier.padding(bottom = 5.dp),
+            )
+        }
+    }
+
+    @Composable
+    fun CustomButton(
+        text: String,
+        clickable: () -> Unit
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(25.dp))
+                .clickable { clickable() },
+            color = MaterialTheme.colorScheme.secondaryContainer,
+        ) {
+            Text(
+                text = text,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(15.dp),
+            )
+        }
     }
 
     Column(
@@ -79,7 +112,7 @@ fun AccountPageDashboard(
                     .wrapContentHeight()
                     .padding(10.dp),
                 verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BasicInformation(
                     username = mainViewModel.uiStatus.username.value,
@@ -87,54 +120,24 @@ fun AccountPageDashboard(
                     trainingProgramPlan = mainViewModel.uiStatus.accountInformation.value?.trainingProgramPlan,
                 )
                 Spacer(modifier = Modifier.size(15.dp))
-                Surface(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .clip(RoundedCornerShape(25.dp))
-                        .clickable {
-                            mainViewModel.uiStatus.accountCurrentPage.value = 4
-                        },
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Text(
-                        text = "View Account Information",
-                        modifier = Modifier.padding(15.dp),
-                    )
-                }
-                Surface(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .clip(RoundedCornerShape(25.dp))
-                        .clickable {
-                            mainViewModel.uiStatus.accountCurrentPage.value = 2
-                        },
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Text(
-                        text = "View Subject Schedule",
-                        modifier = Modifier.padding(15.dp),
-                    )
-                }
-                Surface(
-                    modifier = Modifier
-                        .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .clip(RoundedCornerShape(25.dp))
-                        .clickable {
-                            mainViewModel.uiStatus.accountCurrentPage.value = 3
-                        },
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Text(
-                        text = "View Subject Fee",
-                        modifier = Modifier.padding(15.dp),
-                    )
-                }
+                CustomButton(
+                    text = "View Account Information",
+                    clickable = {
+                        mainViewModel.uiStatus.accountCurrentPage.value = 4
+                    }
+                )
+                CustomButton(
+                    text = "View Subject Schedule",
+                    clickable = {
+                        mainViewModel.uiStatus.accountCurrentPage.value = 2
+                    }
+                )
+                CustomButton(
+                    text = "View Subject Fee",
+                    clickable = {
+                        mainViewModel.uiStatus.accountCurrentPage.value = 3
+                    }
+                )
             }
         }
     }

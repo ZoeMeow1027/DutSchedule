@@ -57,7 +57,7 @@ class MainViewModel @Inject constructor(
     )
 
     // Account Module
-    val accountModule: AccountModule = AccountModule(
+    private val accountModule: AccountModule = AccountModule(
         mainViewModel = this,
         accountFileRepository = accountFileRepository
     )
@@ -172,21 +172,26 @@ class MainViewModel @Inject constructor(
     }
 
     fun filterSubjectScheduleByDay(value: Int = getCurrentDayOfWeek()) {
-        CoroutineScope(Dispatchers.Main).launch {
-            uiStatus.subjectScheduleByDay.clear()
+        val temp = arrayListOf<SubjectScheduleItem>()
 
-            uiStatus.subjectScheduleByDay.addAll(
-                uiStatus.subjectSchedule.filter { item ->
-                    item.subjectStudy.scheduleList.any {
-                            week -> week.dayOfWeek == value
-                    }
-                }.sortedBy { item ->
-                    item.subjectStudy.scheduleList.filter { week ->
-                        week.dayOfWeek == value
-                    }[0].lesson.start
+        temp.addAll(
+            uiStatus.subjectSchedule.filter { item ->
+                item.subjectStudy.scheduleList.any {
+                        week -> week.dayOfWeek == value
                 }
-            )
-        }
+            }.sortedBy { item ->
+                item.subjectStudy.scheduleList.filter { week ->
+                    week.dayOfWeek == value
+                }[0].lesson.start
+            }
+        )
+
+        uiStatus.subjectScheduleByDay.clear()
+        uiStatus.subjectScheduleByDay.addAll(temp)
+        temp.clear()
+
+//        CoroutineScope(Dispatchers.Main).launch {
+//        }
     }
 
     fun fetchSubjectFee(
@@ -255,7 +260,8 @@ class MainViewModel @Inject constructor(
     }
 
     fun reLogin(
-        silent: Boolean = false
+        silent: Boolean = false,
+        reloadSubject: Boolean = true,
     ) {
         var result = false
 
@@ -271,9 +277,11 @@ class MainViewModel @Inject constructor(
             }
         }.invokeOnCompletion {
             if (result) {
-                fetchAccountInformation()
-                fetchSubjectSchedule()
-                fetchSubjectFee()
+                if (reloadSubject) {
+                    fetchAccountInformation()
+                    fetchSubjectSchedule()
+                    fetchSubjectFee()
+                }
                 uiStatus.loginState.value = LoginState.LoggedIn
 
                 // Show snack bar
@@ -307,5 +315,16 @@ class MainViewModel @Inject constructor(
         news.getNewsGlobal()
         news.getNewsSubject()
         reLogin()
+    }
+
+    override fun onCleared() {
+//        super.onCleared()
+//        if (accountFileRepository.hasSavedLogin()) LoginState.NotLoggedInButRemembered
+//        accountFileRepository.checkIsLoggedIn {
+//            uiStatus.loginState.value =
+//                if (it) LoginState.LoggedIn
+//                else if (accountFileRepository.hasSavedLogin()) LoginState.NotLoggedInButRemembered
+//                else LoginState.NotLoggedIn
+//        }
     }
 }

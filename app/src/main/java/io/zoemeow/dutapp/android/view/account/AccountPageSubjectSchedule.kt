@@ -40,6 +40,16 @@ fun AccountPageSubjectSchedule(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
+            item {
+                Column(
+                    modifier = Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        text = "Total credit: ${subjectScheduleList.sumOf { it.credit }}"
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
+            }
             items(subjectScheduleList) { item ->
                 Box(
                     modifier = Modifier
@@ -132,16 +142,6 @@ fun AccountPageSubjectSchedule(
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }
-                }
-            }
-            item {
-                Column(
-                    modifier = Modifier.padding(15.dp)
-                ) {
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = "Total credit: ${subjectScheduleList.sumOf { it.credit }}"
-                    )
                 }
             }
         }

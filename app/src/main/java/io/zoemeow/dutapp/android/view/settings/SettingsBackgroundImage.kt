@@ -1,5 +1,7 @@
 package io.zoemeow.dutapp.android.view.settings
 
+import android.Manifest
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -13,12 +15,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutapp.android.MainActivity
 import io.zoemeow.dutapp.android.R
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
+import io.zoemeow.dutapp.android.view.activities.PermissionRequestActivity
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -42,22 +47,26 @@ fun SettingsBackgroundImage(
             BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
         mainViewModel.requestSaveChanges()
 
-        mainViewModel.uiStatus.updateComposeUI()
-        enabled.value = false
+        if (mainViewModel.settings.backgroundImage.value.option != BackgroundImageType.Unset &&
+            !PermissionRequestActivity.checkPermission(
+                mainViewModel.uiStatus.pMainActivity.value!!,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) {
+            val intent = Intent(
+                mainViewModel.uiStatus.pMainActivity.value!!,
+                PermissionRequestActivity::class.java
+            )
+            intent.putExtra("permission.requested", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+            (mainViewModel.uiStatus.pMainActivity.value!! as MainActivity).permissionRequestActivityResult.launch(intent)
+        }
 
         // TODO: Find better solution instead of doing this here!!!
         mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
         mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
 
-
-        CoroutineScope(Dispatchers.IO).launch {
-            mainViewModel.uiStatus.checkPermissionAndReloadAppBackground(
-                type = mainViewModel.settings.backgroundImage.value.option,
-                onRequested = {
-                    mainViewModel.uiStatus.requestPermissionAppBackground()
-                }
-            )
-        }
+        // mainViewModel.uiStatus.updateComposeUI()
+        enabled.value = false
     }
 
     if (enabled.value) {

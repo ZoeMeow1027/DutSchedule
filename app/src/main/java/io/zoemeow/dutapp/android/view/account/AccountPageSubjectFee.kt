@@ -38,6 +38,21 @@ fun AccountPageSubjectFee(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top,
         ) {
+            item {
+                Column(
+                    modifier = Modifier.padding(15.dp)
+                ) {
+                    Text(
+                        text = "Total credit: ${subjectFeeList.sumOf { it.credit }}"
+                    )
+                    Text(
+                        text = "Total money you will pay: ${
+                            subjectFeeList.sumOf { it.price }.toLong()
+                        } VND"
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                }
+            }
             items(subjectFeeList) { item ->
                 Box(
                     modifier = Modifier
@@ -87,22 +102,6 @@ fun AccountPageSubjectFee(
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }
-                }
-            }
-
-            item {
-                Column(
-                    modifier = Modifier.padding(15.dp)
-                ) {
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Text(
-                        text = "Total credit: ${subjectFeeList.sumOf { it.credit }}"
-                    )
-                    Text(
-                        text = "Total money you will pay: ${
-                            subjectFeeList.sumOf { it.price }.toLong()
-                        } VND"
-                    )
                 }
             }
         }

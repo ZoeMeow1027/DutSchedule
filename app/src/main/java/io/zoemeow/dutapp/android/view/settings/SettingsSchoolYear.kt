@@ -78,7 +78,7 @@ fun SettingsSchoolYear(
         mainViewModel.settings.schoolYear.value.semester = schoolSemesterOptionVal.value
         mainViewModel.requestSaveChanges()
 
-        mainViewModel.uiStatus.updateComposeUI()
+        // mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 

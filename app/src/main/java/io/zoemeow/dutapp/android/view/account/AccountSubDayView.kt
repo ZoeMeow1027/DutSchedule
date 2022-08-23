@@ -53,7 +53,7 @@ fun AccountSubDayView(
                         )
                         item.subjectStudy.scheduleList.filter { schItem -> schItem.dayOfWeek == currentDayOfWeek }.forEach {
                             Text(
-                                text = "Lesson: ${it.lesson.start}-${it.lesson.end}",
+                                text = "Lesson: ${it.lesson.start}-${it.lesson.end}, Room: ${it.room}",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
