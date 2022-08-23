@@ -13,8 +13,8 @@ android {
         applicationId "io.zoemeow.dutapp.android"
         minSdk 21
         targetSdk 33
-        versionCode 125
-        versionName "0.9-alpha1"
+        versionCode 132
+        versionName "0.9-alpha2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -68,18 +68,12 @@ dependencies {
 
     implementation 'com.google.android.material:material:1.6.1'
 
-    // Kotlinx-kotlin-datetime
-    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
-
-    // required to avoid crash on Android 12 API 31
+    // AlarmManager for restart service after closed
+    // Required to avoid crash on Android 12 API 31
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
 
-    // Google Gson
-    implementation 'com.google.code.gson:gson:2.9.0'
-
-    // Retrofit
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    // Kotlinx-datetime
+    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
 
     // Accompanist - Pull-to-refresh
     implementation 'com.google.accompanist:accompanist-swiperefresh:0.24.11-rc'
@@ -92,18 +86,19 @@ dependencies {
     // https://developer.chrome.com/docs/android/custom-tabs/integration-guide/
     implementation "androidx.browser:browser:1.4.0"
 
-    // jsoup HTML parser library @ https://jsoup.org/
+    // Jsoup HTML parser library
     implementation 'org.jsoup:jsoup:1.15.2'
-
-    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.10'
-
-    // https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp
-    implementation 'com.squareup.okhttp:okhttp:2.7.5'
 
     // Google Dagger and Hilt
     implementation "com.google.dagger:hilt-android:2.42"
     kapt "com.google.dagger:hilt-compiler:2.42"
+
+    // Google Gson
+    implementation 'com.google.code.gson:gson:2.9.0'
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
     // ZoeMeow5466/DUTAPI.Java from GitHub (from JitPack.io)
     implementation 'com.github.ZoeMeow5466:DUTAPI.Java:1.6.3'

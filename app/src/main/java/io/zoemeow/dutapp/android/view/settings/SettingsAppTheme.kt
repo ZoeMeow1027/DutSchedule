@@ -44,7 +44,7 @@ fun SettingsAppTheme(
         mainViewModel.settings.dynamicColorEnabled.value = dynamicColorEnabled.value
         mainViewModel.requestSaveChanges()
 
-        mainViewModel.uiStatus.updateComposeUI()
+        // mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 

@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 class UIStatus {
     // Main Activity
-    private val pMainActivity: MutableState<Activity?> = mutableStateOf(null)
+    val pMainActivity: MutableState<Activity?> = mutableStateOf(null)
 
     // Main Activity's SnackBar State.
     private lateinit var pMainActivitySnackBarHostState: SnackbarHostState
@@ -92,7 +92,7 @@ class UIStatus {
     /**
      * Get current drawable for background image. Image loaded will save to backgroundPainter.
      */
-    private fun reloadAppBackground(
+    fun reloadAppBackground(
         type: BackgroundImageType,
     ) {
         try {
@@ -174,23 +174,7 @@ class UIStatus {
         }
     }
 
-    // Just trigger for UI update. This doesn't do anything.
-    val triggerUpdateComposeUI: MutableState<Boolean> = mutableStateOf(false)
-    fun updateComposeUI() {
-        triggerUpdateComposeUI.value = !triggerUpdateComposeUI.value
-    }
-
-
-
-
-
-
-
-
-
-
-
-    // Account View Model Area ==================================================
+    // Account UI area =============================================================================
     /**
      * Gets or sets your current username (get from account information).
      */
@@ -240,5 +224,5 @@ class UIStatus {
      * Gets or sets your current account information.
      */
     val accountInformation: MutableState<AccountInformation?> = mutableStateOf(null)
-    // ==========================================================================
+    // =============================================================================================
 }
