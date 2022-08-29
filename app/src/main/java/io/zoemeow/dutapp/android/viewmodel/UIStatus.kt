@@ -5,14 +5,12 @@ import android.app.Activity
 import android.app.WallpaperManager
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.NewsGlobalItem
@@ -21,8 +19,10 @@ import io.zoemeow.dutapi.objects.SubjectScheduleItem
 import io.zoemeow.dutapp.android.model.ProcessState
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.model.enums.LoginState
+import io.zoemeow.dutapp.android.model.news.NewsGroupByDate
 import io.zoemeow.dutapp.android.utils.getCurrentDayOfWeek
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class UIStatus {
@@ -56,37 +56,11 @@ class UIStatus {
         if (!this::pMainActivitySnackBarHostState.isInitialized)
             return
 
-        scope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             if (forceCloseOld)
                 pMainActivitySnackBarHostState.currentSnackbarData?.dismiss()
             pMainActivitySnackBarHostState.showSnackbar(msg)
         }
-    }
-
-    fun checkPermissionAndReloadAppBackground(
-        type: BackgroundImageType,
-        onSuccessful: (() -> Unit)? = null,
-        onRequested: (() -> Unit)? = null,
-    ) {
-        if (ContextCompat.checkSelfPermission(
-                pMainActivity.value!!,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            reloadAppBackground(type)
-            if (onSuccessful != null) onSuccessful()
-        } else {
-            if (onRequested != null) onRequested()
-        }
-    }
-
-    fun requestPermissionAppBackground() {
-        Log.d("RequestPermission", "Triggered")
-        ActivityCompat.requestPermissions(
-            pMainActivity.value!!,
-            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-            0
-        )
     }
 
     /**
@@ -115,7 +89,6 @@ class UIStatus {
         }
     }
 
-
     /**
      * Main Activity: Check if current theme is dark mode.
      */
@@ -128,34 +101,17 @@ class UIStatus {
      * 1: Dashboard,
      * 2: Subject schedule,
      * 3: Subject fee
+     * 4: Account Information
      */
     val accountCurrentPage: MutableState<Int> = mutableStateOf(0)
 
     val accountCurrentDayOfWeek: MutableState<Int> = mutableStateOf(getCurrentDayOfWeek())
 
-
-    val newsItemChosenGlobal: MutableState<NewsGlobalItem?> = mutableStateOf(null)
-    val newsItemChosenSubject: MutableState<NewsGlobalItem?> = mutableStateOf(null)
-
-    lateinit var newsLazyListGlobalState: LazyListState
-    lateinit var newsLazyListSubjectState: LazyListState
     lateinit var scope: CoroutineScope
 
-    fun newsDetectItemChosen(needClear: Boolean = false): Boolean {
-        var exist = false
-
-        if (newsItemChosenGlobal.value != null) {
-            if (needClear) newsItemChosenGlobal.value = null
-            exist = true
-        }
-
-        if (newsItemChosenSubject.value != null) {
-            if (needClear) newsItemChosenSubject.value = null
-            exist = true
-        }
-
-        return exist
-    }
+    // News UI area ================================================================================
+    lateinit var newsLazyListGlobalState: LazyListState
+    lateinit var newsLazyListSubjectState: LazyListState
 
     fun newsScrollListToTop() {
         if (this::scope.isInitialized) {
@@ -173,6 +129,60 @@ class UIStatus {
             }
         }
     }
+
+    val newsItemChosenGlobal: MutableState<NewsGlobalItem?> = mutableStateOf(null)
+    val newsItemChosenSubject: MutableState<NewsGlobalItem?> = mutableStateOf(null)
+
+    fun newsDetectItemChosen(needClear: Boolean = false): Boolean {
+        var exist = false
+
+        if (newsItemChosenGlobal.value != null) {
+            if (needClear) newsItemChosenGlobal.value = null
+            exist = true
+        }
+
+        if (newsItemChosenSubject.value != null) {
+            if (needClear) newsItemChosenSubject.value = null
+            exist = true
+        }
+
+        return exist
+    }
+    // =============================================================================================
+
+
+    // News Data area ==============================================================================
+    /**
+     * Check if a progress for get news global is running.
+     */
+    val procNewsGlobal: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
+
+    /**
+     * Current News Global page.
+     */
+    val newsGlobalPageCurrent: MutableState<Int> = mutableStateOf(1)
+
+    /**
+     * Current News Global list.
+     */
+    val listNewsGlobalByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
+
+    /**
+     * Check if a progress for get news subject is running.
+     */
+    val procNewsSubject: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
+
+    /**
+     * Current News Subject page.
+     */
+    val newsSubjectPageCurrent: MutableState<Int> = mutableStateOf(1)
+
+    /**
+     * Current News Subject list.
+     */
+    val listNewsSubjectByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> = mutableStateListOf()
+    // =============================================================================================
+
 
     // Account UI area =============================================================================
     /**

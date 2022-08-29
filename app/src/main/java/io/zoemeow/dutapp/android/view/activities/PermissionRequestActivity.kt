@@ -33,14 +33,14 @@ class PermissionRequestActivity : ComponentActivity() {
                             colors = TopAppBarDefaults.smallTopAppBarColors(
                                 containerColor = Color.Transparent
                             ),
-                            title = { Text("Permission(s) need your action") }
+                            title = { Text("Requested permission") }
                         )
                     },
                 ) { padding ->
                     Surface(
                         modifier = Modifier
                             .padding(padding)
-                            .padding(start = 10.dp, end = 10.dp),
+                            .padding(start = 20.dp, end = 20.dp),
                         color = MaterialTheme.colorScheme.background
                     ) {
                         @Composable
@@ -64,9 +64,9 @@ class PermissionRequestActivity : ComponentActivity() {
                             PermissionList(permissions = permissions)
                             Spacer(modifier = Modifier.size(15.dp))
                             Text(
-                                text = "If you don't accept, functions which needs permissions will not working unless you accept them.",
+                                text = "If you reject permission(s) above, some functions won't work properly.",
                             )
-                            Spacer(modifier = Modifier.size(10.dp))
+                            Spacer(modifier = Modifier.size(15.dp))
                             Column(
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -79,7 +79,7 @@ class PermissionRequestActivity : ComponentActivity() {
                                         )
                                     },
                                     content = {
-                                        Text("Accept")
+                                        Text("Request permission")
                                     }
                                 )
                                 Spacer(modifier = Modifier.size(5.dp))
@@ -92,7 +92,7 @@ class PermissionRequestActivity : ComponentActivity() {
                                         else cancelPermission()
                                     },
                                     content = {
-                                        Text("Cancel")
+                                        Text("Reject permission")
                                     }
                                 )
                             }

@@ -3,7 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'dagger.hilt.android.plugin'
 }
 
 android {
@@ -13,8 +12,8 @@ android {
         applicationId "io.zoemeow.dutapp.android"
         minSdk 21
         targetSdk 33
-        versionCode 132
-        versionName "0.9-alpha2"
+        versionCode 243
+        versionName "0.10-alpha1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -88,10 +87,6 @@ dependencies {
 
     // Jsoup HTML parser library
     implementation 'org.jsoup:jsoup:1.15.2'
-
-    // Google Dagger and Hilt
-    implementation "com.google.dagger:hilt-android:2.42"
-    kapt "com.google.dagger:hilt-compiler:2.42"
 
     // Google Gson
     implementation 'com.google.code.gson:gson:2.9.0'

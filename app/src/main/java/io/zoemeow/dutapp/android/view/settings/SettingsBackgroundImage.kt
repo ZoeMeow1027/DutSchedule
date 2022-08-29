@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.MainActivity
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.model.appsettings.BackgroundImage
+import io.zoemeow.dutapp.android.model.enums.AppSettingsCode
 import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import io.zoemeow.dutapp.android.view.activities.PermissionRequestActivity
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
@@ -39,15 +41,20 @@ fun SettingsBackgroundImage(
     val selectedOptionList = remember { mutableStateOf("") }
 
     LaunchedEffect(enabled.value) {
-        selectedOptionList.value = optionList[mainViewModel.settings.backgroundImage.value.option.ordinal]
+        selectedOptionList.value = optionList[mainViewModel.settings.value.backgroundImage.option.ordinal]
     }
 
     fun commitChanges() {
-        mainViewModel.settings.backgroundImage.value.option =
-            BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)]
+        mainViewModel.settings.value = mainViewModel.settings.value.modify(
+            optionToModify = AppSettingsCode.BackgroundImage,
+            value = BackgroundImage(
+                option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)],
+                path = null
+            )
+        )
         mainViewModel.requestSaveChanges()
 
-        if (mainViewModel.settings.backgroundImage.value.option != BackgroundImageType.Unset &&
+        if (mainViewModel.settings.value.backgroundImage.option != BackgroundImageType.Unset &&
             !PermissionRequestActivity.checkPermission(
                 mainViewModel.uiStatus.pMainActivity.value!!,
                 Manifest.permission.READ_EXTERNAL_STORAGE
@@ -62,8 +69,8 @@ fun SettingsBackgroundImage(
         }
 
         // TODO: Find better solution instead of doing this here!!!
-        mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
-        mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
+        mainViewModel.settings.value.blackThemeEnabled = !mainViewModel.settings.value.blackThemeEnabled
+        mainViewModel.settings.value.blackThemeEnabled = !mainViewModel.settings.value.blackThemeEnabled
 
         // mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false

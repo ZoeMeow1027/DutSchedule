@@ -10,6 +10,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.model.account.SchoolYearItem
+import io.zoemeow.dutapp.android.model.enums.AppSettingsCode
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -65,17 +67,22 @@ fun SettingsSchoolYear(
         }
     }
 
-    val schoolYearOptionVal = remember { mutableStateOf(21) }
-    val schoolSemesterOptionVal = remember { mutableStateOf(3) }
+    val schoolYearOptionVal = remember { mutableStateOf(22) }
+    val schoolSemesterOptionVal = remember { mutableStateOf(1) }
 
     LaunchedEffect(enabled.value) {
-        schoolYearOptionVal.value = mainViewModel.settings.schoolYear.value.year
-        schoolSemesterOptionVal.value = mainViewModel.settings.schoolYear.value.semester
+        schoolYearOptionVal.value = mainViewModel.settings.value.schoolYear.year
+        schoolSemesterOptionVal.value = mainViewModel.settings.value.schoolYear.semester
     }
 
     fun commitChanges() {
-        mainViewModel.settings.schoolYear.value.year = schoolYearOptionVal.value
-        mainViewModel.settings.schoolYear.value.semester = schoolSemesterOptionVal.value
+        mainViewModel.settings.value = mainViewModel.settings.value.modify(
+            optionToModify = AppSettingsCode.SchoolYear,
+            value = SchoolYearItem(
+                year = schoolYearOptionVal.value,
+                semester = schoolSemesterOptionVal.value,
+            )
+        )
         mainViewModel.requestSaveChanges()
 
         // mainViewModel.uiStatus.updateComposeUI()

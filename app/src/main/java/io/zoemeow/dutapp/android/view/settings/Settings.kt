@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.zoemeow.dutapp.android.BuildConfig
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.model.enums.AppSettingsCode
 import io.zoemeow.dutapp.android.ui.custom.CustomDivider
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutapp.android.ui.custom.SettingsOptionItemClickable
@@ -85,10 +86,10 @@ fun Settings(
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_apptheme_name),
                         description = (
-                                appThemeOptionList[mainViewModel.settings.appTheme.value.ordinal] +
+                                appThemeOptionList[mainViewModel.settings.value.appTheme.ordinal] +
                                         " ${
                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                                if (mainViewModel.settings.dynamicColorEnabled.value)
+                                                if (mainViewModel.settings.value.dynamicColorEnabled)
                                                     stringResource(id = R.string.settings_apptheme_dynamiccolor_enabled)
                                                 else ""
                                             } else ""
@@ -101,15 +102,18 @@ fun Settings(
                     SettingsOptionItemSwitch(
                         title = stringResource(id = R.string.settings_blacktheme_name),
                         description = stringResource(id = R.string.settings_blacktheme_description),
-                        value = mainViewModel.settings.blackTheme.value,
+                        value = mainViewModel.settings.value.blackThemeEnabled,
                         onValueChanged = {
-                            mainViewModel.settings.blackTheme.value = !mainViewModel.settings.blackTheme.value
+                            mainViewModel.settings.value = mainViewModel.settings.value.modify(
+                                optionToModify = AppSettingsCode.BlackThemeEnabled,
+                                value = !mainViewModel.settings.value.blackThemeEnabled
+                            )
                             mainViewModel.requestSaveChanges()
                         }
                     )
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_backgroundimage_name),
-                        description = backgroundImageOptionList[mainViewModel.settings.backgroundImage.value.option.ordinal],
+                        description = backgroundImageOptionList[mainViewModel.settings.value.backgroundImage.option.ordinal],
                         clickable = {
                             backgroundImageSettingsEnabled.value = true
                         }
@@ -119,11 +123,11 @@ fun Settings(
                     SettingsOptionItemClickable(
                         title = "School year",
                         description = "School year: " +
-                                "20${mainViewModel.settings.schoolYear.value.year}-" +
-                                "20${mainViewModel.settings.schoolYear.value.year + 1}, " +
+                                "20${mainViewModel.settings.value.schoolYear.year}-" +
+                                "20${mainViewModel.settings.value.schoolYear.year + 1}, " +
                                 "Semester: ${
-                                    if (mainViewModel.settings.schoolYear.value.semester < 3)
-                                        mainViewModel.settings.schoolYear.value.semester
+                                    if (mainViewModel.settings.value.schoolYear.semester < 3)
+                                        mainViewModel.settings.value.schoolYear.semester
                                     else
                                         "3 (in summer)"
                                 }\n(change this will affect to your subjects schedule)",
@@ -136,9 +140,12 @@ fun Settings(
                     SettingsOptionItemSwitch(
                         stringResource(id = R.string.settings_openlinkincustomtab_name),
                         description = stringResource(id = R.string.settings_openlinkincustomtab_description),
-                        value = mainViewModel.settings.openLinkInCustomTab.value,
+                        value = mainViewModel.settings.value.openLinkInCustomTab,
                         onValueChanged = {
-                            mainViewModel.settings.openLinkInCustomTab.value = !mainViewModel.settings.openLinkInCustomTab.value
+                            mainViewModel.settings.value = mainViewModel.settings.value.modify(
+                                optionToModify = AppSettingsCode.OpenLinkInCustomTab,
+                                value = !mainViewModel.settings.value.openLinkInCustomTab
+                            )
                             mainViewModel.requestSaveChanges()
                         }
                     )
