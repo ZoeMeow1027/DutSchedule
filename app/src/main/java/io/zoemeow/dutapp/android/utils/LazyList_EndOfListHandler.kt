@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun LazyList_EndOfListHandler(
     listState: LazyListState,
-    buffer: Int = 2,
+    buffer: Int = 1,
     onLoadMore: () -> Unit
 ) {
     val loadMore = remember {

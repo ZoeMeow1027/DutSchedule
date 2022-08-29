@@ -15,6 +15,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.model.enums.AppSettingsCode
 import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
@@ -33,18 +34,21 @@ fun SettingsAppTheme(
     val dynamicColorEnabled = remember { mutableStateOf(true) }
 
     LaunchedEffect(enabled.value) {
-        selectedThemeList.value = themeList[mainViewModel.settings.appTheme.value.ordinal]
+        selectedThemeList.value = themeList[mainViewModel.settings.value.appTheme.ordinal]
         dynamicColorEnabled.value = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-            mainViewModel.settings.dynamicColorEnabled.value else false
+            mainViewModel.settings.value.dynamicColorEnabled else false
     }
 
     fun commitChanges() {
-        mainViewModel.settings.appTheme.value =
-            AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
-        mainViewModel.settings.dynamicColorEnabled.value = dynamicColorEnabled.value
+        mainViewModel.settings.value = mainViewModel.settings.value.modify(
+            optionToModify = AppSettingsCode.AppTheme,
+            value = AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
+        ).modify(
+            optionToModify = AppSettingsCode.DynamicColorEnabled,
+            value = dynamicColorEnabled.value
+        )
         mainViewModel.requestSaveChanges()
 
-        // mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 

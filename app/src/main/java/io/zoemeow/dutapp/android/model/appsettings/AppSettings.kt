@@ -2,14 +2,64 @@ package io.zoemeow.dutapp.android.model.appsettings
 
 import com.google.gson.annotations.SerializedName
 import io.zoemeow.dutapp.android.model.account.SchoolYearItem
+import io.zoemeow.dutapp.android.model.enums.AppSettingsCode
 import io.zoemeow.dutapp.android.model.enums.AppTheme
+import io.zoemeow.dutapp.android.model.enums.BackgroundImageType
 import java.io.Serializable
 
 data class AppSettings(
-    @SerializedName("appearance.apptheme") val appTheme: AppTheme,
-    @SerializedName("appearance.backgroundimage") val backgroundImage: BackgroundImage,
-    @SerializedName("appearance.blackthemeenabled") val blackThemeEnabled: Boolean,
-    @SerializedName("appearance.dynamiccolorenabled") val dynamicColorEnabled: Boolean,
-    @SerializedName("account.schoolyear") val schoolYear: SchoolYearItem,
-    @SerializedName("builtinbrowser.openlinkincustomtab") val openLinkInCustomTab: Boolean,
-) : Serializable
+    @SerializedName(AppSettingsCode.AppTheme)
+    var appTheme: AppTheme = AppTheme.FollowSystem,
+    @SerializedName(AppSettingsCode.BackgroundImage)
+    var backgroundImage: BackgroundImage = BackgroundImage(
+        option = BackgroundImageType.Unset,
+        path = null
+    ),
+    @SerializedName(AppSettingsCode.BlackThemeEnabled)
+    var blackThemeEnabled: Boolean = false,
+    @SerializedName(AppSettingsCode.DynamicColorEnabled)
+    var dynamicColorEnabled: Boolean = true,
+    @SerializedName(AppSettingsCode.SchoolYear)
+    var schoolYear: SchoolYearItem = SchoolYearItem(22, 1),
+    @SerializedName(AppSettingsCode.OpenLinkInCustomTab)
+    var openLinkInCustomTab: Boolean = true,
+) : Serializable {
+    fun clone(): AppSettings {
+        return AppSettings(
+            appTheme, backgroundImage, blackThemeEnabled, dynamicColorEnabled, schoolYear, openLinkInCustomTab
+        )
+    }
+
+    fun modify(
+        optionToModify: String,
+        value: Any
+    ): AppSettings {
+        val appSettings = clone()
+
+        when (optionToModify) {
+            AppSettingsCode.AppTheme -> {
+                appSettings.appTheme = value as AppTheme
+            }
+            AppSettingsCode.BackgroundImage -> {
+                appSettings.backgroundImage = value as BackgroundImage
+            }
+            AppSettingsCode.BlackThemeEnabled -> {
+                appSettings.blackThemeEnabled = value as Boolean
+            }
+            AppSettingsCode.DynamicColorEnabled -> {
+                appSettings.dynamicColorEnabled = value as Boolean
+            }
+            AppSettingsCode.SchoolYear -> {
+                appSettings.schoolYear = value as SchoolYearItem
+            }
+            AppSettingsCode.OpenLinkInCustomTab -> {
+                appSettings.openLinkInCustomTab = value as Boolean
+            }
+            else -> {
+
+            }
+        }
+
+        return appSettings
+    }
+}

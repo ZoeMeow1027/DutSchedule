@@ -1,8 +1,6 @@
-package io.zoemeow.dutapp.android.repository
+package io.zoemeow.dutapp.android.module
 
 import android.util.Log
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import io.zoemeow.dutapi.Account
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
@@ -12,15 +10,11 @@ import io.zoemeow.dutapp.android.model.account.SchoolYearItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
-import javax.inject.Inject
 
-class AccountFileRepository @Inject constructor(
-    @Transient private val file: File
-) {
+class AccountModule {
+    private var accountSession = AccountSession()
+
     private val sessionIdDuration: Int = 1000 * 60 * 30
-
-    private var accountSession: AccountSession = AccountSession()
 
     /**
      * Detect if a account is exist in system.
@@ -263,34 +257,22 @@ class AccountFileRepository @Inject constructor(
         saveSettings()
     }
 
-    fun loadSettings() {
+    fun loadSettings(
+        accountSession: AccountSession
+    ) {
         try {
             Log.d("AccountRead", "Triggered account reading...")
-
-            file.bufferedReader().apply {
-                val text = this.use { it.readText() }
-                accountSession = Gson().fromJson(text, (object : TypeToken<AccountSession>() {}.type))
-                this.close()
-            }
+            this.accountSession = accountSession
         } catch (ex: Exception) {
             ex.printStackTrace()
-        } finally {
-            saveSettings()
         }
     }
 
-    fun saveSettings() {
+    fun saveSettings(
+        result: ((AccountSession) -> Unit)? = null
+    ) {
         Log.d("AccountWrite", "Triggered account writing...")
-
-        try {
-            val str = Gson().toJson(accountSession)
-            file.writeText(str)
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-    }
-
-    init {
-        loadSettings()
+        if (result != null)
+            result(accountSession)
     }
 }

@@ -10,7 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,13 +28,15 @@ import io.zoemeow.dutapp.android.utils.dateToString
 @Composable
 fun NewsSubject(
     newsSubjectList: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>>,
-    isLoading: MutableState<ProcessState>,
+    isLoading: ProcessState,
     lazyListState: LazyListState,
     reloadRequested: (Boolean) -> Unit,
     itemClicked: (NewsGlobalItem) -> Unit
 ) {
     val swipeRefreshState = rememberSwipeRefreshState(false)
-    swipeRefreshState.isRefreshing = isLoading.value == ProcessState.Running
+    LaunchedEffect(isLoading) {
+        swipeRefreshState.isRefreshing = (isLoading == ProcessState.Running)
+    }
 
     LazyList_EndOfListHandler(
         listState = lazyListState,
@@ -102,6 +104,9 @@ fun NewsSubject(
                         }
                     }
                 }
+            }
+            item {
+                Spacer(modifier = Modifier.size(10.dp))
             }
         }
     }

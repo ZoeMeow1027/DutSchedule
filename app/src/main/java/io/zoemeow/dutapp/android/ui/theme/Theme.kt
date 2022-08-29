@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import io.zoemeow.dutapp.android.model.appsettings.AppSettings
 import io.zoemeow.dutapp.android.model.enums.AppTheme
 import io.zoemeow.dutapp.android.ui.custom.BackgroundImage
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
@@ -60,13 +61,67 @@ fun MainActivityTheme(
             val context = LocalContext.current
 
             if (darkTheme) dynamicDarkColorScheme(context)
-                else dynamicLightColorScheme(context)
+            else dynamicLightColorScheme(context)
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
     // Set black background for AMOLED.
     if (darkTheme && blackTheme) {
+        colorScheme = colorScheme.copy(background = Color.Black)
+    }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            (view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
+            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
+        }
+    }
+
+    // Trigger for dark mode detection.
+    mainViewModel.uiStatus.mainActivityIsDarkTheme.value = darkTheme
+
+    // Load background image if needed
+    BackgroundImage(
+        drawable = if (mainViewModel.uiStatus.mainActivityBackgroundDrawable.value != null)
+            mainViewModel.uiStatus.mainActivityBackgroundDrawable.value
+        else ColorDrawable(colorScheme.background.hashCode())
+    )
+
+    // Start compose UI
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}
+
+@Composable
+fun MainActivityTheme(
+    // App settings handle all settings
+    appSettings: AppSettings,
+    content: @Composable () -> Unit
+) {
+    val mainViewModel = MainViewModel.getInstance()
+
+    val darkTheme: Boolean = when (appSettings.appTheme) {
+        AppTheme.FollowSystem -> isSystemInDarkTheme()
+        AppTheme.DarkMode -> true
+        AppTheme.LightMode -> false
+    }
+    var colorScheme = when {
+        appSettings.dynamicColorEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+
+            if (darkTheme) dynamicDarkColorScheme(context)
+            else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    // Set black background for AMOLED.
+    if (darkTheme && appSettings.blackThemeEnabled) {
         colorScheme = colorScheme.copy(background = Color.Black)
     }
 

@@ -75,12 +75,12 @@ fun Account(
             2 -> {
                 barTitle.value = "Subject Schedule"
                 if (mainViewModel.uiStatus.subjectSchedule.size == 0)
-                    mainViewModel.fetchSubjectSchedule(mainViewModel.settings.schoolYear.value)
+                    mainViewModel.fetchSubjectSchedule(mainViewModel.settings.value.schoolYear)
             }
             3 -> {
                 barTitle.value = "Subject Fee"
                 if (mainViewModel.uiStatus.subjectFee.size == 0)
-                    mainViewModel.fetchSubjectFee(mainViewModel.settings.schoolYear.value)
+                    mainViewModel.fetchSubjectFee(mainViewModel.settings.value.schoolYear)
             }
             4 -> {
                 barTitle.value = "Account Information"
@@ -181,7 +181,7 @@ fun Account(
                         subjectScheduleList = mainViewModel.uiStatus.subjectSchedule,
                         swipeRefreshState = swipeRefreshStateSubjectSchedule,
                         reloadRequested = {
-                            mainViewModel.fetchSubjectSchedule(mainViewModel.settings.schoolYear.value)
+                            mainViewModel.fetchSubjectSchedule(mainViewModel.settings.value.schoolYear)
                         }
                     )
                 }
@@ -191,7 +191,7 @@ fun Account(
                         subjectFeeList = mainViewModel.uiStatus.subjectFee,
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
-                            mainViewModel.fetchSubjectFee(mainViewModel.settings.schoolYear.value)
+                            mainViewModel.fetchSubjectFee(mainViewModel.settings.value.schoolYear)
                         }
                     )
                 }
