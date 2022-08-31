@@ -26,7 +26,6 @@ fun AccountSubWeekList(
 ) {
     val weekAdjust = remember { mutableStateOf(0) }
     val dayOfWeek = remember { getDateFromCurrentWeek() }
-
     val currentDayOfWeek = remember { mutableStateOf(getCurrentDayOfWeek()) }
 
     LaunchedEffect(weekAdjust.value) {

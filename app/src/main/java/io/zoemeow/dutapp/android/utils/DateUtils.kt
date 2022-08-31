@@ -92,7 +92,7 @@ fun getDateFromCurrentWeek(weekAdjust: Int = 0): ArrayList<kotlinx.datetime.Loca
         arrayList.add(currentDate.plus(plusCount, DateTimeUnit.DAY))
     }
 
-    arrayList.sortBy { item -> item.dayOfMonth }
+    arrayList.sortWith(compareBy({ it.month }, { it.dayOfMonth }))
 
     return arrayList
 }

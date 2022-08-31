@@ -9,9 +9,11 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat.startForegroundService
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutapi.objects.NewsGlobalItem
 import io.zoemeow.dutapp.android.R
+import io.zoemeow.dutapp.android.model.appsettings.CustomClock
 import io.zoemeow.dutapp.android.model.news.NewsCacheGlobal
 import io.zoemeow.dutapp.android.module.FileModule
 import io.zoemeow.dutapp.android.module.NewsModule
@@ -24,8 +26,6 @@ import kotlinx.coroutines.withContext
 import java.util.*
 
 class RefreshNewsService : Service() {
-    private var intent1: Intent? = null
-
     override fun onCreate() {
         Log.i("RefreshNewsService", "Service created")
         val builder = NotificationCompat.Builder(this, "dut_service")
@@ -39,8 +39,6 @@ class RefreshNewsService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        intent1 = intent
-
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 Log.i("RefreshNewsService", "Service is running...")
@@ -69,7 +67,7 @@ class RefreshNewsService : Service() {
         scheduleNextRun()
     }
 
-    private fun scheduleNextRun() {
+    private fun getPendingIntent(): PendingIntent {
         val intent = Intent(applicationContext, RefreshNewsService::class.java)
         val pendingIntent: PendingIntent
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -92,20 +90,33 @@ class RefreshNewsService : Service() {
             )
         }
 
+        return pendingIntent
+    }
+
+    private fun scheduleNextRun() {
+        val settings = FileModule(this).getAppSettings()
+        val pendingIntent = getPendingIntent()
+
         // The update frequency should often be user configurable.  This is not.
         val currentTimeMillis = System.currentTimeMillis()
-        // val nextUpdateTimeMillis = currentTimeMillis + secondToCheck * DateUtils.SECOND_IN_MILLIS
 
         val calendar = Calendar.getInstance()
-        calendar.add(Calendar.SECOND, secondToCheck)
-        if (calendar.get(Calendar.HOUR_OF_DAY) !in 6..22) {
-            if (calendar.get(Calendar.HOUR_OF_DAY) > 22)
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            calendar.set(Calendar.HOUR_OF_DAY, 6)
-            calendar.set(Calendar.MINUTE, 0)
-            calendar.set(Calendar.SECOND, 0)
-        }
+        calendar.add(Calendar.MINUTE, settings.refreshNewsIntervalInMinute)
+        val nextTimeRefresh = CustomClock(
+            calendar.get(Calendar.HOUR_OF_DAY),
+            calendar.get(Calendar.MINUTE)
+        )
 
+        if (!nextTimeRefresh.isInRange(
+                settings.refreshNewsTimeStart,
+                settings.refreshNewsTimeEnd)
+        ) {
+            calendar.set(Calendar.HOUR_OF_DAY, settings.refreshNewsTimeStart.hour)
+            calendar.set(Calendar.MINUTE, settings.refreshNewsTimeEnd.minute)
+            calendar.set(Calendar.SECOND, 0)
+            if (calendar.timeInMillis < Calendar.getInstance().timeInMillis)
+                calendar.add(Calendar.DAY_OF_MONTH, 1)
+        }
         val nextUpdateTimeMillis = calendar.timeInMillis
 
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -117,8 +128,6 @@ class RefreshNewsService : Service() {
 
         Log.i("RefreshNewsService", "Service will auto-start after ${(nextUpdateTimeMillis - currentTimeMillis) / 1000} seconds.")
     }
-
-    private val secondToCheck: Int = 120
 
     private fun doWorkBackground() {
         val file = FileModule(this.applicationContext)
@@ -202,12 +211,13 @@ class RefreshNewsService : Service() {
     ) {
         // Notify to user and clear to avoid leak memory.
         list.forEach { newsItem ->
-            NotificationsUtils.showNotification(
+            NotificationsUtils.showNewsNotification(
                 context = this,
                 channel_id = type,
                 news_md5 = getMD5("${newsItem.date}___${newsItem.title}"),
                 news_title = "New notification from ${if (type == "dut_news_global") "News Global" else "News Subject"}",
-                news_description = newsItem.title
+                news_description = newsItem.title,
+                data = newsItem
             )
         }
     }
@@ -215,5 +225,22 @@ class RefreshNewsService : Service() {
     private fun sendRequestToActivity() {
         val intent = Intent("NewsReload")
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+    }
+
+    companion object {
+        fun startService(context: Context) {
+            val intentService = Intent(context, RefreshNewsService::class.java)
+            // https://stackoverflow.com/a/47654126
+
+            try {
+                context.stopService(intentService)
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                context.startForegroundService(intentService)
+            else context.startService(intentService)
+        }
     }
 }

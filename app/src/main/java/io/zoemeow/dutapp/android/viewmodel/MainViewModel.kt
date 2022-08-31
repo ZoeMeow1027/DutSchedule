@@ -518,7 +518,7 @@ class MainViewModel: ViewModel() {
         }
     }
 
-    fun requestSaveCache() {
+    private fun requestSaveCache() {
         file.saveCacheNewsGlobal(NewsCacheGlobal(
             newsListByDate = arrayListOf<NewsGroupByDate<NewsGlobalItem>>().apply {
                 addAll(uiStatus.listNewsGlobalByDate)
@@ -537,18 +537,18 @@ class MainViewModel: ViewModel() {
         file = FileModule(uiStatus.pMainActivity.value!!)
         settings.value = file.getAppSettings()
 
+        file.getCacheNewsGlobal().apply {
+            uiStatus.newsGlobalPageCurrent.value = pageCurrent
+            uiStatus.listNewsGlobalByDate.addAll(newsListByDate)
+        }
+
+        file.getCacheNewsSubject().apply {
+            uiStatus.newsSubjectPageCurrent.value = pageCurrent
+            uiStatus.listNewsSubjectByDate.addAll(newsListByDate)
+        }
+
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
-                file.getCacheNewsGlobal().apply {
-                    uiStatus.newsGlobalPageCurrent.value = pageCurrent
-                    uiStatus.listNewsGlobalByDate.addAll(newsListByDate)
-                }
-
-                file.getCacheNewsSubject().apply {
-                    uiStatus.newsSubjectPageCurrent.value = pageCurrent
-                    uiStatus.listNewsSubjectByDate.addAll(newsListByDate)
-                }
-
                 accountModule.loadSettings(file.getAccountSettings())
 
                 val mMessageReceiver: BroadcastReceiver

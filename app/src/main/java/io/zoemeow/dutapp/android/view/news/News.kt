@@ -117,7 +117,7 @@ fun News(
         content = { padding ->
             if (mainViewModel.uiStatus.newsItemChosenGlobal.value != null) {
                 NewsDetailsGlobal(
-                    mainViewModel = mainViewModel,
+                    isDarkMode = mainViewModel.uiStatus.mainActivityIsDarkTheme.value,
                     padding = padding,
                     news = mainViewModel.uiStatus.newsItemChosenGlobal.value!!,
                     linkClicked = {
@@ -126,7 +126,7 @@ fun News(
                 )
             } else if (mainViewModel.uiStatus.newsItemChosenSubject.value != null) {
                 NewsDetailsSubject(
-                    mainViewModel = mainViewModel,
+                    isDarkMode = mainViewModel.uiStatus.mainActivityIsDarkTheme.value,
                     padding = padding,
                     news = mainViewModel.uiStatus.newsItemChosenSubject.value!!,
                     linkClicked = {

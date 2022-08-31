@@ -91,7 +91,12 @@ class NewsModule {
             addItemToTop: Boolean = true,
             sortGroupByDescending: Boolean = true,
         ) {
-            val timestampCount: ArrayList<Pair<Long, Int>> = arrayListOf()
+            data class DateCount(
+                val date: Long,
+                var count: Int = 0,
+            )
+            val timestampCount: ArrayList<DateCount> = arrayListOf()
+            
             target.forEach { item ->
                 // If no date found -> Always new news -> Add
                 if (source.firstOrNull { filter -> filter.date == item.date} == null) {
@@ -115,12 +120,13 @@ class NewsModule {
                     // Otherwise ignore
                     if (findItem == null) {
                         if (addItemToTop) {
-                            if (!timestampCount.any { it.first == item.date })
-                                timestampCount.add(Pair(item.date, 0))
+                            if (!timestampCount.any { it.date == item.date })
+                                timestampCount.add(DateCount(item.date, 0))
 
                             source.first { itemFilter -> itemFilter.date == item.date }.itemList.add(
-                                timestampCount.first { it.first == item.date }.second, item
+                                timestampCount.first { it.date == item.date }.count, item
                             )
+                            timestampCount.first { it.date == item.date }.count += 1
                         }
                         else {
                             source.first { itemFilter -> itemFilter.date == item.date }.itemList.add(item)

@@ -74,6 +74,10 @@ class FileModule(
                 val text = this.use { it.readText() }
                 val appSettings = Gson().fromJson<AppSettings>(text, (object : TypeToken<AppSettings>() {}.type))
                 this.close()
+
+                if (appSettings.refreshNewsIntervalInMinute < 1)
+                    appSettings.refreshNewsIntervalInMinute = 3
+
                 return appSettings
             }
         } catch (ex: Exception) {
