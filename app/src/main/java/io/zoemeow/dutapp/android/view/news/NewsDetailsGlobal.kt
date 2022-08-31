@@ -3,6 +3,7 @@ package io.zoemeow.dutapp.android.view.news
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +23,7 @@ import io.zoemeow.dutapp.android.viewmodel.MainViewModel
 
 @Composable
 fun NewsDetailsGlobal(
-    mainViewModel: MainViewModel,
+    isDarkMode: Boolean = false,
     padding: PaddingValues,
     news: NewsGlobalItem,
     linkClicked: (String) -> Unit
@@ -67,7 +68,7 @@ fun NewsDetailsGlobal(
                         append(news.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (mainViewModel.uiStatus.mainActivityIsDarkTheme.value) Color.White else Color.Black),
+                            style = SpanStyle(color = if (isDarkMode) Color.White else Color.Black),
                             start = 0,
                             end = news.contentString.length
                         )
@@ -87,32 +88,34 @@ fun NewsDetailsGlobal(
                         }
                     }
                 }
-                ClickableText(
-                    text = annotatedString,
-                    style = MaterialTheme.typography.bodyMedium,
-                    onClick = {
-                        try {
-                            news.links?.forEach { item ->
-                                annotatedString
-                                    .getStringAnnotations(item.position!!.toString(), it, it)
-                                    .firstOrNull()
-                                    ?.let { url ->
-                                        var urlTemp = url.item
-                                        urlTemp =
-                                            urlTemp.replace("http://", "http://", ignoreCase = true)
-                                        urlTemp = urlTemp.replace(
-                                            "https://",
-                                            "https://",
-                                            ignoreCase = true
-                                        )
-                                        linkClicked(urlTemp)
-                                    }
+                SelectionContainer {
+                    ClickableText(
+                        text = annotatedString,
+                        style = MaterialTheme.typography.bodyMedium,
+                        onClick = {
+                            try {
+                                news.links?.forEach { item ->
+                                    annotatedString
+                                        .getStringAnnotations(item.position!!.toString(), it, it)
+                                        .firstOrNull()
+                                        ?.let { url ->
+                                            var urlTemp = url.item
+                                            urlTemp =
+                                                urlTemp.replace("http://", "http://", ignoreCase = true)
+                                            urlTemp = urlTemp.replace(
+                                                "https://",
+                                                "https://",
+                                                ignoreCase = true
+                                            )
+                                            linkClicked(urlTemp)
+                                        }
+                                }
+                            } catch (_: Exception) {
+                                // TODO: Exception for can't open link here!
                             }
-                        } catch (_: Exception) {
-                            // TODO: Exception for can't open link here!
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }

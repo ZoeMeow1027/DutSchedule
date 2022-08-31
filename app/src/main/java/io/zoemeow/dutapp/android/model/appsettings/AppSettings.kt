@@ -23,10 +23,24 @@ data class AppSettings(
     var schoolYear: SchoolYearItem = SchoolYearItem(22, 1),
     @SerializedName(AppSettingsCode.OpenLinkInCustomTab)
     var openLinkInCustomTab: Boolean = true,
+    @SerializedName(AppSettingsCode.RefreshNewsTimeStart)
+    var refreshNewsTimeStart: CustomClock = CustomClock(6, 0),
+    @SerializedName(AppSettingsCode.RefreshNewsTimeEnd)
+    var refreshNewsTimeEnd: CustomClock = CustomClock(23, 0),
+    @SerializedName(AppSettingsCode.RefreshNewsInterval)
+    var refreshNewsIntervalInMinute: Int = 3,
 ) : Serializable {
-    fun clone(): AppSettings {
+    private fun clone(): AppSettings {
         return AppSettings(
-            appTheme, backgroundImage, blackThemeEnabled, dynamicColorEnabled, schoolYear, openLinkInCustomTab
+            appTheme,
+            backgroundImage,
+            blackThemeEnabled,
+            dynamicColorEnabled,
+            schoolYear,
+            openLinkInCustomTab,
+            refreshNewsTimeStart,
+            refreshNewsTimeEnd,
+            refreshNewsIntervalInMinute
         )
     }
 
@@ -54,6 +68,15 @@ data class AppSettings(
             }
             AppSettingsCode.OpenLinkInCustomTab -> {
                 appSettings.openLinkInCustomTab = value as Boolean
+            }
+            AppSettingsCode.RefreshNewsTimeStart -> {
+                appSettings.refreshNewsTimeStart = value as CustomClock
+            }
+            AppSettingsCode.RefreshNewsTimeEnd -> {
+                appSettings.refreshNewsTimeEnd = value as CustomClock
+            }
+            AppSettingsCode.RefreshNewsInterval -> {
+                appSettings.refreshNewsIntervalInMinute = value as Int
             }
             else -> {
 

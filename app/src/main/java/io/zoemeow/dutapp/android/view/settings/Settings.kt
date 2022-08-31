@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -30,15 +33,11 @@ fun Settings(
     val context: MutableState<Context?> = remember { mutableStateOf(null) }
     context.value = LocalContext.current
 
+    val refreshNewsTimeAdjustEnabled = remember { mutableStateOf(false) }
+    val refreshNewsTimeIntervalEnabled = remember { mutableStateOf(false) }
     val schoolYearSettingsEnabled = remember { mutableStateOf(false) }
     val appThemeSettingsEnabled = remember { mutableStateOf(false) }
     val backgroundImageSettingsEnabled = remember { mutableStateOf(false) }
-
-//    // Just trigger to recompose, this doesn't do anything special!
-//    val text1 = remember { mutableStateOf("Layout") }
-//    LaunchedEffect(mainViewModel.uiStatus.triggerUpdateComposeUI.value) {
-//        text1.value = "Layout"
-//    }
 
     val backgroundImageOptionList = listOf(
         stringResource(id = R.string.settings_backgroundimage_none),
@@ -52,16 +51,24 @@ fun Settings(
     )
 
     SettingsSchoolYear(
-        schoolYearSettingsEnabled,
-        mainViewModel,
+        enabled = schoolYearSettingsEnabled,
+        mainViewModel = mainViewModel,
     )
     SettingsAppTheme(
-        appThemeSettingsEnabled,
-        mainViewModel,
+        enabled = appThemeSettingsEnabled,
+        mainViewModel = mainViewModel,
     )
     SettingsBackgroundImage(
-        backgroundImageSettingsEnabled,
-        mainViewModel,
+        enabled = backgroundImageSettingsEnabled,
+        mainViewModel = mainViewModel,
+    )
+    SettingsRefreshNewsTimeRange(
+        enabled = refreshNewsTimeAdjustEnabled,
+        mainViewModel = mainViewModel
+    )
+    SettingsRefreshNewsInterval(
+        enabled = refreshNewsTimeIntervalEnabled,
+        mainViewModel = mainViewModel
     )
     Scaffold(
         containerColor = Color.Transparent,
@@ -82,18 +89,54 @@ fun Settings(
                     .padding(padding)
                     .verticalScroll(rememberScrollState()),
                 content = {
+                    SettingsOptionHeader(headerText = "News")
+                    SettingsOptionItemClickable(
+                        title = "Refresh news time range",
+                        description = "From ${mainViewModel.settings.value.refreshNewsTimeStart}" +
+                                " to ${mainViewModel.settings.value.refreshNewsTimeEnd}" +
+                            if (mainViewModel.settings.value.refreshNewsTimeEnd < mainViewModel.settings.value.refreshNewsTimeStart) " (tomorrow)" else "",
+                        clickable = {
+                            refreshNewsTimeAdjustEnabled.value = true
+                        }
+                    )
+                    SettingsOptionItemClickable(
+                        title = "Refresh news time interval",
+                        description = "Every ${mainViewModel.settings.value.refreshNewsIntervalInMinute} minute" +
+                                if (mainViewModel.settings.value.refreshNewsIntervalInMinute > 1) "s" else "",
+                        clickable = {
+                            refreshNewsTimeIntervalEnabled.value = true
+                        }
+                    )
+                    CustomDivider()
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
+                    SettingsOptionItemClickable(
+                        title = "School year",
+                        description = "School year: " +
+                                "20${mainViewModel.settings.value.schoolYear.year}-" +
+                                "20${mainViewModel.settings.value.schoolYear.year + 1}, " +
+                                "Semester: ${
+                                    if (mainViewModel.settings.value.schoolYear.semester < 3)
+                                        mainViewModel.settings.value.schoolYear.semester
+                                    else
+                                        "3 (in summer)"
+                                }\n(change this will affect to your subjects schedule)",
+                        clickable = {
+                            schoolYearSettingsEnabled.value = true
+                        }
+                    )
+                    CustomDivider()
                     SettingsOptionHeader(headerText = "Layout")
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_apptheme_name),
                         description = (
-                                appThemeOptionList[mainViewModel.settings.value.appTheme.ordinal] +
-                                        " ${
-                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                                                if (mainViewModel.settings.value.dynamicColorEnabled)
-                                                    stringResource(id = R.string.settings_apptheme_dynamiccolor_enabled)
-                                                else ""
-                                            } else ""
-                                        }"
+                            appThemeOptionList[mainViewModel.settings.value.appTheme.ordinal] +
+                                    " ${
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                            if (mainViewModel.settings.value.dynamicColorEnabled)
+                                                stringResource(id = R.string.settings_apptheme_dynamiccolor_enabled)
+                                            else ""
+                                        } else ""
+                                    }"
                                 ),
                         clickable = {
                             appThemeSettingsEnabled.value = true
@@ -116,23 +159,6 @@ fun Settings(
                         description = backgroundImageOptionList[mainViewModel.settings.value.backgroundImage.option.ordinal],
                         clickable = {
                             backgroundImageSettingsEnabled.value = true
-                        }
-                    )
-                    CustomDivider()
-                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
-                    SettingsOptionItemClickable(
-                        title = "School year",
-                        description = "School year: " +
-                                "20${mainViewModel.settings.value.schoolYear.year}-" +
-                                "20${mainViewModel.settings.value.schoolYear.year + 1}, " +
-                                "Semester: ${
-                                    if (mainViewModel.settings.value.schoolYear.semester < 3)
-                                        mainViewModel.settings.value.schoolYear.semester
-                                    else
-                                        "3 (in summer)"
-                                }\n(change this will affect to your subjects schedule)",
-                        clickable = {
-                            schoolYearSettingsEnabled.value = true
                         }
                     )
                     CustomDivider()

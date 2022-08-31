@@ -1,11 +1,7 @@
 package io.zoemeow.dutapp.android
 
 import android.Manifest
-import android.app.job.JobInfo
-import android.app.job.JobScheduler
-import android.content.ComponentName
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
@@ -21,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -40,7 +35,6 @@ import io.zoemeow.dutapp.android.view.navbar.MainNavRoutes
 import io.zoemeow.dutapp.android.view.news.News
 import io.zoemeow.dutapp.android.view.settings.Settings
 import io.zoemeow.dutapp.android.viewmodel.MainViewModel
-
 
 class MainActivity : ComponentActivity() {
     private lateinit var mainViewModel: MainViewModel
@@ -81,18 +75,11 @@ class MainActivity : ComponentActivity() {
                 }
 
                 // Register notifications channel for news service
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     NotificationsUtils.initializeNotificationChannel(this)
-                }
 
-                // Initialize services
-                // Uncomment if you fixed this issue.
-                Intent(this, RefreshNewsService::class.java).also { intent ->
-                    // https://stackoverflow.com/a/47654126
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                        startForegroundService(intent)
-                    else startService(intent)
-                }
+                // Initialize Refresh news services
+                RefreshNewsService.startService(this)
 
                 // Set to false to avoid another run
                 initialized.value = true
