@@ -130,16 +130,16 @@ fun AccountPageDashboard(
                         context.startActivity(intent)
                     }
                 )
+//                CustomButton(
+//                    text = "View Subject Schedule",
+//                    clickable = {
+//                        val intent = Intent(context, AccountDetailsActivity::class.java)
+//                        intent.putExtra("type", "subject_schedule")
+//                        context.startActivity(intent)
+//                    }
+//                )
                 CustomButton(
-                    text = "View Subject Schedule",
-                    clickable = {
-                        val intent = Intent(context, AccountDetailsActivity::class.java)
-                        intent.putExtra("type", "subject_schedule")
-                        context.startActivity(intent)
-                    }
-                )
-                CustomButton(
-                    text = "View Subject Fee",
+                    text = "View Subject Schedule and Subject Fee",
                     clickable = {
                         val intent = Intent(context, AccountDetailsActivity::class.java)
                         intent.putExtra("type", "subject_fee")
