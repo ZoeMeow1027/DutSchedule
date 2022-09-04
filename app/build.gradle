@@ -67,6 +67,8 @@ dependencies {
 
     implementation 'com.google.android.material:material:1.6.1'
 
+    implementation "androidx.fragment:fragment-ktx:1.5.2"
+
     // AlarmManager for restart service after closed
     // Required to avoid crash on Android 12 API 31
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
