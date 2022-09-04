@@ -9,11 +9,11 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "io.zoemeow.dutapp.android"
+        applicationId "io.zoemeow.dutnotify"
         minSdk 21
         targetSdk 33
-        versionCode 252
-        versionName "0.10-alpha2"
+        versionCode 347
+        versionName "1.0-beta1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
