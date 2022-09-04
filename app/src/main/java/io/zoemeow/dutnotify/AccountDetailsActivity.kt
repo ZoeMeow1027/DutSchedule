@@ -30,11 +30,10 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.AccountInformation
 import io.zoemeow.dutapi.objects.SubjectFeeItem
 import io.zoemeow.dutapi.objects.SubjectScheduleItem
-import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.AppSettingsCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
@@ -128,20 +127,21 @@ class AccountDetailsActivity : ComponentActivity() {
     ) {
         val type: String? = intent.getStringExtra("type")
 
-        val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
+//        val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
         val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
         val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
         LaunchedEffect(Unit) {
             when (type) {
-                "subject_schedule" -> {
-                    scaffoldTitle.value =
-                        applicationContext.getString(R.string.account_page_subjectschedule)
-                    mainViewModel.accountDataStore.fetchSubjectSchedule()
-                }
+//                "subject_schedule" -> {
+//                    scaffoldTitle.value =
+//                        applicationContext.getString(R.string.account_page_subjectschedule)
+//                    mainViewModel.accountDataStore.fetchSubjectSchedule()
+//                }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
+                    mainViewModel.accountDataStore.fetchSubjectSchedule()
                     mainViewModel.accountDataStore.fetchSubjectFee()
                 }
                 "account_information" -> {
@@ -157,12 +157,12 @@ class AccountDetailsActivity : ComponentActivity() {
         }
 
         LaunchedEffect(
-            mainViewModel.accountDataStore.procAccSubSch.value,
+//            mainViewModel.accountDataStore.procAccSubSch.value,
             mainViewModel.accountDataStore.procAccSubFee.value,
             mainViewModel.accountDataStore.procAccInfo.value
         ) {
-            swipeRefreshStateSubjectSchedule.isRefreshing =
-                mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
+//            swipeRefreshStateSubjectSchedule.isRefreshing =
+//                mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
             swipeRefreshStateSubjectFee.isRefreshing =
                 mainViewModel.accountDataStore.procAccSubFee.value == ProcessState.Running
             swipeRefreshStateAccInfo.isRefreshing =
@@ -206,31 +206,32 @@ class AccountDetailsActivity : ComponentActivity() {
             contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
-            when (type) {
-                "subject_schedule" -> {
-                    SubjectPreview.SubjectScheduleDetails(
-                        dialogEnabled = dialogEnabled.value,
-                        item = subjectScheduleItem.value,
-                        darkTheme = mainViewModel.mainActivityIsDarkTheme.value,
-                        onClose = {
-                            dialogEnabled.value = false
-                        }
-                    )
-                    SubjectScheduleList(
-                        padding = padding,
-                        subjectScheduleList = mainViewModel.accountDataStore.subjectSchedule,
-                        swipeRefreshState = swipeRefreshStateSubjectSchedule,
-                        reloadRequested = {
-                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
-                        }
-                    )
+            SubjectPreview.SubjectScheduleDetails(
+                dialogEnabled = dialogEnabled.value,
+                item = subjectScheduleItem.value,
+                darkTheme = mainViewModel.mainActivityIsDarkTheme.value,
+                onClose = {
+                    dialogEnabled.value = false
                 }
+            )
+            when (type) {
+//                "subject_schedule" -> {
+//                    SubjectScheduleList(
+//                        padding = padding,
+//                        subjectScheduleList = mainViewModel.accountDataStore.subjectSchedule,
+//                        swipeRefreshState = swipeRefreshStateSubjectSchedule,
+//                        reloadRequested = {
+//                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
+//                        }
+//                    )
+//                }
                 "subject_fee" -> {
                     SubjectFeeList(
                         padding = padding,
                         subjectFeeList = mainViewModel.accountDataStore.subjectFee,
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
+                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
                             mainViewModel.accountDataStore.fetchSubjectFee(mainViewModel.appSettings.value.schoolYear)
                         }
                     )
@@ -253,89 +254,90 @@ class AccountDetailsActivity : ComponentActivity() {
     private val dialogEnabled = mutableStateOf(false)
     private val subjectScheduleItem: MutableState<SubjectScheduleItem?> = mutableStateOf(null)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
-    fun SubjectScheduleList(
-        padding: PaddingValues,
-        subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
-        swipeRefreshState: SwipeRefreshState,
-        reloadRequested: () -> Unit,
-    ) {
-        SwipeRefresh(
-            state = swipeRefreshState,
-            modifier = Modifier.padding(padding),
-            onRefresh = {
-                swipeRefreshState.isRefreshing = true
-                reloadRequested()
-            }
-        ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                stickyHeader {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(
-                                    start = 15.dp,
-                                    end = 15.dp,
-                                    top = 10.dp,
-                                    bottom = 10.dp
-                                ),
-                        ) {
-                            SubjectPreview.CustomText("Total credit: ${subjectScheduleList.sumOf { it.credit }}")
-                            SubjectPreview.CustomText("Click a subject to view its details.")
-                        }
-                    }
-                }
-                items(subjectScheduleList) { item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 10.dp, bottom = 0.dp, start = 15.dp, end = 15.dp)
-                            // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .clickable {
-                                subjectScheduleItem.value = item
-                                dialogEnabled.value = true
-                            }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(
-                                start = 15.dp,
-                                end = 15.dp,
-                                top = 10.dp,
-                                bottom = 10.dp
-                            )
-                        ) {
-                            Text(
-                                text = item.name,
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            Text(
-                                text = item.lecturer,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    @OptIn(ExperimentalFoundationApi::class)
+//    @Composable
+//    fun SubjectScheduleList(
+//        padding: PaddingValues,
+//        subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
+//        swipeRefreshState: SwipeRefreshState,
+//        reloadRequested: () -> Unit,
+//    ) {
+//        SwipeRefresh(
+//            state = swipeRefreshState,
+//            modifier = Modifier.padding(padding),
+//            onRefresh = {
+//                swipeRefreshState.isRefreshing = true
+//                reloadRequested()
+//            }
+//        ) {
+//            LazyColumn(
+//                modifier = Modifier.fillMaxSize(),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Top,
+//            ) {
+//                stickyHeader {
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .wrapContentHeight()
+//                            .background(MaterialTheme.colorScheme.primaryContainer),
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .wrapContentHeight()
+//                                .padding(
+//                                    start = 15.dp,
+//                                    end = 15.dp,
+//                                    top = 10.dp,
+//                                    bottom = 10.dp
+//                                ),
+//                        ) {
+//                            SubjectPreview.CustomText("Total credit: ${subjectScheduleList.sumOf { it.credit }}")
+//                            SubjectPreview.CustomText("Click a subject to view its details.")
+//                        }
+//                    }
+//                }
+//                items(subjectScheduleList) { item ->
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .padding(top = 10.dp, bottom = 0.dp, start = 15.dp, end = 15.dp)
+//                            // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
+//                            .clip(RoundedCornerShape(10.dp))
+//                            .background(MaterialTheme.colorScheme.secondaryContainer)
+//                            .clickable {
+//                                subjectScheduleItem.value = item
+//                                dialogEnabled.value = true
+//                            }
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.Start,
+//                            verticalArrangement = Arrangement.Center,
+//                            modifier = Modifier.padding(
+//                                start = 15.dp,
+//                                end = 15.dp,
+//                                top = 10.dp,
+//                                bottom = 10.dp
+//                            )
+//                        ) {
+//                            Text(
+//                                text = item.name,
+//                                style = MaterialTheme.typography.titleLarge,
+//                            )
+//                            Text(
+//                                text = item.lecturer,
+//                                style = MaterialTheme.typography.bodyLarge,
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun SubjectFeeList(
         padding: PaddingValues,
@@ -357,29 +359,50 @@ class AccountDetailsActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {
-                item {
-                    Column(
-                        modifier = Modifier.padding(15.dp)
+                stickyHeader {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                     ) {
-                        Text(
-                            text = "Total credit: ${subjectFeeList.sumOf { it.credit }}"
-                        )
-                        Text(
-                            text = "Total money you will pay: ${
-                                subjectFeeList.sumOf { it.price }.toLong()
-                            } VND"
-                        )
-                        Spacer(modifier = Modifier.size(10.dp))
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(
+                                    start = 15.dp,
+                                    end = 15.dp,
+                                    top = 10.dp,
+                                    bottom = 10.dp
+                                ),
+                        ) {
+                            SubjectPreview.CustomText("Total credit: ${subjectFeeList.sumOf { it.credit }}")
+                            SubjectPreview.CustomText("Total price: ${subjectFeeList.sumOf { it.price }.toLong()} VND")
+                            SubjectPreview.CustomText(
+                                @Suppress("ReplaceSizeCheckWithIsNotEmpty")
+                                if (subjectFeeList.count { it.debt == true } > 0)
+                                    "${subjectFeeList.count { it.debt == true }} subject${if (subjectFeeList.count { it.debt == true } > 0) "s" else ""} isn't completed payment yet"
+                                else "Completed payment"
+                            )
+                            SubjectPreview.CustomText("Click a subject to view its details.")
+                        }
                     }
                 }
                 items(subjectFeeList) { item ->
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp)
+                            .fillMaxSize()
+                            .padding(top = 10.dp, bottom = 0.dp, start = 15.dp, end = 15.dp)
                             // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
                             .clip(RoundedCornerShape(10.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer)
+                            .clickable {
+                                subjectScheduleItem.value =
+                                    mainViewModel.accountDataStore.subjectSchedule.firstOrNull { it.id == item.id }
+                                dialogEnabled.value = true
+                            }
                     ) {
                         Column(
                             horizontalAlignment = Alignment.Start,
@@ -392,32 +415,11 @@ class AccountDetailsActivity : ComponentActivity() {
                             )
                         ) {
                             Text(
-                                text = "ID: ${item.id}",
-                                style = MaterialTheme.typography.bodyLarge
+                                text = item.name,
+                                style = MaterialTheme.typography.titleLarge,
                             )
-                            Spacer(modifier = Modifier.size(20.dp))
                             Text(
-                                text = "Name: ${item.name}",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            Text(
-                                text = "Credit: ${item.credit}",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            Text(
-                                text = "Price: ${item.price} VND",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            Text(
-                                text = "Status: ${if (item.debt) "Waiting for completed..." else "Completed"}",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            Text(
-                                text = "Restudy: ${item.isRestudy}",
+                                text = "${item.credit} credit(s), ${item.price} VND (${if (item.debt) "Not purchased yet" else "Purchased"})",
                                 style = MaterialTheme.typography.bodyLarge,
                             )
                         }
@@ -449,17 +451,36 @@ class AccountDetailsActivity : ComponentActivity() {
                 verticalArrangement = Arrangement.Top,
             ) {
                 item {
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(
-                            start = 15.dp,
-                            end = 15.dp,
-                            top = 10.dp,
-                            bottom = 10.dp
-                        )
-                    ) {
-
+                    if (accountInformation != null) {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(
+                                start = 15.dp,
+                                end = 15.dp,
+                                top = 10.dp,
+                                bottom = 10.dp
+                            )
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .padding(top = 10.dp, bottom = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = accountInformation.name,
+                                    style = MaterialTheme.typography.headlineMedium
+                                )
+                            }
+                            SubjectPreview.CustomText("ID - Class: ${accountInformation.studentId} - ${accountInformation.schoolClass}")
+                            SubjectPreview.CustomText("Date of birth: ${accountInformation.dateOfBirth}")
+                            SubjectPreview.CustomText("National ID Card: ${accountInformation.nationalIdCard} (${accountInformation.nationalIdCardIssueDate} at ${accountInformation.nationalIdCardIssuePlace})")
+                            SubjectPreview.CustomText("Citizen ID Card: ${accountInformation.citizenIdCard} (${accountInformation.citizenIdCardIssueDate})")
+                            SubjectPreview.CustomText("Bank ID: ${accountInformation.accountBankId} (at ${accountInformation.accountBankName})")
+                            SubjectPreview.CustomText("School email: ${accountInformation.schoolEmail}")
+                        }
                     }
                 }
             }
