@@ -127,17 +127,17 @@ class AccountDetailsActivity : ComponentActivity() {
     ) {
         val type: String? = intent.getStringExtra("type")
 
-        val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
+//        val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
         val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
         val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
         LaunchedEffect(Unit) {
             when (type) {
-                "subject_schedule" -> {
-                    scaffoldTitle.value =
-                        applicationContext.getString(R.string.account_page_subjectschedule)
-                    mainViewModel.accountDataStore.fetchSubjectSchedule()
-                }
+//                "subject_schedule" -> {
+//                    scaffoldTitle.value =
+//                        applicationContext.getString(R.string.account_page_subjectschedule)
+//                    mainViewModel.accountDataStore.fetchSubjectSchedule()
+//                }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
@@ -157,12 +157,12 @@ class AccountDetailsActivity : ComponentActivity() {
         }
 
         LaunchedEffect(
-            mainViewModel.accountDataStore.procAccSubSch.value,
+//            mainViewModel.accountDataStore.procAccSubSch.value,
             mainViewModel.accountDataStore.procAccSubFee.value,
             mainViewModel.accountDataStore.procAccInfo.value
         ) {
-            swipeRefreshStateSubjectSchedule.isRefreshing =
-                mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
+//            swipeRefreshStateSubjectSchedule.isRefreshing =
+//                mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
             swipeRefreshStateSubjectFee.isRefreshing =
                 mainViewModel.accountDataStore.procAccSubFee.value == ProcessState.Running
             swipeRefreshStateAccInfo.isRefreshing =
@@ -206,6 +206,7 @@ class AccountDetailsActivity : ComponentActivity() {
             contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
+<<<<<<< HEAD
             if (subjectScheduleItem.value != null) {
                 SubjectPreview.SubjectScheduleDetails(
                     dialogEnabled = dialogEnabled.value,
@@ -226,7 +227,27 @@ class AccountDetailsActivity : ComponentActivity() {
                             mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
                         }
                     )
+=======
+            SubjectPreview.SubjectScheduleDetails(
+                dialogEnabled = dialogEnabled.value,
+                item = subjectScheduleItem.value,
+                darkTheme = mainViewModel.mainActivityIsDarkTheme.value,
+                onClose = {
+                    dialogEnabled.value = false
+>>>>>>> stable
                 }
+            )
+            when (type) {
+//                "subject_schedule" -> {
+//                    SubjectScheduleList(
+//                        padding = padding,
+//                        subjectScheduleList = mainViewModel.accountDataStore.subjectSchedule,
+//                        swipeRefreshState = swipeRefreshStateSubjectSchedule,
+//                        reloadRequested = {
+//                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
+//                        }
+//                    )
+//                }
                 "subject_fee" -> {
                     SubjectFeeList(
                         padding = padding,
@@ -256,88 +277,88 @@ class AccountDetailsActivity : ComponentActivity() {
     private val dialogEnabled = mutableStateOf(false)
     private val subjectScheduleItem: MutableState<SubjectScheduleItem?> = mutableStateOf(null)
 
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
-    fun SubjectScheduleList(
-        padding: PaddingValues,
-        subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
-        swipeRefreshState: SwipeRefreshState,
-        reloadRequested: () -> Unit,
-    ) {
-        SwipeRefresh(
-            state = swipeRefreshState,
-            modifier = Modifier.padding(padding),
-            onRefresh = {
-                swipeRefreshState.isRefreshing = true
-                reloadRequested()
-            }
-        ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top,
-            ) {
-                stickyHeader {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(
-                                    start = 15.dp,
-                                    end = 15.dp,
-                                    top = 10.dp,
-                                    bottom = 10.dp
-                                ),
-                        ) {
-                            SubjectPreview.CustomText("Total credit: ${subjectScheduleList.sumOf { it.credit }}")
-                            SubjectPreview.CustomText("Click a subject to view its details.")
-                        }
-                    }
-                }
-                items(subjectScheduleList) { item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(top = 10.dp, bottom = 0.dp, start = 15.dp, end = 15.dp)
-                            // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .clickable {
-                                subjectScheduleItem.value = item
-                                dialogEnabled.value = true
-                            }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(
-                                start = 15.dp,
-                                end = 15.dp,
-                                top = 10.dp,
-                                bottom = 10.dp
-                            )
-                        ) {
-                            Text(
-                                text = item.name,
-                                style = MaterialTheme.typography.titleLarge,
-                            )
-                            Text(
-                                text = item.lecturer,
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    @OptIn(ExperimentalFoundationApi::class)
+//    @Composable
+//    fun SubjectScheduleList(
+//        padding: PaddingValues,
+//        subjectScheduleList: SnapshotStateList<SubjectScheduleItem>,
+//        swipeRefreshState: SwipeRefreshState,
+//        reloadRequested: () -> Unit,
+//    ) {
+//        SwipeRefresh(
+//            state = swipeRefreshState,
+//            modifier = Modifier.padding(padding),
+//            onRefresh = {
+//                swipeRefreshState.isRefreshing = true
+//                reloadRequested()
+//            }
+//        ) {
+//            LazyColumn(
+//                modifier = Modifier.fillMaxSize(),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Top,
+//            ) {
+//                stickyHeader {
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .wrapContentHeight()
+//                            .background(MaterialTheme.colorScheme.primaryContainer),
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.CenterHorizontally,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .wrapContentHeight()
+//                                .padding(
+//                                    start = 15.dp,
+//                                    end = 15.dp,
+//                                    top = 10.dp,
+//                                    bottom = 10.dp
+//                                ),
+//                        ) {
+//                            SubjectPreview.CustomText("Total credit: ${subjectScheduleList.sumOf { it.credit }}")
+//                            SubjectPreview.CustomText("Click a subject to view its details.")
+//                        }
+//                    }
+//                }
+//                items(subjectScheduleList) { item ->
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .padding(top = 10.dp, bottom = 0.dp, start = 15.dp, end = 15.dp)
+//                            // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
+//                            .clip(RoundedCornerShape(10.dp))
+//                            .background(MaterialTheme.colorScheme.secondaryContainer)
+//                            .clickable {
+//                                subjectScheduleItem.value = item
+//                                dialogEnabled.value = true
+//                            }
+//                    ) {
+//                        Column(
+//                            horizontalAlignment = Alignment.Start,
+//                            verticalArrangement = Arrangement.Center,
+//                            modifier = Modifier.padding(
+//                                start = 15.dp,
+//                                end = 15.dp,
+//                                top = 10.dp,
+//                                bottom = 10.dp
+//                            )
+//                        ) {
+//                            Text(
+//                                text = item.name,
+//                                style = MaterialTheme.typography.titleLarge,
+//                            )
+//                            Text(
+//                                text = item.lecturer,
+//                                style = MaterialTheme.typography.bodyLarge,
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
@@ -402,7 +423,11 @@ class AccountDetailsActivity : ComponentActivity() {
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                             .clickable {
                                 subjectScheduleItem.value =
+<<<<<<< HEAD
                                     mainViewModel.accountDataStore.subjectSchedule.firstOrNull { it.id.toString(false) == item.id.toString(false) }
+=======
+                                    mainViewModel.accountDataStore.subjectSchedule.firstOrNull { it.id == item.id }
+>>>>>>> stable
                                 dialogEnabled.value = true
                             }
                     ) {
