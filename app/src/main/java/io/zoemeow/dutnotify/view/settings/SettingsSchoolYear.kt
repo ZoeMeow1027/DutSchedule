@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)

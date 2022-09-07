@@ -8,12 +8,14 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.service.NewsRefreshService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -23,18 +25,26 @@ fun SettingsRefreshNewsInterval(
     mainViewModel: MainViewModel,
 ) {
     val newValue = remember { mutableStateOf(3) }
+    val context = LocalContext.current
 
     LaunchedEffect(enabled.value) {
         newValue.value = mainViewModel.appSettings.value.refreshNewsIntervalInMinute
     }
 
     fun commitChanges() {
-        // TODO: Reload service here!
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
             AppSettingsCode.RefreshNewsInterval, newValue.value
         )
         mainViewModel.requestSaveChanges()
         enabled.value = false
+        try {
+            if (mainViewModel.appSettings.value.refreshNewsEnabled) {
+                NewsRefreshService.cancelSchedule(context)
+                NewsRefreshService.startService(context)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
     }
 
     if (enabled.value) {

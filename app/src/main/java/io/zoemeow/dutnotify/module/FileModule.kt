@@ -3,9 +3,11 @@ package io.zoemeow.dutnotify.module
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.account.AccountSession
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.news.NewsCacheGlobal
+import io.zoemeow.dutnotify.model.news.NewsCache
 import java.io.File
 
 class FileModule(
@@ -17,52 +19,52 @@ class FileModule(
     private val pathAccountSettings = "${context.filesDir.path}/account.json"
 
     fun saveCacheNewsGlobal(
-        newsCacheGlobal: NewsCacheGlobal
+        newsCacheGlobal: NewsCache<NewsGlobalItem>
     ) {
         val file = File(pathNewsCacheGlobal)
         file.writeText(Gson().toJson(newsCacheGlobal))
     }
 
-    fun getCacheNewsGlobal(): NewsCacheGlobal {
+    fun getCacheNewsGlobal(): NewsCache<NewsGlobalItem> {
         val file = File(pathNewsCacheGlobal)
         try {
             file.bufferedReader().apply {
                 val text = this.use { it.readText() }
-                val newsCacheGlobal = Gson().fromJson<NewsCacheGlobal>(
+                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsGlobalItem>>(
                     text,
-                    (object : TypeToken<NewsCacheGlobal>() {}.type)
+                    (object : TypeToken<NewsCache<NewsGlobalItem>>() {}.type)
                 )
                 this.close()
                 return newsCacheGlobal
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            return NewsCacheGlobal()
+            return NewsCache()
         }
     }
 
     fun saveCacheNewsSubject(
-        newsCacheSubject: NewsCacheGlobal
+        newsCacheSubject: NewsCache<NewsSubjectItem>
     ) {
         val file = File(pathNewsCacheSubject)
         file.writeText(Gson().toJson(newsCacheSubject))
     }
 
-    fun getCacheNewsSubject(): NewsCacheGlobal {
+    fun getCacheNewsSubject(): NewsCache<NewsSubjectItem> {
         val file = File(pathNewsCacheSubject)
         try {
             file.bufferedReader().apply {
                 val text = this.use { it.readText() }
-                val newsCacheGlobal = Gson().fromJson<NewsCacheGlobal>(
+                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsSubjectItem>>(
                     text,
-                    (object : TypeToken<NewsCacheGlobal>() {}.type)
+                    (object : TypeToken<NewsCache<NewsSubjectItem>>() {}.type)
                 )
                 this.close()
                 return newsCacheGlobal
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            return NewsCacheGlobal()
+            return NewsCache()
         }
     }
 

@@ -19,7 +19,7 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.PermissionRequestActivity
 import io.zoemeow.dutnotify.viewmodel.MainViewModel

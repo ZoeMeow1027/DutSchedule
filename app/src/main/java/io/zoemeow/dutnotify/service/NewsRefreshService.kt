@@ -10,14 +10,17 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import io.zoemeow.dutapi.objects.NewsGlobalItem
+import io.zoemeow.dutapi.objects.enums.LessonStatus
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
-import io.zoemeow.dutnotify.model.news.NewsCacheGlobal
+import io.zoemeow.dutnotify.model.news.NewsCache
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.module.NewsModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.util.NotificationsUtils
+import io.zoemeow.dutnotify.util.dateToString
 import io.zoemeow.dutnotify.util.getMD5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -67,35 +70,11 @@ class NewsRefreshService : Service() {
         scheduleNextRun()
     }
 
-    private fun getPendingIntent(): PendingIntent {
-        val intent = Intent(applicationContext, NewsRefreshService::class.java)
-        val pendingIntent: PendingIntent
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            pendingIntent = PendingIntent.getForegroundService(
-                this,
-                1,
-                intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                    PendingIntent.FLAG_IMMUTABLE
-                else PendingIntent.FLAG_UPDATE_CURRENT
-            )
-        } else {
-            pendingIntent = PendingIntent.getService(
-                this,
-                1,
-                intent,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                    PendingIntent.FLAG_IMMUTABLE
-                else PendingIntent.FLAG_UPDATE_CURRENT
-            )
-        }
-
-        return pendingIntent
-    }
-
     private fun scheduleNextRun() {
         val settings = FileModule(this).getAppSettings()
-        val pendingIntent = getPendingIntent()
+
+        if (!settings.refreshNewsEnabled)
+            return
 
         // The update frequency should often be user configurable.  This is not.
         val currentTimeMillis = System.currentTimeMillis()
@@ -120,6 +99,7 @@ class NewsRefreshService : Service() {
         }
         val nextUpdateTimeMillis = calendar.timeInMillis
 
+        val pendingIntent = getPendingIntent(applicationContext)
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setExactAndAllowWhileIdle(
@@ -128,7 +108,11 @@ class NewsRefreshService : Service() {
                 pendingIntent
             )
         } else {
-            alarmManager[AlarmManager.RTC, nextUpdateTimeMillis] = pendingIntent
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP,
+                nextUpdateTimeMillis,
+                pendingIntent
+            )
         }
 
         Log.i(
@@ -139,16 +123,17 @@ class NewsRefreshService : Service() {
 
     private fun doWorkBackground() {
         val file = FileModule(this.applicationContext)
-        checkNewsGlobal(file)
-        checkNewsSubject(file)
+        checkNewsGlobal(file = file)
+        checkNewsSubject(file = file)
 
         sendRequestToActivity()
     }
 
     private fun checkNewsGlobal(
-        file: FileModule
+        file: FileModule,
     ) {
-        val newsCacheGlobal: NewsCacheGlobal = file.getCacheNewsGlobal()
+        var shouldNotifyUsers = false
+        val newsCacheGlobal: NewsCache<NewsGlobalItem> = file.getCacheNewsGlobal()
         val newsFromInternet: ArrayList<NewsGlobalItem> = NewsModule.getNewsGlobal(
             page = 1
         )
@@ -156,6 +141,8 @@ class NewsRefreshService : Service() {
             source = newsCacheGlobal.newsListByDate,
             target = newsFromInternet
         )
+        if (newsDiff.size > 0 && newsCacheGlobal.newsListByDate.isNotEmpty())
+            shouldNotifyUsers = true
         NewsModule.addAndCheckDuplicateNewsGlobal(
             source = newsCacheGlobal.newsListByDate,
             target = newsDiff
@@ -166,19 +153,9 @@ class NewsRefreshService : Service() {
             newsCacheGlobal = newsCacheGlobal
         )
 
-        Log.d(
-            "RefreshNewsService",
-            "News Global: Current group size: ${newsCacheGlobal.newsListByDate.size}"
-        )
-        Log.d(
-            "RefreshNewsService",
-            "News Global: News from internet size: ${newsFromInternet.size}"
-        )
-        Log.d("RefreshNewsService", "News Global: News diff size: ${newsDiff.size}")
-
         // Notify to user and clear to avoid leak memory.
-        if (newsCacheGlobal.newsListByDate.isNotEmpty()) {
-            notifyUsers(newsDiff, "dut_news_global")
+        if (shouldNotifyUsers) {
+            notifyUsersGlobal(newsDiff)
         }
 
         newsFromInternet.clear()
@@ -186,17 +163,20 @@ class NewsRefreshService : Service() {
     }
 
     private fun checkNewsSubject(
-        file: FileModule
+        file: FileModule,
     ) {
-        val newsCacheSubject: NewsCacheGlobal = file.getCacheNewsSubject()
-        val newsFromInternet: ArrayList<NewsGlobalItem> = NewsModule.getNewsSubject(
+        var shouldNotifyUsers = false
+        val newsCacheSubject: NewsCache<NewsSubjectItem> = file.getCacheNewsSubject()
+        val newsFromInternet: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubject(
             page = 1
         )
-        val newsDiff: ArrayList<NewsGlobalItem> = NewsModule.getNewsSubjectDiff(
+        val newsDiff: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubjectDiff(
             source = newsCacheSubject.newsListByDate,
             target = newsFromInternet
         )
-        NewsModule.addAndCheckDuplicateNewsGlobal(
+        if (newsDiff.size > 0 && newsCacheSubject.newsListByDate.isNotEmpty())
+            shouldNotifyUsers = true
+        NewsModule.addAndCheckDuplicateNewsSubject(
             source = newsCacheSubject.newsListByDate,
             target = newsDiff
         )
@@ -206,37 +186,99 @@ class NewsRefreshService : Service() {
             newsCacheSubject = newsCacheSubject
         )
 
-        Log.d(
-            "RefreshNewsService",
-            "News Subject: Current group size: ${newsCacheSubject.newsListByDate.size}"
-        )
-        Log.d(
-            "RefreshNewsService",
-            "News Subject: News from internet size: ${newsFromInternet.size}"
-        )
-        Log.d("RefreshNewsService", "News Subject: News diff size: ${newsDiff.size}")
-
         // Notify to user and clear to avoid leak memory.
-        if (newsCacheSubject.newsListByDate.isNotEmpty()) {
-            notifyUsers(newsDiff, "dut_news_subject")
+        if (shouldNotifyUsers) {
+            notifyUsersSubject(newsDiff)
         }
 
         newsFromInternet.clear()
         newsDiff.clear()
     }
 
-    private fun notifyUsers(
+    private fun notifyUsersGlobal(
         list: ArrayList<NewsGlobalItem>,
-        type: String,
     ) {
-        // Notify to user and clear to avoid leak memory.
         list.forEach { newsItem ->
             NotificationsUtils.showNewsNotification(
                 context = this,
-                channel_id = type,
-                news_md5 = getMD5("${newsItem.date}___${newsItem.title}"),
-                news_title = "New notification from ${if (type == "dut_news_global") "News Global" else "News Subject"}",
+                channel_id = "dut_news_global",
+                news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
+                news_title = "New notification from News Global",
                 news_description = newsItem.title,
+                data = newsItem
+            )
+        }
+    }
+
+    private fun notifyUsersSubject(
+        list: ArrayList<NewsSubjectItem>,
+    ) {
+        list.forEach { newsItem ->
+            // Lecturer
+            var lecturer = newsItem.title.split("thông báo đến lớp:")[0]
+            if (lecturer.startsWith("Thầy "))
+                lecturer = lecturer.substring(5)
+            else if (lecturer.startsWith("Cô "))
+                lecturer = lecturer.substring(3)
+
+            // Lesson status
+            val lessonStatus = when (newsItem.lessonStatus) {
+                LessonStatus.Leaving -> "Leaving "
+                LessonStatus.MakeUp -> "Make up "
+                else -> ""
+            }
+
+            // Affected classrooms
+            var affectedClassrooms = ""
+            newsItem.affectedClass.forEach { className ->
+                if (affectedClassrooms.isEmpty()) {
+                    affectedClassrooms = "Affected classrooms: ${className.subjectName}"
+                }
+                else {
+                    affectedClassrooms += ", ${className.subjectName}"
+                }
+                var first = true
+                for (item in className.codeList) {
+                    if (first) {
+                        affectedClassrooms += " ("
+                        first = false
+                    }
+                    else {
+                        affectedClassrooms += ", "
+                    }
+                    affectedClassrooms += "${item.studentYearId}.${item.classId}"
+                }
+                affectedClassrooms += ")"
+            }
+
+            val notifyTitle = "New ${lessonStatus}notification from $lecturer"
+            var notifyContent = "${affectedClassrooms}\n\n"
+            val notifyContentList = arrayListOf<String>()
+            when (newsItem.lessonStatus) {
+                LessonStatus.MakeUp -> {
+                    notifyContentList.add("on date: ${dateToString(newsItem.affectedDate, "dd/MM/yyyy")}")
+                    notifyContentList.add("\nwith lesson: ${if (newsItem.affectedLesson != null) newsItem.affectedLesson else "(unknown)"}")
+                    notifyContentList.add("\nin room: ${newsItem.affectedLesson}")
+                    notifyContent += notifyContentList.joinToString("")
+                }
+                LessonStatus.Leaving -> {
+                    notifyContentList.add("on date: ${dateToString(newsItem.affectedDate, "dd/MM/yyyy")}")
+                    notifyContentList.add("\nwith lesson: ${if (newsItem.affectedLesson != null) newsItem.affectedLesson else "(unknown)"}")
+                    notifyContent += notifyContentList.joinToString("")
+                }
+                else -> {
+                    if (newsItem.contentString.length > 400)
+                        notifyContent += newsItem.contentString
+                    else notifyContent += "Tap on this notification to open news details in app."
+                }
+            }
+
+            NotificationsUtils.showNewsNotification(
+                context = this,
+                channel_id = "dut_news_subject",
+                news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
+                news_title = notifyTitle,
+                news_description = notifyContent,
                 data = newsItem
             )
         }
@@ -248,6 +290,32 @@ class NewsRefreshService : Service() {
     }
 
     companion object {
+        fun getPendingIntent(context: Context): PendingIntent {
+            val intent = Intent(context, NewsRefreshService::class.java)
+            val pendingIntent: PendingIntent
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pendingIntent = PendingIntent.getForegroundService(
+                    context,
+                    1,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                        PendingIntent.FLAG_IMMUTABLE
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            } else {
+                pendingIntent = PendingIntent.getService(
+                    context,
+                    1,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                        PendingIntent.FLAG_IMMUTABLE
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            }
+
+            return pendingIntent
+        }
+
         fun startService(context: Context) {
             val intentService = Intent(context, NewsRefreshService::class.java)
             // https://stackoverflow.com/a/47654126
@@ -261,6 +329,11 @@ class NewsRefreshService : Service() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 context.startForegroundService(intentService)
             else context.startService(intentService)
+        }
+
+        fun cancelSchedule(context: Context) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(getPendingIntent(context))
         }
     }
 }

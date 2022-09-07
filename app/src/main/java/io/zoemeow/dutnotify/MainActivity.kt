@@ -27,8 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
@@ -43,6 +43,7 @@ import io.zoemeow.dutnotify.view.settings.Settings
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var mainViewModel: MainViewModel
@@ -58,6 +59,8 @@ class MainActivity : ComponentActivity() {
         permitAllPolicy()
 
         setContent {
+            // setLocale("vi")
+
             // Initialize Main View Model
             mainViewModel = viewModel()
 
@@ -105,8 +108,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // Initialize Refresh news services
-                NewsRefreshService.startService(applicationContext)
+                // Initialize refresh news services
+                // Just to reload news. If schedule has been enabled,
+                // this will be scheduled to new UnixTimestamp.
+                NewsRefreshService.startService(context = applicationContext)
 
                 mainViewModel.accountDataStore.reLogin(
                     silent = false,
@@ -136,13 +141,6 @@ class MainActivity : ComponentActivity() {
         // Nav Route
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
-
-//        LiveDataUtils.InitializeShowNotifications(
-//            lifecycleOwner = this,
-//            liveData = mainViewModel.pendingNotifications,
-//            scope = scope,
-//            snackBarState = snackBarState
-//        )
 
         // A scaffold container using the 'background' color from the theme
         Scaffold(
@@ -213,6 +211,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        // Unregister to completely destroyed.
         LocalBroadcastManager.getInstance(this)
             .unregisterReceiver(getAppBroadcastReceiver())
         super.onDestroy()
@@ -261,10 +260,9 @@ class MainActivity : ComponentActivity() {
                     )
                 )
                 mainViewModel.requestSaveChanges()
-
                 mainViewModel.showSnackBarMessage(
                     "Missing permission: READ_EXTERNAL_STORAGE." +
-                            "This will revert background image option is unset."
+                            "Background image option will reset to default."
                 )
             }
         }
@@ -279,6 +277,23 @@ class MainActivity : ComponentActivity() {
     private fun permitAllPolicy() {
         val policy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
+    }
+
+    @Suppress("DEPRECATION", "unused")
+    private fun setLocale(value: String = "en") {
+        // TODO: Delete this function if not needed.
+        val locale = Locale(value)
+        Locale.setDefault(locale)
+        val config = resources.configuration.apply {
+            setLocale(locale)
+        }
+
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+            applicationContext.createConfigurationContext(config)
+        } else {
+            resources.updateConfiguration(config, resources.displayMetrics)
+        }
+        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }
 

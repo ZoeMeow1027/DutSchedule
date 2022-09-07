@@ -15,11 +15,13 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import io.zoemeow.dutapi.objects.NewsGlobalItem
+import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
-import io.zoemeow.dutnotify.model.news.NewsCacheGlobal
+import io.zoemeow.dutnotify.model.news.NewsCache
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
@@ -31,6 +33,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+    val subjectScheduleItem: MutableState<SubjectScheduleItem?> = mutableStateOf(null)
+    val subjectScheduleEnabled: MutableState<Boolean> = mutableStateOf(false)
+
     // Drawable and painter for background image
     val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
 
@@ -126,7 +131,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun requestSaveCache() {
         file.saveCacheNewsGlobal(
-            NewsCacheGlobal(
+            NewsCache(
                 newsListByDate = arrayListOf<NewsGroupByDate<NewsGlobalItem>>().apply {
                     addAll(newsDataStore.listNewsGlobalByDate)
                 },
@@ -134,8 +139,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
         )
         file.saveCacheNewsSubject(
-            NewsCacheGlobal(
-                newsListByDate = arrayListOf<NewsGroupByDate<NewsGlobalItem>>().apply {
+            NewsCache(
+                newsListByDate = arrayListOf<NewsGroupByDate<NewsSubjectItem>>().apply {
                     addAll(newsDataStore.listNewsSubjectByDate)
                 },
                 pageCurrent = newsDataStore.newsSubjectPageCurrent.value

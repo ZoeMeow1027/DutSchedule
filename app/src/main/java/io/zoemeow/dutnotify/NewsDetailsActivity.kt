@@ -21,10 +21,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutnotify.R
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.util.openLink
@@ -131,7 +131,7 @@ class NewsDetailsActivity : ComponentActivity() {
             }
             "dut_news_subject" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                    data = intent.getSerializableExtra("data", NewsGlobalItem::class.java)
+                    data = intent.getSerializableExtra("data", NewsSubjectItem::class.java)
                 else data = intent.getSerializableExtra("data")
                 newsTitle.value = "News details"
             }
@@ -209,7 +209,7 @@ class NewsDetailsActivity : ComponentActivity() {
             "dut_news_subject" -> NewsDetailsSubject(
                 isDarkMode = isSystemInDarkTheme(),
                 padding = padding,
-                news = newsData as NewsGlobalItem,
+                news = newsData as NewsSubjectItem,
                 linkClicked = {
                     if (linkClicked != null)
                         linkClicked(it)

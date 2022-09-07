@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import io.zoemeow.dutapi.objects.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.util.LazyList_EndOfListHandler

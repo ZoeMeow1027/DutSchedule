@@ -1,6 +1,5 @@
 package io.zoemeow.dutnotify.view.settings
 
-import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -8,7 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -17,7 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.zoemeow.dutnotify.BuildConfig
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.service.NewsRefreshService
 import io.zoemeow.dutnotify.ui.custom.CustomDivider
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemClickable
@@ -30,8 +29,7 @@ import io.zoemeow.dutnotify.viewmodel.MainViewModel
 fun Settings(
     mainViewModel: MainViewModel,
 ) {
-    val context: MutableState<Context?> = remember { mutableStateOf(null) }
-    context.value = LocalContext.current
+    val context = LocalContext.current
 
     val refreshNewsTimeAdjustEnabled = remember { mutableStateOf(false) }
     val refreshNewsTimeIntervalEnabled = remember { mutableStateOf(false) }
@@ -89,24 +87,69 @@ fun Settings(
                     .padding(padding)
                     .verticalScroll(rememberScrollState()),
                 content = {
-                    SettingsOptionHeader(headerText = "News")
-                    SettingsOptionItemClickable(
-                        title = "Refresh news time range",
-                        description = "From ${mainViewModel.appSettings.value.refreshNewsTimeStart}" +
-                                " to ${mainViewModel.appSettings.value.refreshNewsTimeEnd}" +
-                                if (mainViewModel.appSettings.value.refreshNewsTimeEnd < mainViewModel.appSettings.value.refreshNewsTimeStart) " (tomorrow)" else "",
-                        clickable = {
-                            refreshNewsTimeAdjustEnabled.value = true
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_loadnewsinbackground))
+                    SettingsOptionItemSwitch(
+                        title = stringResource(id = R.string.settings_loadnewsinbackground_enabled_name),
+                        description = stringResource(id = R.string.settings_loadnewsinbackground_enabled_description),
+                        value = mainViewModel.appSettings.value.refreshNewsEnabled,
+                        onValueChanged = { value ->
+                            try {
+                                when (value) {
+                                    true -> {
+                                        NewsRefreshService.startService(context)
+                                    }
+                                    false -> {
+                                        NewsRefreshService.cancelSchedule(context)
+                                    }
+                                }
+                                mainViewModel.appSettings.value =
+                                    mainViewModel.appSettings.value.modify(
+                                        optionToModify = AppSettingsCode.RefreshNewsEnabled,
+                                        value = value
+                                    )
+                                mainViewModel.requestSaveChanges()
+                                mainViewModel.showSnackBarMessage(
+                                    title = context.getString(
+                                        if (value) R.string.notification_newsinbackground_successfulenabled
+                                        else R.string.notification_newsinbackground_successfuldisabled
+                                    ),
+                                    forceCloseOld = true
+                                )
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                                mainViewModel.showSnackBarMessage(
+                                    title = "${context.getString(
+                                        if (value) R.string.notification_newsinbackground_failedenabled
+                                        else R.string.notification_newsinbackground_faileddisabled                                   
+                                    )} ${context.getString(R.string.notification_newsinbackground_failedextended)}",
+                                    forceCloseOld = true,
+                                )
+                            }
                         }
                     )
-                    SettingsOptionItemClickable(
-                        title = "Refresh news time interval",
-                        description = "Every ${mainViewModel.appSettings.value.refreshNewsIntervalInMinute} minute" +
-                                if (mainViewModel.appSettings.value.refreshNewsIntervalInMinute > 1) "s" else "",
-                        clickable = {
-                            refreshNewsTimeIntervalEnabled.value = true
-                        }
-                    )
+                    if (mainViewModel.appSettings.value.refreshNewsEnabled) {
+                        SettingsOptionItemClickable(
+                            title = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_name),
+                            description = String.format(
+                                stringResource(id = R.string.settings_loadnewsinbackground_timeactive_value),
+                                mainViewModel.appSettings.value.refreshNewsTimeStart,
+                                mainViewModel.appSettings.value.refreshNewsTimeEnd,
+                                if (mainViewModel.appSettings.value.refreshNewsTimeEnd < mainViewModel.appSettings.value.refreshNewsTimeStart)
+                                    stringResource(id = R.string.settings_loadnewsinbackground_timeactive_valueextended) else ""
+                            ),
+                            clickable = {
+                                refreshNewsTimeAdjustEnabled.value = true
+                            }
+                        )
+                        SettingsOptionItemClickable(
+                            title = stringResource(id = R.string.settings_loadnewsinbackground_interval_name),
+                            description = "Every ${mainViewModel.appSettings.value.refreshNewsIntervalInMinute} minute" +
+                                    if (mainViewModel.appSettings.value.refreshNewsIntervalInMinute > 1) "s" else "",
+                            clickable = {
+                                refreshNewsTimeIntervalEnabled.value = true
+                            }
+                        )
+                    }
                     CustomDivider()
                     SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
                     SettingsOptionItemClickable(
@@ -125,7 +168,7 @@ fun Settings(
                         }
                     )
                     CustomDivider()
-                    SettingsOptionHeader(headerText = "Layout")
+                    SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_appearance))
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_apptheme_name),
                         description = (
@@ -188,19 +231,19 @@ fun Settings(
                         description = stringResource(id = R.string.settings_changelog_description),
                         clickable = {
                             openLink(
-                                "https://github.com/ZoeMeow5466/DUTApp.Android",
-                                context.value!!,
+                                "https://github.com/ZoeMeow5466/DUTNotify",
+                                context,
                                 true
                             )
                         }
                     )
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_github_name),
-                        description = "https://github.com/ZoeMeow5466/DUTApp.Android",
+                        description = "https://github.com/ZoeMeow5466/DUTNotify",
                         clickable = {
                             openLink(
-                                "https://github.com/ZoeMeow5466/DUTApp.Android",
-                                context.value!!,
+                                "https://github.com/ZoeMeow5466/DUTNotify",
+                                context,
                                 true
                             )
                         }

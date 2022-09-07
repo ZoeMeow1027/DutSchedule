@@ -1,12 +1,11 @@
 package io.zoemeow.dutnotify.model.news
 
 import com.google.gson.annotations.SerializedName
-import io.zoemeow.dutapi.objects.NewsGlobalItem
 import java.io.Serializable
 
-data class NewsCacheGlobal(
+data class NewsCache<T>(
     @SerializedName("news_list")
-    val newsListByDate: ArrayList<NewsGroupByDate<NewsGlobalItem>> = arrayListOf(),
+    val newsListByDate: ArrayList<NewsGroupByDate<T>> = arrayListOf(),
     @SerializedName("page_current")
     var pageCurrent: Int = 1,
-) : Serializable
+): Serializable

@@ -5,8 +5,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import io.zoemeow.dutapi.objects.NewsGlobalItem
-import io.zoemeow.dutapi.objects.NewsType
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.enums.NewsPageType
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
@@ -50,7 +50,7 @@ class NewsDataStore(
     /**
      * Current News Subject list.
      */
-    val listNewsSubjectByDate: SnapshotStateList<NewsGroupByDate<NewsGlobalItem>> =
+    val listNewsSubjectByDate: SnapshotStateList<NewsGroupByDate<NewsSubjectItem>> =
         mutableStateListOf()
     // =============================================================================================
 
@@ -91,7 +91,7 @@ class NewsDataStore(
                 procNewsGlobal.value = ProcessState.Failed
                 newsFromInternet.clear()
                 mainViewModel.showSnackBarMessage(
-                    "We ran into a problem while getting your News ${NewsType.Global}. " +
+                    "We ran into a problem while getting your News Global. " +
                             "Check your internet connection and try again."
                 )
                 return@invokeOnCompletion
@@ -141,7 +141,7 @@ class NewsDataStore(
         procNewsSubject.value = ProcessState.Running
 
         // Temporary variables
-        val newsFromInternet = arrayListOf<NewsGlobalItem>()
+        val newsFromInternet = arrayListOf<NewsSubjectItem>()
 
         Log.d("NewsSubject", "Triggered getting news")
 
@@ -166,7 +166,7 @@ class NewsDataStore(
             if (newsFromInternet.size == 0) {
                 procNewsSubject.value = ProcessState.Failed
                 mainViewModel.showSnackBarMessage(
-                    "We ran into a problem while getting your News ${NewsType.Global}. " +
+                    "We ran into a problem while getting your News Subject. " +
                             "Check your internet connection and try again."
                 )
                 newsFromInternet.clear()
@@ -176,14 +176,14 @@ class NewsDataStore(
             if (newsPageType == NewsPageType.ResetToPage1)
                 listNewsSubjectByDate.clear()
 
-            val newsTemp = arrayListOf<NewsGroupByDate<NewsGlobalItem>>().apply {
+            val newsTemp = arrayListOf<NewsGroupByDate<NewsSubjectItem>>().apply {
                 addAll(listNewsSubjectByDate)
             }
-            val newsDiff = NewsModule.getNewsGlobalDiff(
+            val newsDiff = NewsModule.getNewsSubjectDiff(
                 source = newsTemp,
                 target = newsFromInternet,
             )
-            NewsModule.addAndCheckDuplicateNewsGlobal(
+            NewsModule.addAndCheckDuplicateNewsSubject(
                 source = newsTemp,
                 target = newsDiff,
                 addItemToTop = newsPageType != NewsPageType.NextPage

@@ -12,8 +12,8 @@ android {
         applicationId "io.zoemeow.dutnotify"
         minSdk 21
         targetSdk 33
-        versionCode 352
-        versionName "1.0-beta2"
+        versionCode 402
+        versionName "1.0-beta3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -88,17 +88,17 @@ dependencies {
     implementation "androidx.browser:browser:1.4.0"
 
     // Jsoup HTML parser library
-    implementation 'org.jsoup:jsoup:1.15.2'
+    implementation 'org.jsoup:jsoup:1.15.3'
 
     // Google Gson
-    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation 'com.google.code.gson:gson:2.9.1'
 
     // Retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
     // ZoeMeow5466/DUTAPI.Java from GitHub (from JitPack.io)
-    implementation 'com.github.ZoeMeow5466:DUTAPI.Java:1.6.3'
+    implementation 'com.github.ZoeMeow5466:DUTAPI.Java:1.7.1'
 }
 
 // https://kotlinlang.org/docs/opt-in-requirements.html#module-wide-opt-in

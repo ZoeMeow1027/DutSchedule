@@ -14,7 +14,7 @@ import androidx.compose.ui.unit.dp
 fun SettingsOptionItemSwitch(
     title: String,
     value: Boolean,
-    onValueChanged: () -> Unit,
+    onValueChanged: (Boolean) -> Unit,
     enabled: Boolean = true,
     description: String? = null,
 ) {
@@ -23,7 +23,7 @@ fun SettingsOptionItemSwitch(
             .fillMaxWidth()
             .wrapContentHeight()
             .clickable {
-                if (enabled) onValueChanged()
+                if (enabled) onValueChanged(!value)
             },
         contentAlignment = Alignment.CenterStart,
     ) {
@@ -50,7 +50,7 @@ fun SettingsOptionItemSwitch(
             Switch(
                 // modifier = Modifier.align(Alignment.CenterEnd),
                 checked = value,
-                onCheckedChange = { onValueChanged() },
+                onCheckedChange = { onValueChanged(!value) },
                 enabled = enabled,
             )
         }

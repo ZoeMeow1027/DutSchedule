@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutapi.objects.SubjectScheduleItem
+import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.util.dateToString
 import io.zoemeow.dutnotify.util.getDayOfWeekToString
 
@@ -48,8 +48,8 @@ class SubjectPreview {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(item.name ?: "(null)")
-                            Text("by ${item.lecturer ?: "(null)"}")
+                            Text(item?.name ?: "(null)")
+                            Text("by ${item?.lecturer ?: "(null)"}")
                         }
                     },
                     confirmButton = {
@@ -66,7 +66,7 @@ class SubjectPreview {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.Start,
                         ) {
-                            CustomText("ID: ${item.id}")
+                            CustomText("ID: ${item.id.toString(false)}")
                             CustomText("Credit: ${item.credit}")
                             CustomText("Is high quality: ${item.isHighQuality}")
                             CustomText("Final score formula: ${item.pointFormula}")
@@ -97,20 +97,25 @@ class SubjectPreview {
                             ContentInBoxWithBorder(
                                 title = "Schedule Examination",
                                 content = {
-                                    CustomText(
-                                        "Group: ${item.subjectExam.group}" +
-                                                if (item.subjectExam.isGlobal) " (global exam)" else ""
-                                    )
-                                    CustomText(
-                                        "Date: ${
-                                            dateToString(
-                                                item.subjectExam.date,
-                                                "dd/MM/yyyy HH:mm",
-                                                "GMT+7"
-                                            )
-                                        }"
-                                    )
-                                    CustomText("Room: ${item.subjectExam.room}")
+                                    if (item.subjectExam != null) {
+                                        CustomText(
+                                            "Group: ${item.subjectExam.group}" +
+                                                    if (item.subjectExam.isGlobal) " (global exam)" else ""
+                                        )
+                                        CustomText(
+                                            "Date: ${
+                                                dateToString(
+                                                    item.subjectExam.date,
+                                                    "dd/MM/yyyy HH:mm",
+                                                    "GMT+7"
+                                                )
+                                            }"
+                                        )
+                                        CustomText("Room: ${item.subjectExam.room}")
+                                    }
+                                    else {
+                                        CustomText("Currently no examination schedule yet for this subject.")
+                                    }
                                 },
                                 darkTheme = darkTheme,
                             )

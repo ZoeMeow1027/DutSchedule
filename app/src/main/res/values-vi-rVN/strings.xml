@@ -1,20 +1,38 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <resources>
+    <string name="account_dashboard_dayandweekview_fetching">Chúng tôi đang tải lịch học của bạn. Vui lòng chờ…</string>
+    <string name="account_dashboard_dayandweekview_nosubject">Bạn không có tiết học nào hôm nay.</string>
+    <string name="account_dashboard_dayandweekview_subjectschedule">Lịch học</string>
+    <string name="account_dashboard_dayandweekview_today">Hôm nay</string>
+    <string name="account_dashboard_viewaccinfo">Xem thêm thông tin tài khoản</string>
+    <string name="account_dashboard_viewsubjectfee">Xem toàn bộ học phí</string>
+    <string name="account_dashboard_viewsubjectschedule">Xem toàn bộ lịch học và lịch thi</string>
     <string name="account_page_accinfo">Thông tin tài khoản</string>
     <string name="account_page_dashboard">Dashboard</string>
     <string name="account_page_notloggedin">Chưa đăng nhập</string>
     <string name="account_page_subjectfee">Học phí</string>
     <string name="account_page_subjectschedule">Lịch học</string>
+
     <string name="app_name">DUT</string>
+
     <string name="navbar_account">Tài khoản</string>
     <string name="navbar_main">Chính</string>
     <string name="navbar_news">Tin tức</string>
     <string name="navbar_settings">Cài đặt</string>
+
     <string name="news_tab_global">Chung</string>
     <string name="news_tab_subject">Lớp HP</string>
+
+    <string name="notification_newsinbackground_faileddisabled">Chúng tôi đã gặp sự cố khi tắt tính năng cập nhật tin tức trong nền cho bạn!</string>
+    <string name="notification_newsinbackground_failedenabled">Chúng tôi đã gặp sự cố khi bật tính năng cập nhật tin tức trong nền cho bạn!</string>
+    <string name="notification_newsinbackground_failedextended">Bạn có thể thử lại. Nếu vẫn gặp sự cố, vui lòng báo cáo qua GitHub.</string>
+    <string name="notification_newsinbackground_successfuldisabled">Đã tắt tính năng cập nhật tin tức trong nền!</string>
+    <string name="notification_newsinbackground_successfulenabled">Đã bật tính năng cập nhật tin tức trong nền!</string>
+
     <string name="option_cancel">Hủy</string>
     <string name="option_commit">Lưu thay đổi</string>
     <string name="option_ok">OK</string>
+
     <string name="settings_apptheme_dark">Chế độ tối</string>
     <string name="settings_apptheme_dynamiccolor_enable">Màu ứng dụng theo hệ thống</string>
     <string name="settings_apptheme_dynamiccolor_enabled">(màu ứng dụng theo hệ thống)</string>
@@ -31,13 +49,22 @@
     <string name="settings_blacktheme_name">Chế độ nền đen</string>
     <string name="settings_category_aboutapplication">Về ứng dụng</string>
     <string name="settings_category_account">Tài khoản</string>
+    <string name="settings_category_appearance">Cá nhân hóa</string>
+    <string name="settings_category_loadnewsinbackground">Tải tin tức trong nền</string>
     <string name="settings_category_miscellaneous">Linh tinh</string>
     <string name="settings_changelog_description">Nhấn vào đây để xem lịch sử phiên bản của ứng dụng này.</string>
     <string name="settings_changelog_name">Lịch sử phiên bản</string>
     <string name="settings_github_name">GitHub (nhấn để mở repo)</string>
+    <string name="settings_loadnewsinbackground_enabled_description">Bật tính năng này để cập nhật tin tức, ngay cả khi bạn tắt ứng dụng, không phải buộc dừng nó ;))</string>
+    <string name="settings_loadnewsinbackground_enabled_name">Bật tính năng này</string>
+    <string name="settings_loadnewsinbackground_interval_name">Khoảng thời gian nghỉ</string>
+    <string name="settings_loadnewsinbackground_timeactive_name">Khoảng thời gian hoạt động</string>
+    <string name="settings_loadnewsinbackground_timeactive_value">Từ %s đến %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_valueextended">hôm sau</string>
     <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định.</string>
     <string name="settings_openlinkincustomtab_name">Mở liên kết trong ứng dụng</string>
     <string name="settings_version_name">Phiên bản</string>
+
     <string name="topbar_account">Tài khoản</string>
     <string name="topbar_news">Tin tức</string>
 </resources>

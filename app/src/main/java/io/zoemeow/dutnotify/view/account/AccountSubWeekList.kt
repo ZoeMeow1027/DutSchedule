@@ -14,7 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.util.dayOfWeekInString
 import io.zoemeow.dutnotify.util.getCurrentDayOfWeek
 import io.zoemeow.dutnotify.util.getDateFromCurrentWeek
@@ -25,7 +28,8 @@ fun AccountSubWeekList(
     mainViewModel: MainViewModel,
     isGettingData: Boolean = false,
     onDayAndWeekChanged: ((Int, Int) -> Unit)? = null,
-    padding: PaddingValues? = null
+    padding: PaddingValues? = null,
+    onItemClicked: ((SubjectScheduleItem?) -> Unit)? = null
 ) {
     val weekAdjust = remember { mutableStateOf(0) }
     val dayOfWeek = remember { getDateFromCurrentWeek() }
@@ -139,7 +143,7 @@ fun AccountSubWeekList(
                 color = MaterialTheme.colorScheme.secondaryContainer,
             ) {
                 Text(
-                    text = "Today",
+                    text = stringResource(id = R.string.account_dashboard_dayandweekview_today),
                     modifier = Modifier.padding(
                         start = 20.dp,
                         end = 20.dp,
@@ -177,7 +181,7 @@ fun AccountSubWeekList(
         if (!isGettingData) {
             if (mainViewModel.accountDataStore.subjectScheduleByDay.size > 0) {
                 Text(
-                    text = "Subject schedule",
+                    text = stringResource(id = R.string.account_dashboard_dayandweekview_subjectschedule),
                     modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
                 )
                 mainViewModel.accountDataStore.subjectScheduleByDay.forEach { item ->
@@ -186,7 +190,11 @@ fun AccountSubWeekList(
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .padding(top = 5.dp, bottom = 5.dp)
-                            .clip(RoundedCornerShape(20.dp)),
+                            .clip(RoundedCornerShape(20.dp))
+                            .clickable {
+                                if (onItemClicked != null)
+                                    onItemClicked(item)
+                            },
                         color = MaterialTheme.colorScheme.secondaryContainer,
                     ) {
                         Column(
@@ -212,10 +220,12 @@ fun AccountSubWeekList(
                     }
                 }
             } else Text(
-                text = "You don't have any lessons today.",
+                text = stringResource(id = R.string.account_dashboard_dayandweekview_nosubject),
                 modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
             )
-        } else Text("We are fetching your subject schedule list. Please wait...")
+        } else Text(
+            text = stringResource(id = R.string.account_dashboard_dayandweekview_fetching)
+        )
     }
 
 }

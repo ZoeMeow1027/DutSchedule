@@ -2,7 +2,6 @@ package io.zoemeow.dutnotify.model.appsettings
 
 import com.google.gson.annotations.SerializedName
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
-import io.zoemeow.dutnotify.model.enums.AppSettingsCode
 import io.zoemeow.dutnotify.model.enums.AppTheme
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import java.io.Serializable
@@ -29,6 +28,8 @@ data class AppSettings(
     var refreshNewsTimeEnd: CustomClock = CustomClock(23, 0),
     @SerializedName(AppSettingsCode.RefreshNewsInterval)
     var refreshNewsIntervalInMinute: Int = 3,
+    @SerializedName(AppSettingsCode.RefreshNewsEnabled)
+    var refreshNewsEnabled: Boolean = false,
 ) : Serializable {
     private fun clone(): AppSettings {
         return AppSettings(
@@ -40,7 +41,8 @@ data class AppSettings(
             openLinkInCustomTab,
             refreshNewsTimeStart,
             refreshNewsTimeEnd,
-            refreshNewsIntervalInMinute
+            refreshNewsIntervalInMinute,
+            refreshNewsEnabled,
         )
     }
 
@@ -77,6 +79,9 @@ data class AppSettings(
             }
             AppSettingsCode.RefreshNewsInterval -> {
                 appSettings.refreshNewsIntervalInMinute = value as Int
+            }
+            AppSettingsCode.RefreshNewsEnabled -> {
+                appSettings.refreshNewsEnabled = value as Boolean
             }
             else -> {
 

@@ -15,7 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import io.zoemeow.dutapi.objects.NewsGlobalItem
+import io.zoemeow.dutapi.objects.enums.LessonStatus
+import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.ui.custom.NewsScreenCore
 import io.zoemeow.dutnotify.util.calculateDayAgoFromNews
 import io.zoemeow.dutnotify.util.dateToString
@@ -24,7 +25,7 @@ import io.zoemeow.dutnotify.util.dateToString
 fun NewsDetailsSubject(
     isDarkMode: Boolean = false,
     padding: PaddingValues,
-    news: NewsGlobalItem,
+    news: NewsSubjectItem,
     linkClicked: (String) -> Unit
 ) {
     NewsScreenCore {
@@ -46,7 +47,7 @@ fun NewsDetailsSubject(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Posted on ${
+                    text = "⏱ ${
                         dateToString(
                             news.date,
                             "dd/MM/yyyy",
@@ -55,6 +56,42 @@ fun NewsDetailsSubject(
                     } (${calculateDayAgoFromNews(news.date)})",
                     style = MaterialTheme.typography.titleLarge,
                 )
+                // 1
+                if (arrayListOf(LessonStatus.Leaving, LessonStatus.MakeUp).contains(news.lessonStatus)) {
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Divider(
+                        color = Color.Gray,
+                        thickness = 1.dp
+                    )
+                    Spacer(modifier = Modifier.size(10.dp))
+                    Text(
+                        text = "Status: ${news.lessonStatus}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    Text(
+                        text = "Affected lessons: ${news.affectedLesson}",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    Text(
+                        text = "Affected date: ${
+                            dateToString(
+                                news.affectedDate,
+                                "dd/MM/yyyy",
+                                "UTC"
+                            )
+                        }",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    if (news.lessonStatus == LessonStatus.MakeUp) {
+                        Spacer(modifier = Modifier.size(5.dp))
+                        Text(
+                            text = "Affected Room: ${news.affectedRoom}",
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.size(10.dp))
                 Divider(
                     color = Color.Gray,

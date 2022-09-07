@@ -14,9 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -33,23 +31,6 @@ fun Account(
         enabled = dialogLogoutEnabled,
         logoutRequest = { mainViewModel.accountDataStore.logout() }
     )
-
-    val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
-    val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
-    val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
-
-    LaunchedEffect(
-        mainViewModel.accountDataStore.procAccSubSch.value,
-        mainViewModel.accountDataStore.procAccSubFee.value,
-        mainViewModel.accountDataStore.procAccInfo.value
-    ) {
-        swipeRefreshStateSubjectSchedule.isRefreshing =
-            mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
-        swipeRefreshStateSubjectFee.isRefreshing =
-            mainViewModel.accountDataStore.procAccSubFee.value == ProcessState.Running
-        swipeRefreshStateAccInfo.isRefreshing =
-            mainViewModel.accountDataStore.procAccInfo.value == ProcessState.Running
-    }
 
     LaunchedEffect(mainViewModel.accountDataStore.loginState.value) {
         if (mainViewModel.accountDataStore.isStoreAccount()) {
@@ -70,21 +51,6 @@ fun Account(
             }
             1 -> {
                 barTitle.value = "Dashboard"
-            }
-            2 -> {
-                barTitle.value = "Subject Schedule"
-                if (mainViewModel.accountDataStore.subjectSchedule.size == 0)
-                    mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
-            }
-            3 -> {
-                barTitle.value = "Subject Fee"
-                if (mainViewModel.accountDataStore.subjectFee.size == 0)
-                    mainViewModel.accountDataStore.fetchSubjectFee(mainViewModel.appSettings.value.schoolYear)
-            }
-            4 -> {
-                barTitle.value = "Account Information"
-                if (mainViewModel.accountDataStore.accountInformation.value == null)
-                    mainViewModel.accountDataStore.fetchAccountInformation()
             }
         }
     }

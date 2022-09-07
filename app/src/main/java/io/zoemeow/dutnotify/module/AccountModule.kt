@@ -2,9 +2,9 @@ package io.zoemeow.dutnotify.module
 
 import android.util.Log
 import io.zoemeow.dutapi.Account
-import io.zoemeow.dutapi.objects.AccountInformation
-import io.zoemeow.dutapi.objects.SubjectFeeItem
-import io.zoemeow.dutapi.objects.SubjectScheduleItem
+import io.zoemeow.dutapi.objects.accounts.AccountInformation
+import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
+import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.account.AccountSession
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
 import kotlinx.coroutines.CoroutineScope

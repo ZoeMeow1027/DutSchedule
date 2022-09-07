@@ -104,6 +104,8 @@ class NotificationsUtils {
                 .setSmallIcon(R.mipmap.ic_launcher_round)
                 .setContentTitle(news_title)
                 .setContentText(news_description)
+                .setStyle(NotificationCompat.BigTextStyle()
+                    .bigText(news_description))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
             with(NotificationManagerCompat.from(context)) {

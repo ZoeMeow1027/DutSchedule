@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import io.zoemeow.dutapi.objects.NewsGlobalItem
+import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutnotify.ui.custom.NewsScreenCore
 import io.zoemeow.dutnotify.util.calculateDayAgoFromNews
 import io.zoemeow.dutnotify.util.dateToString

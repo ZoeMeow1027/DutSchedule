@@ -1,7 +1,7 @@
 # DUT Notify - App for Android
 Just a Android app to view news from sv.dut.udn.vn, but optimized for a better experience for users on mobile instead of web.
 
-![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTApp.Android?style=for-the-badge)
+[![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTApp.Android?style=for-the-badge)](https://github.com/ZoeMeow5466/DUTNotify/releases)
 
 # Features & Screenshots?
 - These screenshot will get you to app summary. Just navigate to [screenshot](#screenshot) open images to view details.
@@ -47,4 +47,4 @@ For Powershell: ./gradlew build
 
 # Screenshot
 
-<img src="img/Screenshot_20220904-155315_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155317_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155327_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155331_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155346_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155406_DUT.png" alt="drawing" style="width:300px;"/><img src="img/Screenshot_20220904-155451_DUT.png" alt="drawing" style="width:300px;"/>
+<img src="img/Screenshot_20220904-155315_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155317_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155327_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155331_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155346_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155406_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155451_DUT.png" alt="drawing" style="width:200px;"/>
