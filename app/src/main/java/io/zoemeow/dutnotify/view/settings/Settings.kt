@@ -231,7 +231,7 @@ fun Settings(
                         description = stringResource(id = R.string.settings_changelog_description),
                         clickable = {
                             openLink(
-                                "https://github.com/ZoeMeow5466/DUTNotify",
+                                "https://github.com/ZoeMeow5466/DUTNotify/commits/",
                                 context,
                                 true
                             )
