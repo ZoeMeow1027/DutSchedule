@@ -258,7 +258,7 @@ class NewsRefreshService : Service() {
                 LessonStatus.MakeUp -> {
                     notifyContentList.add("on date: ${dateToString(newsItem.affectedDate, "dd/MM/yyyy")}")
                     notifyContentList.add("\nwith lesson: ${if (newsItem.affectedLesson != null) newsItem.affectedLesson else "(unknown)"}")
-                    notifyContentList.add("\nin room: ${newsItem.affectedLesson}")
+                    notifyContentList.add("\nin room: ${newsItem.affectedRoom}")
                     notifyContent += notifyContentList.joinToString("")
                 }
                 LessonStatus.Leaving -> {
