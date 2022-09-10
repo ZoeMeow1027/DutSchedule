@@ -15,7 +15,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AppTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -41,10 +41,10 @@ fun SettingsAppTheme(
 
     fun commitChanges() {
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            optionToModify = AppSettingsCode.AppTheme,
+            optionToModify = AppSettings.APPEARANCE_APPTHEME,
             value = AppTheme.values()[themeList.indexOf(selectedThemeList.value)]
         ).modify(
-            optionToModify = AppSettingsCode.DynamicColorEnabled,
+            optionToModify = AppSettings.APPEARANCE_DYNAMICCOLOR_ENABLED,
             value = dynamicColorEnabled.value
         )
         mainViewModel.requestSaveChanges()

@@ -29,7 +29,7 @@ class PermissionRequestActivity : ComponentActivity() {
             DefaultActivityTheme {
                 Scaffold(
                     topBar = {
-                        SmallTopAppBar(
+                        TopAppBar(
                             colors = TopAppBarDefaults.smallTopAppBarColors(
                                 containerColor = Color.Transparent
                             ),

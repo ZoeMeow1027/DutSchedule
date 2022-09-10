@@ -20,6 +20,9 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
             "account.subjectfee.reloadrequested"
         const val ACCOUNT_ACCINFORMATION_RELOADREQUESTED =
             "account.accountinformation.reloadrequested"
+
+        const val SETTINGS_RELOADREQUESTED =
+            "settings.reloadrequested"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -46,6 +49,9 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
             ACCOUNT_ACCINFORMATION_RELOADREQUESTED -> {
                 onAccountReloadRequested(ACCOUNT_ACCINFORMATION_RELOADREQUESTED)
             }
+            SETTINGS_RELOADREQUESTED -> {
+                onSettingsReloadRequested()
+            }
         }
     }
 
@@ -58,4 +64,6 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
     )
 
     abstract fun onAccountReloadRequested(newsType: String)
+
+    abstract fun onSettingsReloadRequested()
 }

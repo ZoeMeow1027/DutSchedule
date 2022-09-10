@@ -48,8 +48,8 @@ class SubjectPreview {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Text(item?.name ?: "(null)")
-                            Text("by ${item?.lecturer ?: "(null)"}")
+                            Text(item.name ?: "(null)")
+                            Text("by ${item.lecturer ?: "(null)"}")
                         }
                     },
                     confirmButton = {

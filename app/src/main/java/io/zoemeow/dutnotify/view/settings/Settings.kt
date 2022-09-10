@@ -1,5 +1,6 @@
 package io.zoemeow.dutnotify.view.settings
 
+import android.content.Intent
 import android.os.Build
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -14,9 +15,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import io.zoemeow.dutnotify.BuildConfig
+import io.zoemeow.dutnotify.NewsFilterSettingsActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
-import io.zoemeow.dutnotify.service.NewsRefreshService
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.custom.CustomDivider
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemClickable
@@ -72,7 +74,7 @@ fun Settings(
         containerColor = Color.Transparent,
         contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
@@ -96,15 +98,15 @@ fun Settings(
                             try {
                                 when (value) {
                                     true -> {
-                                        NewsRefreshService.startService(context)
+                                        NewsService.startService(context)
                                     }
                                     false -> {
-                                        NewsRefreshService.cancelSchedule(context)
+                                        NewsService.cancelSchedule(context)
                                     }
                                 }
                                 mainViewModel.appSettings.value =
                                     mainViewModel.appSettings.value.modify(
-                                        optionToModify = AppSettingsCode.RefreshNewsEnabled,
+                                        optionToModify = AppSettings.NEWSINBACKGROUND_ENABLED,
                                         value = value
                                     )
                                 mainViewModel.requestSaveChanges()
@@ -150,6 +152,14 @@ fun Settings(
                             }
                         )
                     }
+                    SettingsOptionItemClickable(
+                        title = "News notification filter",
+                        description = "Use this if you want to receive notification related with your subject news only.",
+                        clickable = {
+                            val intent = Intent(context, NewsFilterSettingsActivity::class.java)
+                            context.startActivity(intent)
+                        }
+                    )
                     CustomDivider()
                     SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
                     SettingsOptionItemClickable(
@@ -192,7 +202,7 @@ fun Settings(
                         onValueChanged = {
                             mainViewModel.appSettings.value =
                                 mainViewModel.appSettings.value.modify(
-                                    optionToModify = AppSettingsCode.BlackThemeEnabled,
+                                    optionToModify = AppSettings.APPEARANCE_BLACKTHEME_ENABLED,
                                     value = !mainViewModel.appSettings.value.blackThemeEnabled
                                 )
                             mainViewModel.requestSaveChanges()
@@ -200,9 +210,12 @@ fun Settings(
                     )
                     SettingsOptionItemClickable(
                         title = stringResource(id = R.string.settings_backgroundimage_name),
-                        description = backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal],
+                        description = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                        backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal]
+                        else "This feature is temporary disabled on Android 13",
                         clickable = {
-                            backgroundImageSettingsEnabled.value = true
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+                                backgroundImageSettingsEnabled.value = true
                         }
                     )
                     CustomDivider()
@@ -214,7 +227,7 @@ fun Settings(
                         onValueChanged = {
                             mainViewModel.appSettings.value =
                                 mainViewModel.appSettings.value.modify(
-                                    optionToModify = AppSettingsCode.OpenLinkInCustomTab,
+                                    optionToModify = AppSettings.MISCELLANEOUS_OPENLINKINCUSTOMTAB,
                                     value = !mainViewModel.appSettings.value.openLinkInCustomTab
                                 )
                             mainViewModel.requestSaveChanges()

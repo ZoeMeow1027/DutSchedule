@@ -39,6 +39,7 @@ val LightColorScheme = lightColorScheme(
     */
 )
 
+@Suppress("DEPRECATION")
 @Composable
 fun MainActivityTheme(
     // App settings handle all settings
@@ -91,6 +92,7 @@ fun MainActivityTheme(
     )
 }
 
+@Suppress("DEPRECATION")
 @Composable
 fun DefaultActivityTheme(
     // Set app mode layout

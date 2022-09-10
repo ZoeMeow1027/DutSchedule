@@ -39,7 +39,7 @@
     <string name="settings_apptheme_followsystem">Follow device theme</string>
     <string name="settings_apptheme_light">Light mode</string>
     <string name="settings_apptheme_name">App theme</string>
-    <string name="settings_apptheme_note">Your OS needs at least:\n- Android 9 to follow device theme,\n- Android 12 to enable dynamic color.</string>
+    <string name="settings_apptheme_note">Your OS needs at least:\n- Android 9 to follow device theme.\n- Android 12 to enable dynamic color.</string>
     <string name="settings_backgroundimage_fromsystem">From device wallpaper</string>
     <string name="settings_backgroundimage_name">App background image</string>
     <string name="settings_backgroundimage_none">None</string>
@@ -59,7 +59,7 @@
     <string name="settings_loadnewsinbackground_enabled_name">Enable this feature</string>
     <string name="settings_loadnewsinbackground_interval_name">Interval</string>
     <string name="settings_loadnewsinbackground_timeactive_name">Time active</string>
-    <string name="settings_loadnewsinbackground_timeactive_value">From %s to %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_value" formatted="false">From %s to %s%s</string>
     <string name="settings_loadnewsinbackground_timeactive_valueextended">the next day</string>
     <string name="settings_openlinkincustomtab_description">This will open link you clicked in application to browser you will choose above.</string>
     <string name="settings_openlinkincustomtab_name">Open link in custom tabs</string>
