@@ -14,8 +14,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
-import io.zoemeow.dutnotify.service.NewsRefreshService
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -33,14 +33,14 @@ fun SettingsRefreshNewsInterval(
 
     fun commitChanges() {
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            AppSettingsCode.RefreshNewsInterval, newValue.value
+            AppSettings.NEWSINBACKGROUND_INTERVAL, newValue.value
         )
         mainViewModel.requestSaveChanges()
         enabled.value = false
         try {
             if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                NewsRefreshService.cancelSchedule(context)
-                NewsRefreshService.startService(context)
+                NewsService.cancelSchedule(context)
+                NewsService.startService(context)
             }
         } catch (ex: Exception) {
             ex.printStackTrace()

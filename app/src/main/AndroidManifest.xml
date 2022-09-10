@@ -3,8 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="io.zoemeow.dutnotify">
 
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- This permission is required for Background Image Android 12 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- This permission is required for Background Image Android 13 -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
@@ -25,7 +29,7 @@
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".service.NewsRefreshService"
+            android:name=".service.NewsService"
             android:enabled="true"
             android:exported="true"
             android:label="Check news in background"
@@ -44,6 +48,12 @@
             android:exported="false"
             android:label="Subject Details"
             android:theme="@style/Theme.DUTAppForAndroid" />
+        <activity
+            android:name=".NewsFilterSettingsActivity"
+            android:exported="false"
+            android:label="News Filter Settings"
+            android:theme="@style/Theme.DUTAppForAndroid"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

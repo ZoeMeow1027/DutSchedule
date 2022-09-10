@@ -187,6 +187,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
             }
+
+            override fun onSettingsReloadRequested() {
+                appSettings.value = file.getAppSettings()
+                accountDataStore.loadSettings(file.getAccountSettings())
+            }
         }.apply {
             return this
         }

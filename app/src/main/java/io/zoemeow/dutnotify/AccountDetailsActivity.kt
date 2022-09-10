@@ -2,6 +2,7 @@ package io.zoemeow.dutnotify
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +13,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,7 +33,7 @@ import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
@@ -59,7 +61,9 @@ class AccountDetailsActivity : ComponentActivity() {
                 if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
                     if (PermissionRequestActivity.checkPermission(
                             this,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
+                            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                                Manifest.permission.READ_MEDIA_IMAGES
+                            else Manifest.permission.READ_EXTERNAL_STORAGE
                         )
                     ) {
                         mainViewModel.reloadAppBackground(
@@ -70,7 +74,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         val intent = Intent(this, PermissionRequestActivity::class.java)
                         intent.putExtra(
                             "permission.requested",
-                            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            arrayOf(
+                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                                    Manifest.permission.READ_MEDIA_IMAGES
+                                else Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
                         )
                         permissionRequestActivityResult.launch(intent)
                     }
@@ -103,7 +111,7 @@ class AccountDetailsActivity : ComponentActivity() {
                 )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettingsCode.BackgroundImage,
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
                     value = BackgroundImage(
                         option = BackgroundImageType.Unset,
                         path = null
@@ -171,7 +179,7 @@ class AccountDetailsActivity : ComponentActivity() {
 
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(
                         containerColor = Color.Transparent
                     ),
@@ -183,6 +191,7 @@ class AccountDetailsActivity : ComponentActivity() {
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
+                                .clip(CircleShape)
                                 .clickable {
                                     setResult(RESULT_OK)
                                     finish()

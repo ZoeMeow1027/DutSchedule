@@ -20,6 +20,7 @@ import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.AccountDetailsActivity
+import io.zoemeow.dutnotify.NewsFilterSettingsActivity
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -124,7 +125,7 @@ fun AccountPageDashboard(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .clip(RoundedCornerShape(10.dp)),
-            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3F),
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.0F),
         ) {
             Column(
                 modifier = Modifier

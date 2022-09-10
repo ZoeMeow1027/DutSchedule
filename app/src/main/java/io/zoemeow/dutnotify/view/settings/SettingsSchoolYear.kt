@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -77,7 +77,7 @@ fun SettingsSchoolYear(
 
     fun commitChanges() {
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            optionToModify = AppSettingsCode.SchoolYear,
+            optionToModify = AppSettings.ACCOUNT_SCHOOLYEAR,
             value = SchoolYearItem(
                 year = schoolYearOptionVal.value,
                 semester = schoolSemesterOptionVal.value,

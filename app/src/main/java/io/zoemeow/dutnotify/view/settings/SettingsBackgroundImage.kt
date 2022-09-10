@@ -2,6 +2,7 @@ package io.zoemeow.dutnotify.view.settings
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -16,12 +17,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -45,7 +48,7 @@ fun SettingsBackgroundImage(
 
     fun commitChanges() {
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            optionToModify = AppSettingsCode.BackgroundImage,
+            optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
             value = BackgroundImage(
                 option = BackgroundImageType.values()[optionList.indexOf(selectedOptionList.value)],
                 path = null
@@ -53,26 +56,28 @@ fun SettingsBackgroundImage(
         )
         mainViewModel.requestSaveChanges()
 
-        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset &&
-            !PermissionRequestActivity.checkPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) {
-            val intent = Intent(
-                context,
-                PermissionRequestActivity::class.java
-            )
-            intent.putExtra(
-                "permission.requested",
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-            )
-            (context as MainActivity).permissionRequestActivityResult.launch(intent)
-        } else {
-            mainViewModel.reloadAppBackground(
-                context = context,
-                type = mainViewModel.appSettings.value.backgroundImage.option
-            )
+        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+            val activity = context as MainActivity
+            val permissionNeeded = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                Manifest.permission.READ_MEDIA_IMAGES
+            else Manifest.permission.READ_EXTERNAL_STORAGE
+
+            if (!activity.checkSinglePermission(permissionNeeded)) {
+                val intent = Intent(
+                    activity,
+                    PermissionRequestActivity::class.java
+                )
+                intent.putExtra(
+                    "permission.requested",
+                    arrayOf(permissionNeeded)
+                )
+                activity.permissionRequestActivityResult.launch(intent)
+            } else {
+                mainViewModel.reloadAppBackground(
+                    context = activity,
+                    type = mainViewModel.appSettings.value.backgroundImage.option
+                )
+            }
         }
 
         enabled.value = false

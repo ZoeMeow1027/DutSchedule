@@ -77,7 +77,7 @@ fun Account(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),

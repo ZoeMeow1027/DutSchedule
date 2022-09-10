@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
-import io.zoemeow.dutnotify.service.NewsRefreshService
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -86,17 +86,17 @@ fun SettingsRefreshNewsTimeRange(
     fun commitChanges() {
         // TODO: Reload service here!
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            AppSettingsCode.RefreshNewsTimeStart, newTimeStart.value
+            AppSettings.NEWSINBACKGROUND_TIMESTART, newTimeStart.value
         )
         mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-            AppSettingsCode.RefreshNewsTimeEnd, newTimeEnd.value
+            AppSettings.NEWSINBACKGROUND_TIMEEND, newTimeEnd.value
         )
         mainViewModel.requestSaveChanges()
         enabled.value = false
         try {
             if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                NewsRefreshService.cancelSchedule(context)
-                NewsRefreshService.startService(context)
+                NewsService.cancelSchedule(context)
+                NewsService.startService(context)
             }
         } catch (ex: Exception) {
             ex.printStackTrace()

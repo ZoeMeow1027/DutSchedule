@@ -39,7 +39,7 @@
     <string name="settings_apptheme_followsystem">Theo chủ đề hệ thống</string>
     <string name="settings_apptheme_light">Chế độ sáng</string>
     <string name="settings_apptheme_name">Chủ đề ứng dụng</string>
-    <string name="settings_apptheme_note">Hệ điều hành của bạn cần tối thiểu:\n- Android 9 để đặt chủ đề theo hệ thống;\n- Android 12 để bật chế độ màu ứng dụng theo hệ thống.</string>
+    <string name="settings_apptheme_note">Hệ điều hành của bạn cần tối thiểu:\n- Android 9 để đặt chủ đề theo hệ thống.\n- Android 12 để bật chế độ màu ứng dụng theo hệ thống.</string>
     <string name="settings_backgroundimage_fromsystem">Từ hình nền thiết bị</string>
     <string name="settings_backgroundimage_name">Hình nền của ứng dụng</string>
     <string name="settings_backgroundimage_none">Không</string>
@@ -59,7 +59,7 @@
     <string name="settings_loadnewsinbackground_enabled_name">Bật tính năng này</string>
     <string name="settings_loadnewsinbackground_interval_name">Khoảng thời gian nghỉ</string>
     <string name="settings_loadnewsinbackground_timeactive_name">Khoảng thời gian hoạt động</string>
-    <string name="settings_loadnewsinbackground_timeactive_value">Từ %s đến %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_value" formatted="false">Từ %s đến %s%s</string>
     <string name="settings_loadnewsinbackground_timeactive_valueextended">hôm sau</string>
     <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định.</string>
     <string name="settings_openlinkincustomtab_name">Mở liên kết trong ứng dụng</string>

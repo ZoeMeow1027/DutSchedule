@@ -3,13 +3,16 @@ package io.zoemeow.dutnotify
 import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
@@ -27,12 +30,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.service.NewsRefreshService
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.util.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
@@ -43,7 +46,6 @@ import io.zoemeow.dutnotify.view.settings.Settings
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.*
 
 class MainActivity : ComponentActivity() {
     private lateinit var mainViewModel: MainViewModel
@@ -87,10 +89,13 @@ class MainActivity : ComponentActivity() {
 
                 // Check permission with background image option
                 // Only one request when user start app.
+                val permissionNeeded = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                    Manifest.permission.READ_MEDIA_IMAGES
+                else Manifest.permission.READ_EXTERNAL_STORAGE
                 if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
                     if (PermissionRequestActivity.checkPermission(
                             applicationContext,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
+                            permissionNeeded
                         )
                     ) {
                         mainViewModel.reloadAppBackground(
@@ -102,7 +107,7 @@ class MainActivity : ComponentActivity() {
                             Intent(applicationContext, PermissionRequestActivity::class.java)
                         intent.putExtra(
                             "permission.requested",
-                            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            arrayOf(permissionNeeded)
                         )
                         permissionRequestActivityResult.launch(intent)
                     }
@@ -111,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 // Initialize refresh news services
                 // Just to reload news. If schedule has been enabled,
                 // this will be scheduled to new UnixTimestamp.
-                NewsRefreshService.startService(context = applicationContext)
+                NewsService.startService(context = applicationContext)
 
                 mainViewModel.accountDataStore.reLogin(
                     silent = false,
@@ -221,6 +226,7 @@ class MainActivity : ComponentActivity() {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
+            override fun onSettingsReloadRequested() { }
 
             override fun onNewsScrollToTopRequested() {
                 if (!lazyListStateGlobal.isScrollInProgress)
@@ -244,6 +250,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+
     val permissionRequestActivityResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
@@ -253,7 +260,7 @@ class MainActivity : ComponentActivity() {
                 )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettingsCode.BackgroundImage,
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
                     value = BackgroundImage(
                         option = BackgroundImageType.Unset,
                         path = null
@@ -261,11 +268,19 @@ class MainActivity : ComponentActivity() {
                 )
                 mainViewModel.requestSaveChanges()
                 mainViewModel.showSnackBarMessage(
-                    "Missing permission: READ_EXTERNAL_STORAGE." +
+                    "Missing permission: READ_EXTERNAL_STORAGE or READ_MEDIA_IMAGES.\n" +
                             "Background image option will reset to default."
                 )
             }
         }
+
+    fun checkSinglePermission(
+        permission: String,
+    ): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED)
+        } else true
+    }
 
     /**
      * This will bypass network on main thread exception.
@@ -277,23 +292,6 @@ class MainActivity : ComponentActivity() {
     private fun permitAllPolicy() {
         val policy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
-    }
-
-    @Suppress("DEPRECATION", "unused")
-    private fun setLocale(value: String = "en") {
-        // TODO: Delete this function if not needed.
-        val locale = Locale(value)
-        Locale.setDefault(locale)
-        val config = resources.configuration.apply {
-            setLocale(locale)
-        }
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
-            applicationContext.createConfigurationContext(config)
-        } else {
-            resources.updateConfiguration(config, resources.displayMetrics)
-        }
-        resources.updateConfiguration(config, resources.displayMetrics)
     }
 }
 

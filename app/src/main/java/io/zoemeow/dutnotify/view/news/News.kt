@@ -42,10 +42,11 @@ fun News(
         containerColor = Color.Transparent,
         contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
+
                 title = { Text(stringResource(id = R.string.navbar_news)) },
                 actions = {
                     var count = 0

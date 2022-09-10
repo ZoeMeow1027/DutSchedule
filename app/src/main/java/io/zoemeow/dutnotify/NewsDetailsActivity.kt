@@ -10,12 +10,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -24,7 +26,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.appsettings.AppSettingsCode
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.util.openLink
@@ -52,7 +54,9 @@ class NewsDetailsActivity : ComponentActivity() {
                 if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
                     if (PermissionRequestActivity.checkPermission(
                             this,
-                            Manifest.permission.READ_EXTERNAL_STORAGE
+                            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                                Manifest.permission.READ_MEDIA_IMAGES
+                            else Manifest.permission.READ_EXTERNAL_STORAGE
                         )
                     ) {
                         mainViewModel.reloadAppBackground(
@@ -63,7 +67,11 @@ class NewsDetailsActivity : ComponentActivity() {
                         val intent = Intent(this, PermissionRequestActivity::class.java)
                         intent.putExtra(
                             "permission.requested",
-                            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+                            arrayOf(
+                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
+                                    Manifest.permission.READ_MEDIA_IMAGES
+                                else Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
                         )
                         permissionRequestActivityResult.launch(intent)
                     }
@@ -96,7 +104,7 @@ class NewsDetailsActivity : ComponentActivity() {
                 )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettingsCode.BackgroundImage,
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
                     value = BackgroundImage(
                         option = BackgroundImageType.Unset,
                         path = null
@@ -113,6 +121,7 @@ class NewsDetailsActivity : ComponentActivity() {
             }
         }
 
+    @Suppress("DEPRECATION")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MainScreen(
@@ -143,7 +152,7 @@ class NewsDetailsActivity : ComponentActivity() {
 
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(
                         containerColor = Color.Transparent
                     ),
@@ -155,6 +164,7 @@ class NewsDetailsActivity : ComponentActivity() {
                             modifier = Modifier
                                 .width(48.dp)
                                 .height(48.dp)
+                                .clip(CircleShape)
                                 .clickable {
                                     setResult(RESULT_OK)
                                     finish()

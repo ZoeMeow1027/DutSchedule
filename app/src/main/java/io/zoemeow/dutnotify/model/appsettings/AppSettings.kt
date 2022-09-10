@@ -7,30 +7,50 @@ import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import java.io.Serializable
 
 data class AppSettings(
-    @SerializedName(AppSettingsCode.AppTheme)
+    @SerializedName(APPEARANCE_APPTHEME)
     var appTheme: AppTheme = AppTheme.FollowSystem,
-    @SerializedName(AppSettingsCode.BackgroundImage)
+    @SerializedName(APPEARANCE_BACKGROUNDIMAGE)
     var backgroundImage: BackgroundImage = BackgroundImage(
         option = BackgroundImageType.Unset,
         path = null
     ),
-    @SerializedName(AppSettingsCode.BlackThemeEnabled)
+    @SerializedName(APPEARANCE_BLACKTHEME_ENABLED)
     var blackThemeEnabled: Boolean = false,
-    @SerializedName(AppSettingsCode.DynamicColorEnabled)
+    @SerializedName(APPEARANCE_DYNAMICCOLOR_ENABLED)
     var dynamicColorEnabled: Boolean = true,
-    @SerializedName(AppSettingsCode.SchoolYear)
+    @SerializedName(ACCOUNT_SCHOOLYEAR)
     var schoolYear: SchoolYearItem = SchoolYearItem(22, 1),
-    @SerializedName(AppSettingsCode.OpenLinkInCustomTab)
+    @SerializedName(MISCELLANEOUS_OPENLINKINCUSTOMTAB)
     var openLinkInCustomTab: Boolean = true,
-    @SerializedName(AppSettingsCode.RefreshNewsTimeStart)
+    @SerializedName(NEWSINBACKGROUND_TIMESTART)
     var refreshNewsTimeStart: CustomClock = CustomClock(6, 0),
-    @SerializedName(AppSettingsCode.RefreshNewsTimeEnd)
+    @SerializedName(NEWSINBACKGROUND_TIMEEND)
     var refreshNewsTimeEnd: CustomClock = CustomClock(23, 0),
-    @SerializedName(AppSettingsCode.RefreshNewsInterval)
+    @SerializedName(NEWSINBACKGROUND_INTERVAL)
     var refreshNewsIntervalInMinute: Int = 3,
-    @SerializedName(AppSettingsCode.RefreshNewsEnabled)
+    @SerializedName(NEWSINBACKGROUND_ENABLED)
     var refreshNewsEnabled: Boolean = false,
+    @SerializedName(NEWSFILTER_FILTERLIST)
+    var newsFilterList: ArrayList<SubjectCode> = arrayListOf(),
+    @SerializedName(SCREEN_WELCOME_VIEWED)
+    var welcomeScreenViewed: ArrayList<Int> = arrayListOf(),
 ) : Serializable {
+    @Suppress("SpellCheckingInspection")
+    companion object {
+        const val APPEARANCE_APPTHEME = "appearance.apptheme"
+        const val APPEARANCE_BACKGROUNDIMAGE = "appearance.backgroundimage"
+        const val APPEARANCE_BLACKTHEME_ENABLED = "appearance.blackthemeenabled"
+        const val APPEARANCE_DYNAMICCOLOR_ENABLED = "appearance.dynamiccolorenabled"
+        const val ACCOUNT_SCHOOLYEAR = "account.schoolyear"
+        const val MISCELLANEOUS_OPENLINKINCUSTOMTAB = "browser.openlinkincustomtab"
+        const val NEWSINBACKGROUND_ENABLED = "news.refreshinbackground.enabled"
+        const val NEWSINBACKGROUND_INTERVAL = "news.refreshinbackground.interval"
+        const val NEWSINBACKGROUND_TIMESTART = "news.refreshinbackground.timestart"
+        const val NEWSINBACKGROUND_TIMEEND = "news.refreshinbackground.timeend"
+        const val NEWSFILTER_FILTERLIST = "newsfilter.filterlist"
+        const val SCREEN_WELCOME_VIEWED = "screen.welcome.viewed"
+    }
+
     private fun clone(): AppSettings {
         return AppSettings(
             appTheme,
@@ -43,6 +63,12 @@ data class AppSettings(
             refreshNewsTimeEnd,
             refreshNewsIntervalInMinute,
             refreshNewsEnabled,
+            arrayListOf<SubjectCode>().apply {
+                addAll(newsFilterList)
+            },
+            arrayListOf<Int>().apply {
+                addAll(welcomeScreenViewed)
+            }
         )
     }
 
@@ -53,35 +79,43 @@ data class AppSettings(
         val appSettings = clone()
 
         when (optionToModify) {
-            AppSettingsCode.AppTheme -> {
+            APPEARANCE_APPTHEME -> {
                 appSettings.appTheme = value as AppTheme
             }
-            AppSettingsCode.BackgroundImage -> {
+            APPEARANCE_BACKGROUNDIMAGE -> {
                 appSettings.backgroundImage = value as BackgroundImage
             }
-            AppSettingsCode.BlackThemeEnabled -> {
+            APPEARANCE_BLACKTHEME_ENABLED -> {
                 appSettings.blackThemeEnabled = value as Boolean
             }
-            AppSettingsCode.DynamicColorEnabled -> {
+            APPEARANCE_DYNAMICCOLOR_ENABLED -> {
                 appSettings.dynamicColorEnabled = value as Boolean
             }
-            AppSettingsCode.SchoolYear -> {
+            ACCOUNT_SCHOOLYEAR -> {
                 appSettings.schoolYear = value as SchoolYearItem
             }
-            AppSettingsCode.OpenLinkInCustomTab -> {
+            MISCELLANEOUS_OPENLINKINCUSTOMTAB -> {
                 appSettings.openLinkInCustomTab = value as Boolean
             }
-            AppSettingsCode.RefreshNewsTimeStart -> {
+            NEWSINBACKGROUND_TIMESTART -> {
                 appSettings.refreshNewsTimeStart = value as CustomClock
             }
-            AppSettingsCode.RefreshNewsTimeEnd -> {
+            NEWSINBACKGROUND_TIMEEND -> {
                 appSettings.refreshNewsTimeEnd = value as CustomClock
             }
-            AppSettingsCode.RefreshNewsInterval -> {
+            NEWSINBACKGROUND_INTERVAL -> {
                 appSettings.refreshNewsIntervalInMinute = value as Int
             }
-            AppSettingsCode.RefreshNewsEnabled -> {
+            NEWSINBACKGROUND_ENABLED -> {
                 appSettings.refreshNewsEnabled = value as Boolean
+            }
+            NEWSFILTER_FILTERLIST -> {
+                @Suppress("UNCHECKED_CAST")
+                appSettings.newsFilterList = value as ArrayList<SubjectCode>
+            }
+            SCREEN_WELCOME_VIEWED -> {
+                @Suppress("UNCHECKED_CAST")
+                appSettings.welcomeScreenViewed = value as ArrayList<Int>
             }
             else -> {
 
