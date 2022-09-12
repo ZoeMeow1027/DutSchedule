@@ -18,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.objects.enums.LessonStatus
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.ui.custom.NewsScreenCore
-import io.zoemeow.dutnotify.util.calculateDayAgoFromNews
-import io.zoemeow.dutnotify.util.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.unixToDuration
 
 @Composable
 fun NewsDetailsSubject(
@@ -28,6 +28,16 @@ fun NewsDetailsSubject(
     news: NewsSubjectItem,
     linkClicked: (String) -> Unit
 ) {
+    @Composable
+    fun CustomDivider() {
+        Spacer(modifier = Modifier.size(10.dp))
+        Divider(
+            color = Color.Gray,
+            thickness = 1.dp
+        )
+        Spacer(modifier = Modifier.size(10.dp))
+    }
+
     NewsScreenCore {
         val optionsScrollState = rememberScrollState()
         Box(
@@ -42,7 +52,7 @@ fun NewsDetailsSubject(
                 modifier = Modifier.padding(10.dp)
             ) {
                 Text(
-                    text = news.title,
+                    text = "Subject news about lecturer ${news.lecturerName}",
                     style = MaterialTheme.typography.headlineMedium,
                 )
                 Spacer(modifier = Modifier.size(10.dp))
@@ -53,29 +63,51 @@ fun NewsDetailsSubject(
                             "dd/MM/yyyy",
                             "UTC"
                         )
-                    } (${calculateDayAgoFromNews(news.date)})",
+                    } (${unixToDuration(news.date)})",
                     style = MaterialTheme.typography.titleLarge,
                 )
-                // 1
+                // Affecting classrooms.
+                Spacer(modifier = Modifier.size(10.dp))
+                var affectedClassrooms = ""
+                news.affectedClass.forEach { className ->
+                    if (affectedClassrooms.isEmpty()) {
+                        affectedClassrooms = "\n- ${className.subjectName}"
+                    }
+                    else {
+                        affectedClassrooms += "\n- ${className.subjectName}"
+                    }
+                    var first = true
+                    for (item in className.codeList) {
+                        if (first) {
+                            affectedClassrooms += " ["
+                            first = false
+                        }
+                        else {
+                            affectedClassrooms += ", "
+                        }
+                        affectedClassrooms += "${item.studentYearId.lowercase()}.${item.classId.uppercase()}"
+                    }
+                    affectedClassrooms += "]"
+                }
+                Text(
+                    text = "Classroom affected: $affectedClassrooms",
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                CustomDivider()
+                // Affecting lessons, hour, room.
                 if (arrayListOf(LessonStatus.Leaving, LessonStatus.MakeUp).contains(news.lessonStatus)) {
-                    Spacer(modifier = Modifier.size(10.dp))
-                    Divider(
-                        color = Color.Gray,
-                        thickness = 1.dp
-                    )
-                    Spacer(modifier = Modifier.size(10.dp))
                     Text(
                         text = "Status: ${news.lessonStatus}",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = "Affected lessons: ${news.affectedLesson}",
+                        text = "Lessons: ${news.affectedLesson}",
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = "Affected date: ${
+                        text = "Date: ${
                             dateToString(
                                 news.affectedDate,
                                 "dd/MM/yyyy",
@@ -87,74 +119,69 @@ fun NewsDetailsSubject(
                     if (news.lessonStatus == LessonStatus.MakeUp) {
                         Spacer(modifier = Modifier.size(5.dp))
                         Text(
-                            text = "Affected Room: ${news.affectedRoom}",
+                            text = "Room Name: ${news.affectedRoom}",
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }
-                }
-                Spacer(modifier = Modifier.size(10.dp))
-                Divider(
-                    color = Color.Gray,
-                    thickness = 1.dp
-                )
-                Spacer(modifier = Modifier.size(10.dp))
-                val annotatedString = buildAnnotatedString {
-                    if (news.contentString != null) {
-                        // Parse all string to annotated string.
-                        append(news.contentString)
-                        // Adjust color for annotated string to follow system mode.
-                        addStyle(
-                            style = SpanStyle(color = if (isDarkMode) Color.White else Color.Black),
-                            start = 0,
-                            end = news.contentString.length
-                        )
-                        // Adjust for detected link.
-                        news.links?.forEach {
-                            addStringAnnotation(
-                                tag = it.position!!.toString(),
-                                annotation = it.url!!,
-                                start = it.position,
-                                end = it.position + it.text!!.length
-                            )
+                } else {
+                    val annotatedString = buildAnnotatedString {
+                        if (news.contentString != null) {
+                            // Parse all string to annotated string.
+                            append(news.contentString)
+                            // Adjust color for annotated string to follow system mode.
                             addStyle(
-                                style = SpanStyle(color = Color(0xff64B5F6)),
-                                start = it.position,
-                                end = it.position + it.text.length
+                                style = SpanStyle(color = if (isDarkMode) Color.White else Color.Black),
+                                start = 0,
+                                end = news.contentString.length
                             )
-                        }
-                    }
-                }
-                SelectionContainer {
-                    ClickableText(
-                        text = annotatedString,
-                        style = MaterialTheme.typography.bodyMedium,
-                        onClick = {
-                            try {
-                                news.links?.forEach { item ->
-                                    annotatedString
-                                        .getStringAnnotations(item.position!!.toString(), it, it)
-                                        .firstOrNull()
-                                        ?.let { url ->
-                                            var urlTemp = url.toString()
-                                            urlTemp =
-                                                urlTemp.replace(
-                                                    "http://",
-                                                    "http://",
-                                                    ignoreCase = true
-                                                )
-                                            urlTemp = urlTemp.replace(
-                                                "https://",
-                                                "https://",
-                                                ignoreCase = true
-                                            )
-                                            linkClicked(urlTemp)
-                                        }
-                                }
-                            } catch (_: Exception) {
-                                // TODO: Exception for can't open link here!
+                            // Adjust for detected link.
+                            news.links?.forEach {
+                                addStringAnnotation(
+                                    tag = it.position!!.toString(),
+                                    annotation = it.url!!,
+                                    start = it.position,
+                                    end = it.position + it.text!!.length
+                                )
+                                addStyle(
+                                    style = SpanStyle(color = Color(0xff64B5F6)),
+                                    start = it.position,
+                                    end = it.position + it.text.length
+                                )
                             }
                         }
-                    )
+                    }
+                    SelectionContainer {
+                        ClickableText(
+                            text = annotatedString,
+                            style = MaterialTheme.typography.bodyLarge,
+                            onClick = {
+                                try {
+                                    news.links?.forEach { item ->
+                                        annotatedString
+                                            .getStringAnnotations(item.position!!.toString(), it, it)
+                                            .firstOrNull()
+                                            ?.let { url ->
+                                                var urlTemp = url.toString()
+                                                urlTemp =
+                                                    urlTemp.replace(
+                                                        "http://",
+                                                        "http://",
+                                                        ignoreCase = true
+                                                    )
+                                                urlTemp = urlTemp.replace(
+                                                    "https://",
+                                                    "https://",
+                                                    ignoreCase = true
+                                                )
+                                                linkClicked(urlTemp)
+                                            }
+                                    }
+                                } catch (_: Exception) {
+                                    // TODO: Exception for can't open link here!
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }

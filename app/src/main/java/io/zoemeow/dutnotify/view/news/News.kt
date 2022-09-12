@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import io.zoemeow.dutnotify.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.NewsPageType
-import io.zoemeow.dutnotify.NewsDetailsActivity
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -42,11 +42,10 @@ fun News(
         containerColor = Color.Transparent,
         contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
-            TopAppBar(
+            SmallTopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
-
                 title = { Text(stringResource(id = R.string.navbar_news)) },
                 actions = {
                     var count = 0
@@ -72,6 +71,7 @@ fun News(
                         count += 1
                     }
                 },
+
             )
         },
         floatingActionButton = {

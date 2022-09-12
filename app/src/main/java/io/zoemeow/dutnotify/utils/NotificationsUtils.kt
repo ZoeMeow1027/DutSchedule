@@ -1,4 +1,4 @@
-package io.zoemeow.dutnotify.util
+package io.zoemeow.dutnotify.utils
 
 import android.app.*
 import android.content.Context
@@ -7,42 +7,12 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.NewsDetailsActivity
+import io.zoemeow.dutnotify.R
 import java.io.Serializable
-
 
 class NotificationsUtils {
     companion object {
-        /**
-         * Create notification channel for easier manage which notifications will be received.
-         *
-         * Required for Android 8 and later.
-         */
-        @RequiresApi(Build.VERSION_CODES.O)
-        fun initializeNotificationChannel(
-            activity: Activity
-        ) {
-            createNotificationChannelWithDefaultSettings(
-                activity = activity,
-                id = "dut_news_global",
-                name = "News Global",
-                description = "This will receive new messages in \"Thông báo chung\" on sv.dut.udn.vn"
-            )
-            createNotificationChannelWithDefaultSettings(
-                activity = activity,
-                id = "dut_news_subject",
-                name = "News Subject",
-                description = "This will receive new messages in \"Thông báo lớp học phần\" on sv.dut.udn.vn"
-            )
-            createNotificationChannelWithSilentSettings(
-                activity = activity,
-                id = "dut_service",
-                name = "Service",
-                description = "This will ensure this service will able to run in background. You can turn off this notification."
-            )
-        }
-
         @RequiresApi(Build.VERSION_CODES.O)
         private fun createNotificationChannelWithDefaultSettings(
             activity: Activity,
@@ -75,6 +45,35 @@ class NotificationsUtils {
             service.createNotificationChannel(channel)
         }
 
+        /**
+         * Create notification channel for easier manage which notifications will be received.
+         *
+         * Required by Android 8 and later.
+         */
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun initializeNotificationChannel(
+            activity: Activity
+        ) {
+            createNotificationChannelWithDefaultSettings(
+                activity = activity,
+                id = "dut_news_global",
+                name = "News Global",
+                description = "This will receive new messages in \"Thông báo chung\" on sv.dut.udn.vn"
+            )
+            createNotificationChannelWithDefaultSettings(
+                activity = activity,
+                id = "dut_news_subject",
+                name = "News Subject",
+                description = "This will receive new messages in \"Thông báo lớp học phần\" on sv.dut.udn.vn"
+            )
+            createNotificationChannelWithSilentSettings(
+                activity = activity,
+                id = "dut_service",
+                name = "Service",
+                description = "This will ensure this service will able to run in background. You can turn off this notification."
+            )
+        }
+
         fun showNewsNotification(
             context: Context,
             channel_id: String,
@@ -101,7 +100,7 @@ class NotificationsUtils {
             val builder = NotificationCompat.Builder(context, channel_id)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(news_title)
                 .setContentText(news_description)
                 .setStyle(NotificationCompat.BigTextStyle()

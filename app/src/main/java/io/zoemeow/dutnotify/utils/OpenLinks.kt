@@ -1,4 +1,4 @@
-package io.zoemeow.dutnotify.util
+package io.zoemeow.dutnotify.utils
 
 import android.content.Context
 import android.content.Intent

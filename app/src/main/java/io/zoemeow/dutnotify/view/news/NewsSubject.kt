@@ -22,8 +22,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
-import io.zoemeow.dutnotify.util.LazyList_EndOfListHandler
-import io.zoemeow.dutnotify.util.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.LazyList_EndOfListHandler
 
 @Composable
 fun NewsSubject(

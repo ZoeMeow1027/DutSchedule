@@ -10,19 +10,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutapi.Utils
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.AccountDetailsActivity
-import io.zoemeow.dutnotify.NewsFilterSettingsActivity
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getCurrentDayOfWeek
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getDUTWeek
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getDateListFromWeek
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
+import kotlinx.datetime.LocalDate
 
 @Composable
 fun AccountPageDashboard(
@@ -97,6 +104,11 @@ fun AccountPageDashboard(
         )
     }
 
+    val dayOfWeek = remember { mutableStateOf(getCurrentDayOfWeek() - 1) }
+    val week = remember { mutableStateOf(getDUTWeek()) }
+    val weekList = remember { mutableStateListOf<LocalDate>().apply {
+        addAll(getDateListFromWeek(week = week.value))
+    } }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -109,15 +121,35 @@ fun AccountPageDashboard(
         AccountSubWeekList(
             mainViewModel = mainViewModel,
             isGettingData = (mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running),
-            onDayAndWeekChanged = { _, dayOfWeekChanged ->
-                mainViewModel.accountCurrentDayOfWeek.value =
-                    if (dayOfWeekChanged < 7) dayOfWeekChanged else 0
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(mainViewModel.accountCurrentDayOfWeek.value)
+            dayOfWeek = dayOfWeek.value,
+            onDayOfWeekChanged = {
+                dayOfWeek.value = it
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(dayOfWeek.value)
+            },
+            week = week.value,
+            weekList = weekList,
+            onWeekChanged = {
+                week.value = it
+                weekList.apply {
+                    clear()
+                    addAll(getDateListFromWeek(week = week.value))
+                }
+            },
+            year = Utils.getDUTSchoolYear(System.currentTimeMillis()).name,
+            onYearChanged = { },
+            onResetView = {
+                dayOfWeek.value = getCurrentDayOfWeek() - 1
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(dayOfWeek.value)
+                week.value = getDUTWeek()
+                weekList.apply {
+                    clear()
+                    addAll(getDateListFromWeek(week = week.value))
+                }
             },
             onItemClicked = {
                 mainViewModel.subjectScheduleItem.value = it
                 mainViewModel.subjectScheduleEnabled.value = true
-            }
+            },
         )
         Spacer(modifier = Modifier.size(15.dp))
         Surface(
@@ -148,14 +180,6 @@ fun AccountPageDashboard(
                         context.startActivity(intent)
                     }
                 )
-//                CustomButton(
-//                    text = "View Subject Schedule",
-//                    clickable = {
-//                        val intent = Intent(context, AccountDetailsActivity::class.java)
-//                        intent.putExtra("type", "subject_schedule")
-//                        context.startActivity(intent)
-//                    }
-//                )
                 CustomButton(
                     text = stringResource(id = R.string.account_dashboard_viewsubjectschedule),
                     clickable = {

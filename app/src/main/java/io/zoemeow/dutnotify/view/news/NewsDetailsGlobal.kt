@@ -17,8 +17,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutnotify.ui.custom.NewsScreenCore
-import io.zoemeow.dutnotify.util.calculateDayAgoFromNews
-import io.zoemeow.dutnotify.util.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.unixToDuration
 
 @Composable
 fun NewsDetailsGlobal(
@@ -46,13 +46,13 @@ fun NewsDetailsGlobal(
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
-                    text = "Posted on ${
+                    text = "⏱ ${
                         dateToString(
                             news.date,
                             "dd/MM/yyyy",
                             "UTC"
                         )
-                    } (${calculateDayAgoFromNews(news.date)})",
+                    } (${unixToDuration(news.date)})",
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(modifier = Modifier.size(10.dp))
@@ -90,7 +90,7 @@ fun NewsDetailsGlobal(
                 SelectionContainer {
                     ClickableText(
                         text = annotatedString,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
                         onClick = {
                             try {
                                 news.links?.forEach { item ->

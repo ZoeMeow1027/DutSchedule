@@ -26,7 +26,7 @@ import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.util.getCurrentDayOfWeek
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getCurrentDayOfWeek
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,21 +74,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Account: Current page of account nav. route.
      *
-     * 0: Not logged in,
-     * 1: Dashboard,
-     * 2: Subject schedule,
-     * 3: Subject fee
-     * 4: Account Information
+     * 0: Not logged in
+     * 1: Dashboard
      */
     val accountCurrentPage: MutableState<Int> = mutableStateOf(0)
 
-    val accountCurrentDayOfWeek: MutableState<Int> = mutableStateOf(getCurrentDayOfWeek())
 
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
 
     // File Module
-    private var file: FileModule
+    private lateinit var file: FileModule
 
     // News UI area
     val newsDataStore: NewsDataStore = NewsDataStore(this)
@@ -152,6 +148,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         object : AppBroadcastReceiver() {
             override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
             override fun onNewsScrollToTopRequested() { }
+            override fun onPermissionRequested(
+                permission: String?,
+                granted: Boolean,
+                notifyToUser: Boolean
+            ) { }
 
             override fun onNewsReloadRequested() {
                 CoroutineScope(Dispatchers.Main).launch {
@@ -204,21 +205,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         super.onCleared()
     }
 
+    private var initOnce: Boolean = false
     init {
-        file = FileModule(application.applicationContext)
-        appSettings.value = file.getAppSettings()
-        accountDataStore.loadSettings(file.getAccountSettings())
+        run {
+            if (initOnce)
+                return@run
 
-        LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
-            getAppBroadcastReceiver(),
-            IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-        )
+            file = FileModule(application.applicationContext)
+            appSettings.value = file.getAppSettings()
+            accountDataStore.loadSettings(file.getAccountSettings())
 
-        // Reload news from cache
-        val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-        LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+            LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
+                getAppBroadcastReceiver(),
+                IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
+            )
 
-        Log.d("MainViewModel", "Initialized")
+            // Reload news from cache
+            val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
+            LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+
+            Log.d("MainViewModel", "Initialized")
+            initOnce = true
+        }
     }
 }
 

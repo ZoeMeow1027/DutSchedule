@@ -1,13 +1,13 @@
 package io.zoemeow.dutnotify
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
-import android.os.Build
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -27,6 +27,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
@@ -36,6 +37,7 @@ import io.zoemeow.dutnotify.model.appsettings.SubjectCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
+import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
@@ -43,7 +45,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class NewsFilterSettingsActivity: ComponentActivity() {
-    private lateinit var mainViewModel: MainViewModel
+    internal lateinit var mainViewModel: MainViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var scope: CoroutineScope
 
@@ -53,43 +55,17 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         setContent {
             mainViewModel = viewModel()
 
-            val initialized = remember { mutableStateOf(false) }
-            if (!initialized.value) {
-                // Set to false to avoid another run
-                initialized.value = true
+            LaunchedEffect(Unit) {
+                registerBroadcastReceiver(context = applicationContext)
 
+                checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
+
+                // Re-login to receive new data from server.
                 mainViewModel.accountDataStore.reLogin(
                     silent = true,
-                    reloadSubject = true
+                    reloadSubject = true,
+                    schoolYearItem = mainViewModel.appSettings.value.schoolYear,
                 )
-
-                // Check permission with background image option
-                // Only one request when user start app.
-                if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-                    if (PermissionRequestActivity.checkPermission(
-                            this,
-                            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                                Manifest.permission.READ_MEDIA_IMAGES
-                            else Manifest.permission.READ_EXTERNAL_STORAGE
-                        )
-                    ) {
-                        mainViewModel.reloadAppBackground(
-                            context = this,
-                            type = mainViewModel.appSettings.value.backgroundImage.option
-                        )
-                    } else {
-                        val intent = Intent(this, PermissionRequestActivity::class.java)
-                        intent.putExtra(
-                            "permission.requested",
-                            arrayOf(
-                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                                    Manifest.permission.READ_MEDIA_IMAGES
-                                else Manifest.permission.READ_EXTERNAL_STORAGE
-                            )
-                        )
-                        permissionRequestActivityResult.launch(intent)
-                    }
-                }
             }
 
             MainActivityTheme(
@@ -105,32 +81,6 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             )
         }
     }
-
-    private val permissionRequestActivityResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
-                    )
-                )
-                mainViewModel.requestSaveChanges()
-
-
-//            mainViewModel.setPendingNotifications(
-//                "Missing permission: READ_EXTERNAL_STORAGE. " +
-//                        "This will revert background image option is unset.",
-//                true
-//            )
-            }
-        }
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
@@ -205,10 +155,13 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackBarState) },
             topBar = {
-                TopAppBar(
+                SmallTopAppBar(
                     title = {
                         Text("News filter settings")
                     },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = Color.Transparent
+                    ),
                     navigationIcon = {
                         Box(
                             modifier = Modifier
@@ -750,5 +703,94 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         ) {
             content()
         }
+    }
+}
+
+
+fun NewsFilterSettingsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
+    object : AppBroadcastReceiver() {
+        override fun onNewsReloadRequested() {}
+        override fun onAccountReloadRequested(newsType: String) {}
+        override fun onSettingsReloadRequested() { }
+        override fun onNewsScrollToTopRequested() { }
+        override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+
+        override fun onPermissionRequested(
+            permission: String?,
+            granted: Boolean,
+            notifyToUser: Boolean
+        ) {
+            onPermissionResult(permission, granted, notifyToUser)
+        }
+    }.apply {
+        return this
+    }
+}
+
+fun NewsFilterSettingsActivity.onPermissionResult(
+    permission: String?,
+    granted: Boolean,
+    notifyToUser: Boolean = false
+) {
+    when (permission) {
+        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+            if (granted) {
+                mainViewModel.reloadAppBackground(
+                    context = this,
+                    type = mainViewModel.appSettings.value.backgroundImage.option
+                )
+            } else {
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                    value = BackgroundImage(
+                        option = BackgroundImageType.Unset,
+                        path = null
+                    )
+                )
+                mainViewModel.requestSaveChanges()
+                mainViewModel.showSnackBarMessage(
+                    "Missing permission for background image. " +
+                            "This setting will be turned off to avoid another issues."
+                )
+            }
+        }
+        else -> { }
+    }
+}
+
+fun NewsFilterSettingsActivity.registerBroadcastReceiver(context: Context) {
+    LocalBroadcastManager.getInstance(context).registerReceiver(
+        getAppBroadcastReceiver(),
+        IntentFilter().apply {
+            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+        }
+    )
+}
+
+fun NewsFilterSettingsActivity.checkSettingsPermissionOnStartup(
+    mainViewModel: MainViewModel
+) {
+    val permissionList = arrayListOf<String>()
+
+    // Read external storage - Background Image
+    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+        if (!PermissionRequestActivity.checkPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+    }
+
+    if (permissionList.isNotEmpty()) {
+        Intent(this, PermissionRequestActivity::class.java)
+            .apply {
+                putExtra("permissions.list", permissionList.toTypedArray())
+            }
+            .also {
+                this.startActivity(it)
+            }
     }
 }

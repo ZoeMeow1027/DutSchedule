@@ -1,5 +1,6 @@
 package io.zoemeow.dutnotify.service
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.Service
@@ -12,6 +13,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutapi.objects.enums.LessonStatus
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
+import io.zoemeow.dutnotify.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
@@ -19,9 +21,9 @@ import io.zoemeow.dutnotify.model.news.NewsCache
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.module.NewsModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.util.NotificationsUtils
-import io.zoemeow.dutnotify.util.dateToString
-import io.zoemeow.dutnotify.util.getMD5
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.NotificationsUtils
+import io.zoemeow.dutnotify.utils.getMD5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,13 +32,7 @@ import java.util.*
 
 class NewsService : Service() {
     override fun onCreate() {
-        val builder = NotificationCompat.Builder(this, "dut_service")
-            .setSmallIcon(R.mipmap.ic_launcher_round)
-            .setContentTitle("DUT Service is running in background")
-            .setContentText("Getting news from sv.dut.udn.vn...")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        startForeground(1, builder.build())
+        createNotificationForForeground()
         super.onCreate()
     }
 
@@ -95,10 +91,25 @@ class NewsService : Service() {
         // Get file module.
         val file = FileModule(this.applicationContext)
         // Check news global and subject. After that, notify if needed.
+        modifyForegroundNotifications(
+            "Getting news global...",
+            0,
+            3
+        )
         checkNewsGlobal(file = file)
+        modifyForegroundNotifications(
+            "Getting news subject...",
+            1,
+            3
+        )
         checkNewsSubject(file = file)
         // Send reload news requested to activity.
-        sendRequestToActivity()
+        modifyForegroundNotifications(
+            "Processing filter existing news...",
+            2,
+            3
+        )
+        sendBroadcastToActivity()
     }
 
     private fun checkNewsGlobal(
@@ -175,6 +186,9 @@ class NewsService : Service() {
     private fun notifyUsersGlobal(
         list: ArrayList<NewsGlobalItem>,
     ) {
+        if (!PermissionRequestActivity.checkPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS))
+            return
+
         list.forEach { newsItem ->
             NotificationsUtils.showNewsNotification(
                 context = this,
@@ -191,6 +205,9 @@ class NewsService : Service() {
         list: ArrayList<NewsSubjectItem>,
         fileModule: FileModule,
     ) {
+        if (!PermissionRequestActivity.checkPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS))
+            return
+
         val settings = fileModule.getAppSettings()
         list.forEach { newsItem ->
             // Default value is false.
@@ -282,7 +299,38 @@ class NewsService : Service() {
         }
     }
 
-    private fun sendRequestToActivity() {
+    private fun createNotificationForForeground() {
+        val builder = NotificationCompat.Builder(this, "dut_service")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("DUT Service is running in background")
+            .setContentText("Preparing to get latest news...")
+            .setOnlyAlertOnce(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        startForeground(0, builder.build())
+    }
+
+    private fun modifyForegroundNotifications(
+        contentText: String,
+        progress: Int?,
+        progressMax: Int?
+    ) {
+        val builder = NotificationCompat.Builder(this, "dut_service")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("DUT Service is running in background")
+            .setContentText(contentText)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOnlyAlertOnce(true)
+        if (progress != null && progressMax != null)
+            builder.setProgress(progressMax, progress, false)
+
+        // val notificationManager = NotificationManagerCompat.from(this)
+        startForeground(1, builder.build())
+    }
+
+    /**
+     * Send broadcast about request reload news cache to MainActivity.
+     */
+    private fun sendBroadcastToActivity() {
         val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
@@ -352,51 +400,5 @@ class NewsService : Service() {
         }
     }
 
-    companion object {
-        fun getPendingIntent(context: Context): PendingIntent {
-            val intent = Intent(context, NewsService::class.java)
-            val pendingIntent: PendingIntent
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                pendingIntent = PendingIntent.getForegroundService(
-                    context,
-                    1,
-                    intent,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                        PendingIntent.FLAG_IMMUTABLE
-                    else PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            } else {
-                pendingIntent = PendingIntent.getService(
-                    context,
-                    1,
-                    intent,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-                        PendingIntent.FLAG_IMMUTABLE
-                    else PendingIntent.FLAG_UPDATE_CURRENT
-                )
-            }
-
-            return pendingIntent
-        }
-
-        fun startService(context: Context) {
-            val intentService = Intent(context, NewsService::class.java)
-            // https://stackoverflow.com/a/47654126
-
-            try {
-                context.stopService(intentService)
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                context.startForegroundService(intentService)
-            else context.startService(intentService)
-        }
-
-        fun cancelSchedule(context: Context) {
-            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.cancel(getPendingIntent(context))
-        }
-    }
+    companion object { }
 }

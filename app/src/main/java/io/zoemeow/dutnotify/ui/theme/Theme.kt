@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AppTheme
-import io.zoemeow.dutnotify.ui.custom.BackgroundImage
+import io.zoemeow.dutnotify.ui.custom.BackgroundDrawableImage
 
 val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -80,7 +80,7 @@ fun MainActivityTheme(
         appModeChanged(darkTheme)
 
     // Load background image if needed
-    BackgroundImage(
+    BackgroundDrawableImage(
         drawable = backgroundDrawable ?: ColorDrawable(colorScheme.background.hashCode())
     )
 

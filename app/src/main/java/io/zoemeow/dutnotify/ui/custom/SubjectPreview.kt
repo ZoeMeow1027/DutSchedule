@@ -15,8 +15,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
-import io.zoemeow.dutnotify.util.dateToString
-import io.zoemeow.dutnotify.util.getDayOfWeekToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dayOfWeekToString
 
 class SubjectPreview {
     companion object {
@@ -78,7 +78,7 @@ class SubjectPreview {
                                     var schList = ""
                                     for (schStudyItem in item.subjectStudy.scheduleList) {
                                         schList += (if (schList.isNotEmpty()) "; " else "") +
-                                                "${getDayOfWeekToString(schStudyItem.dayOfWeek)}," +
+                                                "${dayOfWeekToString(schStudyItem.dayOfWeek, true)}," +
                                                 "${schStudyItem.lesson.start}-${schStudyItem.lesson.end}," +
                                                 schStudyItem.room
                                     }

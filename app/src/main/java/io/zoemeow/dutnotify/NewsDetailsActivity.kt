@@ -1,20 +1,21 @@
 package io.zoemeow.dutnotify
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,20 +24,22 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
-import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.util.openLink
+import io.zoemeow.dutnotify.utils.openLink
 import io.zoemeow.dutnotify.view.news.NewsDetailsGlobal
 import io.zoemeow.dutnotify.view.news.NewsDetailsSubject
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 class NewsDetailsActivity : ComponentActivity() {
     private val newsTitle = mutableStateOf("")
-    private lateinit var mainViewModel: MainViewModel
+    internal lateinit var mainViewModel: MainViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,38 +47,10 @@ class NewsDetailsActivity : ComponentActivity() {
         setContent {
             mainViewModel = viewModel()
 
-            val initialized = remember { mutableStateOf(false) }
-            if (!initialized.value) {
-                // Set to false to avoid another run
-                initialized.value = true
+            LaunchedEffect(Unit) {
+                registerBroadcastReceiver(context = applicationContext)
 
-                // Check permission with background image option
-                // Only one request when user start app.
-                if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-                    if (PermissionRequestActivity.checkPermission(
-                            this,
-                            if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                                Manifest.permission.READ_MEDIA_IMAGES
-                            else Manifest.permission.READ_EXTERNAL_STORAGE
-                        )
-                    ) {
-                        mainViewModel.reloadAppBackground(
-                            context = this,
-                            type = mainViewModel.appSettings.value.backgroundImage.option
-                        )
-                    } else {
-                        val intent = Intent(this, PermissionRequestActivity::class.java)
-                        intent.putExtra(
-                            "permission.requested",
-                            arrayOf(
-                                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                                    Manifest.permission.READ_MEDIA_IMAGES
-                                else Manifest.permission.READ_EXTERNAL_STORAGE
-                            )
-                        )
-                        permissionRequestActivityResult.launch(intent)
-                    }
-                }
+                checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
             }
 
             MainActivityTheme(
@@ -94,32 +69,6 @@ class NewsDetailsActivity : ComponentActivity() {
             )
         }
     }
-
-    private val permissionRequestActivityResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
-                    )
-                )
-                mainViewModel.requestSaveChanges()
-
-
-//            mainViewModel.setPendingNotifications(
-//                "Missing permission: READ_EXTERNAL_STORAGE. " +
-//                        "This will revert background image option is unset.",
-//                true
-//            )
-            }
-        }
 
     @Suppress("DEPRECATION")
     @OptIn(ExperimentalMaterial3Api::class)
@@ -152,9 +101,9 @@ class NewsDetailsActivity : ComponentActivity() {
 
         Scaffold(
             topBar = {
-                TopAppBar(
+                SmallTopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = Color.Transparent
+                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0f)
                     ),
                     title = {
                         Text(newsTitle.value)
@@ -229,5 +178,93 @@ class NewsDetailsActivity : ComponentActivity() {
 
             }
         }
+    }
+}
+
+fun NewsDetailsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
+    object : AppBroadcastReceiver() {
+        override fun onNewsReloadRequested() {}
+        override fun onAccountReloadRequested(newsType: String) {}
+        override fun onSettingsReloadRequested() { }
+        override fun onNewsScrollToTopRequested() { }
+        override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+
+        override fun onPermissionRequested(
+            permission: String?,
+            granted: Boolean,
+            notifyToUser: Boolean
+        ) {
+            onPermissionResult(permission, granted, notifyToUser)
+        }
+    }.apply {
+        return this
+    }
+}
+
+fun NewsDetailsActivity.onPermissionResult(
+    permission: String?,
+    granted: Boolean,
+    notifyToUser: Boolean = false
+) {
+    when (permission) {
+        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+            if (granted) {
+                mainViewModel.reloadAppBackground(
+                    context = this,
+                    type = mainViewModel.appSettings.value.backgroundImage.option
+                )
+            } else {
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                    value = BackgroundImage(
+                        option = BackgroundImageType.Unset,
+                        path = null
+                    )
+                )
+                mainViewModel.requestSaveChanges()
+                mainViewModel.showSnackBarMessage(
+                    "Missing permission for background image. " +
+                            "This setting will be turned off to avoid another issues."
+                )
+            }
+        }
+        else -> { }
+    }
+}
+
+fun NewsDetailsActivity.registerBroadcastReceiver(context: Context) {
+    LocalBroadcastManager.getInstance(context).registerReceiver(
+        getAppBroadcastReceiver(),
+        IntentFilter().apply {
+            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+        }
+    )
+}
+
+fun NewsDetailsActivity.checkSettingsPermissionOnStartup(
+    mainViewModel: MainViewModel
+) {
+    val permissionList = arrayListOf<String>()
+
+    // Read external storage - Background Image
+    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+        if (!PermissionRequestActivity.checkPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+    }
+
+    if (permissionList.isNotEmpty()) {
+        Intent(this, PermissionRequestActivity::class.java)
+            .apply {
+                putExtra("permissions.list", permissionList.toTypedArray())
+            }
+            .also {
+                this.startActivity(it)
+            }
     }
 }

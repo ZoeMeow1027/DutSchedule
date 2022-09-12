@@ -23,6 +23,11 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
 
         const val SETTINGS_RELOADREQUESTED =
             "settings.reloadrequested"
+
+        const val RUNTIME_PERMISSION_REQUESTED = "runtime.permission.requested"
+        const val RUNTIME_PERMISSION_NAME = "runtime.permission.name"
+        const val RUNTIME_PERMISSION_RESULT = "runtime.permission.result"
+        const val RUNTIME_PERMISSION_NOTIFY_RESULT = "runtime.permission.result.notify"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -37,7 +42,8 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
             SNACKBARMESSAGE -> {
                 onSnackBarMessage(
                     title = intent.getStringExtra(SNACKBARMESSAGE_TEXT),
-                    forceCloseOld = intent.getBooleanExtra(SNACKBARMESSAGE_CLOSEOLDMSG, false)
+                    forceCloseOld = intent.getBooleanExtra(SNACKBARMESSAGE_CLOSEOLDMSG, false),
+
                 )
             }
             ACCOUNT_SUBJECTSCHEDULE_RELOADREQUESTED -> {
@@ -51,6 +57,13 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
             }
             SETTINGS_RELOADREQUESTED -> {
                 onSettingsReloadRequested()
+            }
+            RUNTIME_PERMISSION_REQUESTED -> {
+                onPermissionRequested(
+                    permission = intent.getStringExtra(RUNTIME_PERMISSION_NAME),
+                    granted = intent.getBooleanExtra(RUNTIME_PERMISSION_RESULT, false),
+                    notifyToUser = intent.getBooleanExtra(RUNTIME_PERMISSION_NOTIFY_RESULT, false)
+                )
             }
         }
     }
@@ -66,4 +79,6 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
     abstract fun onAccountReloadRequested(newsType: String)
 
     abstract fun onSettingsReloadRequested()
+
+    abstract fun onPermissionRequested(permission: String?, granted: Boolean, notifyToUser: Boolean = false)
 }

@@ -1,4 +1,4 @@
-package io.zoemeow.dutnotify.util
+package io.zoemeow.dutnotify.utils
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*

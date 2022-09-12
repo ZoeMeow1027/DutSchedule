@@ -1,25 +1,22 @@
 package io.zoemeow.dutnotify
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.ThreadPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -36,8 +33,10 @@ import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.NewsService
+import io.zoemeow.dutnotify.service.cancelSchedule
+import io.zoemeow.dutnotify.service.startService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.util.NotificationsUtils
+import io.zoemeow.dutnotify.utils.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
 import io.zoemeow.dutnotify.view.navbar.MainBottomNavigationBar
 import io.zoemeow.dutnotify.view.navbar.MainNavRoutes
@@ -48,12 +47,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var mainViewModel: MainViewModel
+    internal lateinit var mainViewModel: MainViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var lazyListStateGlobal: LazyListState
     private lateinit var lazyListStateSubject: LazyListState
     private lateinit var scope: CoroutineScope
+    private var isInitialized = false
 
+    @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,11 +62,8 @@ class MainActivity : ComponentActivity() {
         permitAllPolicy()
 
         setContent {
-            // setLocale("vi")
-
             // Initialize Main View Model
             mainViewModel = viewModel()
-
             // Initialize snack bar host state
             snackBarState = SnackbarHostState()
             // Initialize scope
@@ -75,53 +73,29 @@ class MainActivity : ComponentActivity() {
             lazyListStateSubject = rememberLazyListState()
 
             // Register notifications channel for news service
+            // Works well with Android 13 without any issue.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                NotificationsUtils.initializeNotificationChannel(this)
+                NotificationsUtils.initializeNotificationChannel(this@MainActivity)
 
-            LaunchedEffect(Unit) {
-                LocalBroadcastManager.getInstance(applicationContext).registerReceiver(
-                    getAppBroadcastReceiver(),
-                    IntentFilter().apply {
-                        addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
-                        addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
-                    }
-                )
+            isInitialized = savedInstanceState?.getBoolean("initialized", false) ?: false
 
-                // Check permission with background image option
-                // Only one request when user start app.
-                val permissionNeeded = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                    Manifest.permission.READ_MEDIA_IMAGES
-                else Manifest.permission.READ_EXTERNAL_STORAGE
-                if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-                    if (PermissionRequestActivity.checkPermission(
-                            applicationContext,
-                            permissionNeeded
-                        )
-                    ) {
-                        mainViewModel.reloadAppBackground(
-                            context = applicationContext,
-                            type = mainViewModel.appSettings.value.backgroundImage.option
-                        )
-                    } else {
-                        val intent =
-                            Intent(applicationContext, PermissionRequestActivity::class.java)
-                        intent.putExtra(
-                            "permission.requested",
-                            arrayOf(permissionNeeded)
-                        )
-                        permissionRequestActivityResult.launch(intent)
-                    }
-                }
+            if (!isInitialized) {
+                registerBroadcastReceiver(context = applicationContext)
+                checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
 
                 // Initialize refresh news services
                 // Just to reload news. If schedule has been enabled,
                 // this will be scheduled to new UnixTimestamp.
                 NewsService.startService(context = applicationContext)
 
+                // Re-login
                 mainViewModel.accountDataStore.reLogin(
                     silent = false,
-                    reloadSubject = true
+                    reloadSubject = true,
+                    schoolYearItem = mainViewModel.appSettings.value.schoolYear,
                 )
+
+                isInitialized = true
             }
 
             MainActivityTheme(
@@ -215,6 +189,11 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("initialized", isInitialized)
+        super.onSaveInstanceState(outState)
+    }
+
     override fun onDestroy() {
         // Unregister to completely destroyed.
         LocalBroadcastManager.getInstance(this)
@@ -222,7 +201,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
+    internal fun getAppBroadcastReceiver(): AppBroadcastReceiver {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
@@ -245,41 +224,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+
+            override fun onPermissionRequested(
+                permission: String?,
+                granted: Boolean,
+                notifyToUser: Boolean
+            ) {
+                onPermissionResult(permission, granted, notifyToUser)
+            }
         }.apply {
             return this
         }
-    }
-
-
-    val permissionRequestActivityResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
-                    )
-                )
-                mainViewModel.requestSaveChanges()
-                mainViewModel.showSnackBarMessage(
-                    "Missing permission: READ_EXTERNAL_STORAGE or READ_MEDIA_IMAGES.\n" +
-                            "Background image option will reset to default."
-                )
-            }
-        }
-
-    fun checkSinglePermission(
-        permission: String,
-    ): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            (checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED)
-        } else true
     }
 
     /**
@@ -295,3 +250,123 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+fun MainActivity.onPermissionResult(
+    permission: String?,
+    granted: Boolean,
+    notifyToUser: Boolean = false
+) {
+
+    when (permission) {
+        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+            if (granted) {
+                mainViewModel.reloadAppBackground(
+                    context = this,
+                    type = mainViewModel.appSettings.value.backgroundImage.option
+                )
+            } else {
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                    value = BackgroundImage(
+                        option = BackgroundImageType.Unset,
+                        path = null
+                    )
+                )
+                mainViewModel.requestSaveChanges()
+                mainViewModel.showSnackBarMessage(
+                    "Missing permission for background image. " +
+                            "This setting will be turned off to avoid another issues."
+                )
+            }
+        }
+        Manifest.permission.POST_NOTIFICATIONS -> {
+            if (!granted) {
+                mainViewModel.appSettings.value =
+                    mainViewModel.appSettings.value.modify(
+                        optionToModify = AppSettings.NEWSINBACKGROUND_ENABLED,
+                        value = false
+                    )
+                mainViewModel.requestSaveChanges()
+                mainViewModel.showSnackBarMessage(
+                    "Missing permission for news notification in background. " +
+                            "This setting will be turned off to avoid another issues."
+                )
+            } else {
+                try {
+                    val msg: String
+                    if (mainViewModel.appSettings.value.refreshNewsEnabled) {
+                        msg = getString(R.string.notification_newsinbackground_successfulenabled)
+                        NewsService.startService(this)
+                    } else {
+                        msg = getString(R.string.notification_newsinbackground_successfuldisabled)
+                        NewsService.cancelSchedule(this)
+                    }
+                    if (notifyToUser)
+                        mainViewModel.showSnackBarMessage(msg)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                    val valueBefore = mainViewModel.appSettings.value.refreshNewsEnabled
+                    mainViewModel.appSettings.value =
+                        mainViewModel.appSettings.value.modify(
+                            optionToModify = AppSettings.NEWSINBACKGROUND_ENABLED,
+                            value = false
+                        )
+                    mainViewModel.requestSaveChanges()
+                    mainViewModel.showSnackBarMessage(
+                        if (valueBefore) getString(R.string.notification_newsinbackground_failedenabled)
+                        else getString(R.string.notification_newsinbackground_faileddisabled) + " " +
+                        getString(R.string.notification_newsinbackground_failedextended),
+                    )
+                }
+            }
+        }
+        else -> { }
+    }
+}
+
+fun MainActivity.registerBroadcastReceiver(context: Context) {
+    LocalBroadcastManager.getInstance(context).registerReceiver(
+        getAppBroadcastReceiver(),
+        IntentFilter().apply {
+            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+        }
+    )
+}
+
+fun MainActivity.checkSettingsPermissionOnStartup(
+    mainViewModel: MainViewModel
+) {
+    val permissionList = arrayListOf<String>()
+
+    // Notifications permission (required by Android 13 and up)
+    if (mainViewModel.appSettings.value.refreshNewsEnabled) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!PermissionRequestActivity.checkPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
+            ) permissionList.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Read external storage - Background Image
+    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+        if (!PermissionRequestActivity.checkPermission(
+                this,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+    }
+
+    if (permissionList.isNotEmpty()) {
+        Intent(this, PermissionRequestActivity::class.java)
+            .apply {
+                putExtra("permissions.list", permissionList.toTypedArray())
+            }
+            .also {
+                this.startActivity(it)
+            }
+    }
+}

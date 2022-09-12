@@ -2,7 +2,6 @@ package io.zoemeow.dutnotify.view.settings
 
 import android.Manifest
 import android.content.Intent
-import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -17,14 +16,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
-import io.zoemeow.dutnotify.PermissionRequestActivity
-import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -39,7 +36,7 @@ fun SettingsBackgroundImage(
         stringResource(id = R.string.settings_backgroundimage_specific),
     )
     val selectedOptionList = remember { mutableStateOf("") }
-    val context = LocalContext.current
+    val activity = (LocalContext.current) as MainActivity
 
     LaunchedEffect(enabled.value) {
         selectedOptionList.value =
@@ -56,29 +53,13 @@ fun SettingsBackgroundImage(
         )
         mainViewModel.requestSaveChanges()
 
-        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-            val activity = context as MainActivity
-            val permissionNeeded = if (Build.VERSION.SDK_INT == Build.VERSION_CODES.TIRAMISU)
-                Manifest.permission.READ_MEDIA_IMAGES
-            else Manifest.permission.READ_EXTERNAL_STORAGE
-
-            if (!activity.checkSinglePermission(permissionNeeded)) {
-                val intent = Intent(
-                    activity,
-                    PermissionRequestActivity::class.java
-                )
-                intent.putExtra(
-                    "permission.requested",
-                    arrayOf(permissionNeeded)
-                )
-                activity.permissionRequestActivityResult.launch(intent)
-            } else {
-                mainViewModel.reloadAppBackground(
-                    context = activity,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
+        Intent(activity, PermissionRequestActivity::class.java)
+            .apply {
+                putExtra("permissions.list", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
             }
-        }
+            .also {
+                activity.startActivity(it)
+            }
 
         enabled.value = false
     }

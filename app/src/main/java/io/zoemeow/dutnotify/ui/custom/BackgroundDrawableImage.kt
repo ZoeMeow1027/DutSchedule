@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 
 @Composable
-fun BackgroundImage(drawable: Drawable? = null) {
+fun BackgroundDrawableImage(drawable: Drawable? = null) {
     // If background image not null, directly show here.
     Image(
         // https://stackoverflow.com/a/66000760

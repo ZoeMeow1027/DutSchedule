@@ -1,4 +1,4 @@
-package io.zoemeow.dutnotify.util
+package io.zoemeow.dutnotify.utils
 
 import java.math.BigInteger
 import java.security.MessageDigest
