@@ -8,7 +8,7 @@ Just a Android app to view news from sv.dut.udn.vn, but optimized for a better e
 - Thanks [https://shields.io/](https://shields.io/) for providing badge for this project.
 
 # Features & Screenshots?
-- These screenshot will get you to app summary. Just navigate to [screenshot](#screenshot) open images to view details.
+- These screenshot will get you to app summary. Just navigate to [screenshot](SCREENSHOT.md) and open images to view details.
 
 # Downloads
 - Navigate to release (at right of this README) or click [here](https://github.com/ZoeMeow5466/DUTNotify/releases) to download app.
@@ -48,7 +48,3 @@ For Powershell: ./gradlew build
 - [JSoup](https://github.com/jhy/jsoup/)
 - [KotlinX-DateTime](https://github.com/Kotlin/kotlinx-datetime)
 - [Retrofit](https://github.com/square/retrofit)
-
-# Screenshot
-
-<img src="img/Screenshot_20220904-155315_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155317_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155327_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155331_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155346_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155406_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155451_DUT.png" alt="drawing" style="width:200px;"/>
