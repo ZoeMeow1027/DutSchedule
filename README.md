@@ -1,7 +1,11 @@
 # DUT Notify - App for Android
 Just a Android app to view news from sv.dut.udn.vn, but optimized for a better experience for users on mobile instead of web.
 
-[![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTApp.Android?style=for-the-badge)](https://github.com/ZoeMeow5466/DUTNotify/releases)
+# Version
+- Release [![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTNotify)](https://github.com/ZoeMeow5466/DUTNotify/releases)
+- Alpha [![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTNotify?include_prereleases)](https://github.com/ZoeMeow5466/DUTNotify/releases)
+- Note: if no display version for alpha here, that means no alpha version yet.
+- Thanks [https://shields.io/](https://shields.io/) for providing badge for this project.
 
 # Features & Screenshots?
 - These screenshot will get you to app summary. Just navigate to [screenshot](#screenshot) open images to view details.
