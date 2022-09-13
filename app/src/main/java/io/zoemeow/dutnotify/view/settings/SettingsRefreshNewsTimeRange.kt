@@ -23,8 +23,6 @@ import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.service.NewsService
-import io.zoemeow.dutnotify.service.cancelSchedule
-import io.zoemeow.dutnotify.service.startService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)

@@ -124,7 +124,10 @@ fun AccountPageDashboard(
             dayOfWeek = dayOfWeek.value,
             onDayOfWeekChanged = {
                 dayOfWeek.value = it
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(dayOfWeek.value)
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                    week = week.value,
+                    dayOfWeek = dayOfWeek.value
+                )
             },
             week = week.value,
             weekList = weekList,
@@ -134,12 +137,19 @@ fun AccountPageDashboard(
                     clear()
                     addAll(getDateListFromWeek(week = week.value))
                 }
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                    week = week.value,
+                    dayOfWeek = dayOfWeek.value
+                )
             },
             year = Utils.getDUTSchoolYear(System.currentTimeMillis()).name,
             onYearChanged = { },
             onResetView = {
                 dayOfWeek.value = getCurrentDayOfWeek() - 1
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(dayOfWeek.value)
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                    week = week.value,
+                    dayOfWeek = dayOfWeek.value
+                )
                 week.value = getDUTWeek()
                 weekList.apply {
                     clear()

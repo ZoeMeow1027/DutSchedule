@@ -1,6 +1,5 @@
 package io.zoemeow.dutnotify.view.account
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -37,6 +36,88 @@ fun AccountSubWeekList(
     onItemClicked: ((SubjectScheduleItem?) -> Unit)? = null
 ) {
     @Composable
+    fun WeekList_DayOfWeekButton(
+        date: LocalDate,
+        selected: Boolean,
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier,
+    ) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .clickable { onClick() },
+            color = (
+                    if (selected)
+                        MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.secondaryContainer
+                    )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = dayOfWeekToString(
+                        if (weekList.indexOf(date) + 1 > 6)
+                            0 else weekList.indexOf(date) + 1
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(modifier = Modifier.size(3.dp))
+                Text(
+                    text = "${date.dayOfMonth}",
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                Text(
+                    text = "Tg ${date.monthNumber}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun WeekList_SubjectButton(
+        subjectName: String,
+        subjectDest: String?,
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier,
+    ) {
+        Surface(
+            modifier = modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(20.dp))
+                .clickable { onClick() },
+            color = MaterialTheme.colorScheme.secondaryContainer,
+        ) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(10.dp),
+            ) {
+                Text(
+                    text = subjectName,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                if (subjectDest != null) {
+                    Text(
+                        text = subjectDest,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
     fun CustomSurfaceButton(
         text: String,
         onClick: () -> Unit
@@ -63,152 +144,85 @@ fun AccountSubWeekList(
         }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxWidth()
-            .wrapContentHeight(),
-        color = MaterialTheme.colorScheme.background.copy(alpha = 0.3F)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(padding ?: PaddingValues(0.dp)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(padding ?: PaddingValues(0.dp)),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Text(
+            text = "Overview (Week $week, $year)",
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+        // Week list
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            // Week list
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                weekList.forEach { item ->
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(start = 4.dp, end = 4.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable {
-                                onDayOfWeekChanged(
-                                    weekList.indexOf(item) + 1
-                                )
-                            },
-                        color = (
-                                if (weekList.indexOf(item) + 1 == dayOfWeek)
-                                    MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.secondaryContainer
-                                )
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(5.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = dayOfWeekToString(
-                                    if (weekList.indexOf(item) + 1 > 6)
-                                        0 else weekList.indexOf(item) + 1
-                                ),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                            Spacer(modifier = Modifier.size(3.dp))
-                            Text(
-                                text = "${item.dayOfMonth}",
-                                style = MaterialTheme.typography.bodyLarge,
-                            )
-                            Text(
-                                text = "Tg ${item.monthNumber}",
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.size(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start,
+            weekList.forEach { item ->
+                WeekList_DayOfWeekButton(
+                    date = item,
+                    selected = weekList.indexOf(item) + 1 == dayOfWeek,
+                    onClick = { onDayOfWeekChanged(weekList.indexOf(item) + 1) },
                     modifier = Modifier
-                        .weight(1f)
-                ) {
-                    Text("Current week: $week")
-                    if (year != null)
-                        Text("$year")
-                }
-                CustomSurfaceButton(
-                    text = "<",
-                    onClick = { if (week > 1) onWeekChanged(week - 1) }
-                )
-                Spacer(modifier = Modifier.size(5.dp))
-                CustomSurfaceButton(
-                    text = stringResource(id = R.string.account_dashboard_dayandweekview_today),
-                    onClick = { onResetView() }
-                )
-                Spacer(modifier = Modifier.size(5.dp))
-                CustomSurfaceButton(
-                    text = ">",
-                    onClick = { if (week < 53) onWeekChanged(week + 1) }
+                        .padding(start = 4.dp, end = 4.dp)
+                        .weight(1f),
                 )
             }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(bottom = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            CustomSurfaceButton(
+                text = "<",
+                onClick = { if (week > 1) onWeekChanged(week - 1) }
+            )
             Spacer(modifier = Modifier.size(5.dp))
-            // Day view
-            if (!isGettingData) {
-                if (mainViewModel.accountDataStore.subjectScheduleByDay.size > 0) {
-                    Text(
-                        text = stringResource(id = R.string.account_dashboard_dayandweekview_subjectschedule),
-                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
-                    )
-                    mainViewModel.accountDataStore.subjectScheduleByDay.forEach { item ->
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .padding(top = 5.dp, bottom = 5.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .clickable {
-                                    if (onItemClicked != null)
-                                        onItemClicked(item)
-                                },
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                        ) {
-                            Column(
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.Start,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight()
-                                    .padding(10.dp),
-                            ) {
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                                Log.d("Day of week", (if (dayOfWeek > 6) 0 else dayOfWeek).toString())
-                                item.subjectStudy.scheduleList.filter { schItem -> schItem.dayOfWeek == if (dayOfWeek > 6) 0 else dayOfWeek }
-                                    .forEach {
-                                        Text(
-                                            text = "Lesson: ${it.lesson.start}-${it.lesson.end}, Room: ${it.room}",
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                            }
-                        }
-                    }
-                } else Text(
-                    text = stringResource(id = R.string.account_dashboard_dayandweekview_nosubject),
-                    modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
-                )
-            } else Text(
-                text = stringResource(id = R.string.account_dashboard_dayandweekview_fetching)
+            CustomSurfaceButton(
+                text = stringResource(id = R.string.account_dashboard_dayandweekview_today),
+                onClick = { onResetView() }
+            )
+            Spacer(modifier = Modifier.size(5.dp))
+            CustomSurfaceButton(
+                text = ">",
+                onClick = { if (week < 53) onWeekChanged(week + 1) }
             )
         }
+        // Day view
+        if (!isGettingData) {
+            if (mainViewModel.accountDataStore.subjectScheduleByDay.size > 0) {
+                Text(
+                    text = stringResource(id = R.string.account_dashboard_dayandweekview_subjectschedule),
+                    modifier = Modifier.padding(bottom = 5.dp)
+                )
+                mainViewModel.accountDataStore.subjectScheduleByDay.forEach { item ->
+                    var desc = ""
+                    item.subjectStudy.scheduleList.filter { schItem -> schItem.dayOfWeek == if (dayOfWeek > 6) 0 else dayOfWeek }
+                        .forEach {
+                            if (desc.isNotEmpty())
+                                desc += "\n"
+                            desc += "Lesson: ${it.lesson.start}-${it.lesson.end}, Room: ${it.room}"
+                        }
+                    WeekList_SubjectButton(
+                        subjectName = item.name,
+                        subjectDest = desc.ifEmpty { "(unknown data)" },
+                        onClick = { if (onItemClicked != null) onItemClicked(item) },
+                        modifier = Modifier.padding(bottom = 5.dp)
+                    )
+                }
+            } else Text(
+                text = stringResource(id = R.string.account_dashboard_dayandweekview_nosubject),
+                modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
+            )
+        } else Text(
+            text = stringResource(id = R.string.account_dashboard_dayandweekview_fetching)
+        )
     }
 }

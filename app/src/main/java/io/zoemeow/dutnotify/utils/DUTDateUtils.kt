@@ -94,10 +94,12 @@ class DUTDateUtils {
             return simpleDateFormat.format(Date(date))
         }
 
+
         fun getDateListFromWeek(
-            schoolYear: Int = getDUTSchoolYear().year,
+            @Suppress("UNUSED_PARAMETER") schoolYear: Int = getDUTSchoolYear().year,
             week: Int = getDUTWeek()
         ): ArrayList<LocalDate> {
+            // TODO: schoolYear for reloading older subjects here!
             val arrayList = arrayListOf<LocalDate>()
             // Set to GMT + 7.
             var firstDayOfWeekUnix: Long = getDUTSchoolYear().start + (7 * 60 * 60 * 1000).toLong()

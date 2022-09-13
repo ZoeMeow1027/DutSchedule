@@ -32,7 +32,7 @@ import java.util.*
 
 class NewsService : Service() {
     override fun onCreate() {
-        createNotificationForForeground()
+        setNotificationsForeground("Preparing...")
         super.onCreate()
     }
 
@@ -45,7 +45,6 @@ class NewsService : Service() {
             it?.printStackTrace()
             stopSelf()
         }
-
         return START_STICKY
     }
 
@@ -55,10 +54,10 @@ class NewsService : Service() {
     }
 
     override fun onDestroy() {
-        // Just destroy this service.
-        super.onDestroy()
         // Schedule next run.
         scheduleNextRunIfNeeded()
+        // Just destroy this service.
+        super.onDestroy()
     }
 
     /**
@@ -91,24 +90,24 @@ class NewsService : Service() {
         // Get file module.
         val file = FileModule(this.applicationContext)
         // Check news global and subject. After that, notify if needed.
-        modifyForegroundNotifications(
-            "Getting news global...",
-            0,
-            3
-        )
+//        setNotificationsForeground(
+//            "Getting news global...",
+//            0,
+//            3
+//        )
         checkNewsGlobal(file = file)
-        modifyForegroundNotifications(
-            "Getting news subject...",
-            1,
-            3
-        )
+//        setNotificationsForeground(
+//            "Getting news subject...",
+//            1,
+//            3
+//        )
         checkNewsSubject(file = file)
         // Send reload news requested to activity.
-        modifyForegroundNotifications(
-            "Processing filter existing news...",
-            2,
-            3
-        )
+//        setNotificationsForeground(
+//            "Processing filter existing news...",
+//            2,
+//            3
+//        )
         sendBroadcastToActivity()
     }
 
@@ -299,32 +298,21 @@ class NewsService : Service() {
         }
     }
 
-    private fun createNotificationForForeground() {
-        val builder = NotificationCompat.Builder(this, "dut_service")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("DUT Service is running in background")
-            .setContentText("Preparing to get latest news...")
-            .setOnlyAlertOnce(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        startForeground(0, builder.build())
-    }
-
-    private fun modifyForegroundNotifications(
+    private fun setNotificationsForeground(
         contentText: String,
-        progress: Int?,
-        progressMax: Int?
+        progress: Int? = null,
+        progressMax: Int? = null
     ) {
         val builder = NotificationCompat.Builder(this, "dut_service")
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("DUT Service is running in background")
-            .setContentText(contentText)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOnlyAlertOnce(true)
+            .setContentTitle("DUT Service is running in background")
+            .setContentText(contentText)
         if (progress != null && progressMax != null)
             builder.setProgress(progressMax, progress, false)
-
-        // val notificationManager = NotificationManagerCompat.from(this)
-        startForeground(1, builder.build())
+        val notifyBuild = builder.build()
+        startForeground(1, notifyBuild)
     }
 
     /**
@@ -400,5 +388,45 @@ class NewsService : Service() {
         }
     }
 
-    companion object { }
+    companion object {
+        fun getPendingIntent(context: Context): PendingIntent {
+            val intent = Intent(context, NewsService::class.java)
+            val pendingIntent: PendingIntent
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pendingIntent = PendingIntent.getForegroundService(
+                    context,
+                    1,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                        PendingIntent.FLAG_IMMUTABLE
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            } else {
+                pendingIntent = PendingIntent.getService(
+                    context,
+                    1,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                        PendingIntent.FLAG_IMMUTABLE
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            }
+
+            return pendingIntent
+        }
+
+        fun startService(context: Context) {
+            val intentService = Intent(context, NewsService::class.java)
+            // https://stackoverflow.com/a/47654126
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                context.startForegroundService(intentService)
+            else context.startService(intentService)
+        }
+
+        fun cancelSchedule(context: Context) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(getPendingIntent(context))
+        }
+    }
 }

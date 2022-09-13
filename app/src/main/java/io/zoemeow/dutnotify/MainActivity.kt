@@ -33,8 +33,6 @@ import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.NewsService
-import io.zoemeow.dutnotify.service.cancelSchedule
-import io.zoemeow.dutnotify.service.startService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.utils.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
@@ -47,12 +45,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private var isInitialized = false
+    }
+
     internal lateinit var mainViewModel: MainViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var lazyListStateGlobal: LazyListState
     private lateinit var lazyListStateSubject: LazyListState
     private lateinit var scope: CoroutineScope
-    private var isInitialized = false
 
     @SuppressLint("InlinedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,9 +76,7 @@ class MainActivity : ComponentActivity() {
             // Register notifications channel for news service
             // Works well with Android 13 without any issue.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                NotificationsUtils.initializeNotificationChannel(this@MainActivity)
-
-            isInitialized = savedInstanceState?.getBoolean("initialized", false) ?: false
+                NotificationsUtils.initializeNotificationChannel(this)
 
             if (!isInitialized) {
                 registerBroadcastReceiver(context = applicationContext)
@@ -187,11 +186,6 @@ class MainActivity : ComponentActivity() {
                 }
             },
         )
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("initialized", isInitialized)
-        super.onSaveInstanceState(outState)
     }
 
     override fun onDestroy() {

@@ -1,6 +1,5 @@
 package io.zoemeow.dutnotify.viewmodel
 
-import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -15,6 +14,7 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getCurrentDayOfWeek
+import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getDUTWeek
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -225,15 +225,19 @@ class AccountDataStore(
         }
     }
 
-    fun filterSubjectScheduleByDay(value: Int = getCurrentDayOfWeek() - 1) {
+    fun filterSubjectScheduleByDay(
+        week: Int = getDUTWeek(),
+        dayOfWeek: Int = getCurrentDayOfWeek() - 1
+    ) {
         val temp = arrayListOf<SubjectScheduleItem>()
-        val dayOfWeekModified = if (value > 6) 0 else value
+        val dayOfWeekModified = if (dayOfWeek > 6) 0 else dayOfWeek
 
         temp.addAll(
             subjectSchedule.filter { item ->
-                item.subjectStudy.scheduleList.any { week ->
-                    week.dayOfWeek == dayOfWeekModified
-                }
+                // First query: Week range
+                item.subjectStudy.weekList.any { weekItem -> weekItem.start <= week && week <= weekItem.end } &&
+                // Second query: Subject day of week
+                item.subjectStudy.scheduleList.any { dayOfWeek -> dayOfWeek.dayOfWeek == dayOfWeekModified }
             }.sortedBy { item ->
                 item.subjectStudy.scheduleList.filter { week ->
                     week.dayOfWeek == dayOfWeekModified

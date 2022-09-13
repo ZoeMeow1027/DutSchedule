@@ -102,7 +102,13 @@ fun Settings(
                         mainViewModel.requestSaveChanges()
 
                         val activity = context as MainActivity
-                        if (PermissionRequestActivity.checkPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                            activity.onPermissionResult(
+                                permission = Manifest.permission.POST_NOTIFICATIONS,
+                                granted = true,
+                                notifyToUser = true
+                            )
+                        } else if (PermissionRequestActivity.checkPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
                             activity.onPermissionResult(
                                 permission = Manifest.permission.POST_NOTIFICATIONS,
                                 granted = true,

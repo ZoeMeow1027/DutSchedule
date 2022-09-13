@@ -2,7 +2,7 @@
 <resources>
     <string name="account_dashboard_dayandweekview_fetching">We are fetching your subject schedule list. Please wait…</string>
     <string name="account_dashboard_dayandweekview_nosubject">You don\'t have any subjects on today.</string>
-    <string name="account_dashboard_dayandweekview_subjectschedule">Subject Schedule</string>
+    <string name="account_dashboard_dayandweekview_subjectschedule">Subject Study Schedule</string>
     <string name="account_dashboard_dayandweekview_today">Today</string>
     <string name="account_dashboard_viewaccinfo">View more account Information</string>
     <string name="account_dashboard_viewsubjectfee">View all subject fee</string>
