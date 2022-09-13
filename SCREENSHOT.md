@@ -1,0 +1,3 @@
+# DUTNotify App Screenshots
+
+<img src="img/Screenshot_20220904-155315_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155317_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155327_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155331_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155346_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155406_DUT.png" alt="drawing" style="width:200px;"/><img src="img/Screenshot_20220904-155451_DUT.png" alt="drawing" style="width:200px;"/>
