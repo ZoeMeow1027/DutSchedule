@@ -153,12 +153,16 @@ fun AccountSubWeekList(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Overview (Week $week, $year)",
+            text = String.format(
+                stringResource(id = R.string.account_dashboard_dayandweekview_overview),
+                week, year
+            ),
             modifier = Modifier.padding(bottom = 10.dp)
         )
         // Week list
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -175,7 +179,8 @@ fun AccountSubWeekList(
             }
         }
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(bottom = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
@@ -208,11 +213,14 @@ fun AccountSubWeekList(
                         .forEach {
                             if (desc.isNotEmpty())
                                 desc += "\n"
-                            desc += "Lesson: ${it.lesson.start}-${it.lesson.end}, Room: ${it.room}"
+                            desc += String.format(
+                                stringResource(id = R.string.account_dashboard_dayandweekview_subjectstatus),
+                                it.lesson.start, it.lesson.end, it.room
+                            )
                         }
                     WeekList_SubjectButton(
                         subjectName = item.name,
-                        subjectDest = desc.ifEmpty { "(unknown data)" },
+                        subjectDest = desc.ifEmpty { stringResource(id = R.string.account_dashboard_dayandweekview_unknowndata) },
                         onClick = { if (onItemClicked != null) onItemClicked(item) },
                         modifier = Modifier.padding(bottom = 5.dp)
                     )

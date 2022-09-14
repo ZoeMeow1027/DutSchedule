@@ -12,11 +12,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.objects.enums.LessonStatus
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.ui.custom.NewsScreenCore
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.unixToDuration
@@ -52,8 +54,11 @@ fun NewsDetailsSubject(
                 modifier = Modifier.padding(10.dp)
             ) {
                 Text(
-                    text = "Subject news about lecturer ${news.lecturerName}",
-                    style = MaterialTheme.typography.headlineMedium,
+                    text = String.format(
+                        stringResource(id = R.string.newsdetails_subject_title),
+                        news.lecturerName
+                    ),
+                    style = MaterialTheme.typography.headlineMedium
                 )
                 Spacer(modifier = Modifier.size(10.dp))
                 Text(
@@ -90,36 +95,55 @@ fun NewsDetailsSubject(
                     affectedClassrooms += "]"
                 }
                 Text(
-                    text = "Classroom affected: $affectedClassrooms",
+                    text = String.format(
+                        stringResource(id = R.string.notification_newssubject_appliedto),
+                        affectedClassrooms
+                    ),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 CustomDivider()
                 // Affecting lessons, hour, room.
                 if (arrayListOf(LessonStatus.Leaving, LessonStatus.MakeUp).contains(news.lessonStatus)) {
                     Text(
-                        text = "Status: ${news.lessonStatus}",
+                        text =
+                        String.format(
+                            stringResource(id = R.string.newsdetails_subject_status),
+                            stringResource(id = when (news.lessonStatus) {
+                                LessonStatus.Leaving -> R.string.newsdetails_subject_statusleaving
+                                LessonStatus.MakeUp -> R.string.newsdetails_subject_statusmakeup
+                                else -> R.string.newsdetails_subject_statusleaving
+                            })
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = "Lessons: ${news.affectedLesson}",
+                        text = String.format(
+                            stringResource(when (news.lessonStatus) {
+                                LessonStatus.Leaving -> R.string.newsdetails_subject_lessonleaving
+                                LessonStatus.MakeUp -> R.string.newsdetails_subject_lessonmakeup
+                                else -> R.string.newsdetails_subject_lessonleaving
+                            }),
+                            news.affectedLesson
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
-                        text = "Date: ${
-                            dateToString(
-                                news.affectedDate,
-                                "dd/MM/yyyy",
-                                "UTC"
-                            )
-                        }",
+                        text = String.format(
+                            stringResource(id = R.string.newsdetails_subject_date),
+                            dateToString(news.affectedDate, "dd/MM/yyyy", "UTC")
+                        ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     if (news.lessonStatus == LessonStatus.MakeUp) {
                         Spacer(modifier = Modifier.size(5.dp))
                         Text(
-                            text = "Room Name: ${news.affectedRoom}",
+                            text =
+                            String.format(
+                                stringResource(id = R.string.newsdetails_subject_room),
+                                news.affectedRoom
+                            ),
                             style = MaterialTheme.typography.bodyLarge,
                         )
                     }

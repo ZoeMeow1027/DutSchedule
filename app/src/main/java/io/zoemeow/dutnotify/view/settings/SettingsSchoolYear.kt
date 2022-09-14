@@ -85,7 +85,6 @@ fun SettingsSchoolYear(
         )
         mainViewModel.requestSaveChanges()
 
-        // mainViewModel.uiStatus.updateComposeUI()
         enabled.value = false
     }
 
@@ -102,7 +101,7 @@ fun SettingsSchoolYear(
                 enabled.value = false
             },
             title = {
-                Text("School year settings")
+                Text(stringResource(id = R.string.settings_schoolyear_name))
             },
             dismissButton = {
                 TextButton(
@@ -131,19 +130,16 @@ fun SettingsSchoolYear(
                     horizontalAlignment = Alignment.Start,
                 ) {
                     Text(
-                        text = "Your settings after confirm:\n" +
-                                "- Current school year: 20${schoolYearOptionVal.value}-" +
-                                "20${schoolYearOptionVal.value + 1}\n" +
-                                "- Current semester: ${
-                                    if (schoolSemesterOptionVal.value < 3)
-                                        schoolSemesterOptionVal.value
-                                    else
-                                        "3 (in summer)"
-                                }",
+                        text = String.format(
+                            stringResource(id = R.string.settings_schoolyear_afterchange),
+                            schoolYearOptionVal.value,
+                            schoolYearOptionVal.value + 1,
+                            schoolSemesterOptionVal.value
+                        ),
                     )
                     Spacer(modifier = Modifier.size(15.dp))
                     SchoolYearOption(
-                        title = "School Year",
+                        title = stringResource(id = R.string.settings_schoolyear_schoolyearmodifyoption),
                         value = schoolYearOptionVal.value,
                         onValueChanged = {
                             schoolYearOptionVal.value = it
@@ -152,7 +148,7 @@ fun SettingsSchoolYear(
                         maxValue = 30
                     )
                     SchoolYearOption(
-                        title = "School Semester",
+                        title = stringResource(id = R.string.settings_schoolyear_schoolyearmodifyoption),
                         value = schoolSemesterOptionVal.value,
                         onValueChanged = {
                             schoolSemesterOptionVal.value = it

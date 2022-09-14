@@ -3,18 +3,22 @@ package io.zoemeow.dutnotify.view.settings
 import android.Manifest
 import android.content.Intent
 import android.os.Build
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import io.zoemeow.dutnotify.*
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
@@ -88,10 +92,10 @@ fun Settings(
                     .padding(padding)
                     .verticalScroll(rememberScrollState()),
             ) {
-                SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_loadnewsinbackground))
+                SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_news))
                 SettingsOptionItemSwitch(
-                    title = stringResource(id = R.string.settings_loadnewsinbackground_enabled_name),
-                    description = stringResource(id = R.string.settings_loadnewsinbackground_enabled_description),
+                    title = stringResource(id = R.string.settings_loadnewsinbackground_name),
+                    description = stringResource(id = R.string.settings_loadnewsinbackground_description),
                     value = mainViewModel.appSettings.value.refreshNewsEnabled,
                     onValueChanged = { value ->
                         mainViewModel.appSettings.value =
@@ -108,14 +112,19 @@ fun Settings(
                                 granted = true,
                                 notifyToUser = true
                             )
-                        } else if (PermissionRequestActivity.checkPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
+                        } else if (PermissionRequestActivity.checkPermission(
+                                activity,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            )
+                        ) {
                             activity.onPermissionResult(
                                 permission = Manifest.permission.POST_NOTIFICATIONS,
                                 granted = true,
                                 notifyToUser = true
                             )
                         } else {
-                            val requestIntent = Intent(activity, PermissionRequestActivity::class.java)
+                            val requestIntent =
+                                Intent(activity, PermissionRequestActivity::class.java)
                             requestIntent.putExtra(
                                 "permissions.list",
                                 arrayOf(Manifest.permission.POST_NOTIFICATIONS)
@@ -124,32 +133,57 @@ fun Settings(
                         }
                     }
                 )
-                if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                    SettingsOptionItemClickable(
-                        title = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_name),
-                        description = String.format(
-                            stringResource(id = R.string.settings_loadnewsinbackground_timeactive_value),
-                            mainViewModel.appSettings.value.refreshNewsTimeStart,
-                            mainViewModel.appSettings.value.refreshNewsTimeEnd,
-                            if (mainViewModel.appSettings.value.refreshNewsTimeEnd < mainViewModel.appSettings.value.refreshNewsTimeStart)
-                                stringResource(id = R.string.settings_loadnewsinbackground_timeactive_valueextended) else ""
-                        ),
-                        clickable = {
-                            refreshNewsTimeAdjustEnabled.value = true
+                AnimatedVisibility(
+                    visible = mainViewModel.appSettings.value.refreshNewsEnabled
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .clip(RoundedCornerShape(25.dp)),
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7F),
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                        ) {
+                            SettingsOptionItemClickable(
+                                title = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_name),
+                                description = String.format(
+                                    stringResource(id = R.string.settings_loadnewsinbackground_timeactive_value),
+                                    mainViewModel.appSettings.value.refreshNewsTimeStart,
+                                    mainViewModel.appSettings.value.refreshNewsTimeEnd,
+                                    if (mainViewModel.appSettings.value.refreshNewsTimeEnd < mainViewModel.appSettings.value.refreshNewsTimeStart)
+                                        stringResource(id = R.string.settings_loadnewsinbackground_timeactive_valueextended) else ""
+                                ),
+                                clickable = {
+                                    refreshNewsTimeAdjustEnabled.value = true
+                                }
+                            )
+                            SettingsOptionItemClickable(
+                                title = stringResource(id = R.string.settings_loadnewsinbackground_interval_name),
+                                description = String.format(
+                                    stringResource(
+                                        id =
+                                        if (mainViewModel.appSettings.value.refreshNewsIntervalInMinute == 1)
+                                            R.string.settings_loadnewsinbackground_interval_valuepartial
+                                        else R.string.settings_loadnewsinbackground_interval_value
+                                    ),
+                                    mainViewModel.appSettings.value.refreshNewsIntervalInMinute
+                                ),
+                                clickable = {
+                                    refreshNewsTimeIntervalEnabled.value = true
+                                }
+                            )
                         }
-                    )
-                    SettingsOptionItemClickable(
-                        title = stringResource(id = R.string.settings_loadnewsinbackground_interval_name),
-                        description = "Every ${mainViewModel.appSettings.value.refreshNewsIntervalInMinute} minute" +
-                                if (mainViewModel.appSettings.value.refreshNewsIntervalInMinute > 1) "s" else "",
-                        clickable = {
-                            refreshNewsTimeIntervalEnabled.value = true
-                        }
-                    )
+                    }
                 }
                 SettingsOptionItemClickable(
-                    title = "News notification filter",
-                    description = "Use this if you want to receive notification related with your subject news only.",
+                    title = stringResource(id = R.string.settings_subjectnewsfilter_name),
+                    description = stringResource(id = R.string.settings_subjectnewsfilter_description),
                     clickable = {
                         val intent = Intent(context, NewsFilterSettingsActivity::class.java)
                         context.startActivity(intent)
@@ -158,16 +192,13 @@ fun Settings(
                 CustomDivider()
                 SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_account))
                 SettingsOptionItemClickable(
-                    title = "School year",
-                    description = "School year: " +
-                            "20${mainViewModel.appSettings.value.schoolYear.year}-" +
-                            "20${mainViewModel.appSettings.value.schoolYear.year + 1}, " +
-                            "Semester: ${
-                                if (mainViewModel.appSettings.value.schoolYear.semester < 3)
-                                    mainViewModel.appSettings.value.schoolYear.semester
-                                else
-                                    "3 (in summer)"
-                            }\n(change this will affect to your subjects schedule)",
+                    title = stringResource(id = R.string.settings_schoolyear_name),
+                    description = String.format(
+                        stringResource(id = R.string.settings_schoolyear_value),
+                        mainViewModel.appSettings.value.schoolYear.year,
+                        mainViewModel.appSettings.value.schoolYear.year + 1,
+                        mainViewModel.appSettings.value.schoolYear.semester
+                    ),
                     clickable = {
                         schoolYearSettingsEnabled.value = true
                     }
@@ -205,9 +236,9 @@ fun Settings(
                 )
                 SettingsOptionItemClickable(
                     title = stringResource(id = R.string.settings_backgroundimage_name),
-                    description = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
-                        backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal]
-                    else "This feature is temporary disabled on Android 13",
+                    description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                        stringResource(id = R.string.settings_backgroundimage_disabledandroid13)
+                    else backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal],
                     clickable = {
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
                             backgroundImageSettingsEnabled.value = true
@@ -239,14 +270,14 @@ fun Settings(
                     description = stringResource(id = R.string.settings_changelog_description),
                     clickable = {
                         openLink(
-                            "https://github.com/ZoeMeow5466/DUTNotify/commits/",
+                            "https://github.com/ZoeMeow5466/DUTNotify/blob/stable/CHANGELOG.md",
                             context,
                             true
                         )
                     }
                 )
                 SettingsOptionItemClickable(
-                    title = stringResource(id = R.string.settings_github_name),
+                    title = stringResource(id = R.string.settings_githubrepo_name),
                     description = "https://github.com/ZoeMeow5466/DUTNotify",
                     clickable = {
                         openLink(

@@ -116,7 +116,7 @@ fun SettingsRefreshNewsTimeRange(
                 enabled.value = false
             },
             title = {
-                Text(text = "Refresh news time range")
+                Text(text = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_name))
             },
             dismissButton = {
                 TextButton(
@@ -146,10 +146,10 @@ fun SettingsRefreshNewsTimeRange(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Text("Click a time you want to change and remember to commit changes if you are done.")
+                    Text(stringResource(id = R.string.settings_loadnewsinbackground_timeactive_guide))
                     Spacer(modifier = Modifier.size(15.dp))
                     DisplayTime(
-                        title = "Time start: ",
+                        title = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_timestart),
                         clock = newTimeStart.value,
                         onClick = {
                             showTimePicker(
@@ -160,7 +160,7 @@ fun SettingsRefreshNewsTimeRange(
                     )
                     Spacer(modifier = Modifier.size(15.dp))
                     DisplayTime(
-                        title = "Time end: ",
+                        title = stringResource(id = R.string.settings_loadnewsinbackground_timeactive_timeend),
                         clock = newTimeEnd.value,
                         onClick = {
                             showTimePicker(
@@ -182,7 +182,7 @@ fun SettingsRefreshNewsTimeRange(
                             contentDescription = "info_icon",
                             tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
-                        Text("This will change time range which app used to prevent using data and battery at night. Still in alpha.")
+                        Text(stringResource(id = R.string.settings_loadnewsinbackground_timeactive_description))
                     }
                 }
             }

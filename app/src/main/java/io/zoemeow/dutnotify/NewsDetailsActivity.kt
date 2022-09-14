@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -80,18 +81,17 @@ class NewsDetailsActivity : ComponentActivity() {
         val type: String? = intent.getStringExtra("type")
         var data: Any? = null
 
+        newsTitle.value = stringResource(id = R.string.newsdetails_title)
         when (type) {
             "dut_news_global" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                     data = intent.getSerializableExtra("data", NewsGlobalItem::class.java)
                 else data = intent.getSerializableExtra("data")
-                newsTitle.value = "News details"
             }
             "dut_news_subject" -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                     data = intent.getSerializableExtra("data", NewsSubjectItem::class.java)
                 else data = intent.getSerializableExtra("data")
-                newsTitle.value = "News details"
             }
             else -> {
                 setResult(RESULT_CANCELED)

@@ -90,24 +90,24 @@ class NewsService : Service() {
         // Get file module.
         val file = FileModule(this.applicationContext)
         // Check news global and subject. After that, notify if needed.
-//        setNotificationsForeground(
-//            "Getting news global...",
-//            0,
-//            3
-//        )
+        setNotificationsForeground(
+            "Getting news global...",
+            0,
+            2
+        )
         checkNewsGlobal(file = file)
-//        setNotificationsForeground(
-//            "Getting news subject...",
-//            1,
-//            3
-//        )
+        setNotificationsForeground(
+            "Getting news subject...",
+            1,
+            2
+        )
         checkNewsSubject(file = file)
         // Send reload news requested to activity.
-//        setNotificationsForeground(
-//            "Processing filter existing news...",
-//            2,
-//            3
-//        )
+        setNotificationsForeground(
+            "Requesting broadcast to activity...",
+            2,
+            2
+        )
         sendBroadcastToActivity()
     }
 
@@ -119,6 +119,11 @@ class NewsService : Service() {
         val newsFromInternet: ArrayList<NewsGlobalItem> = NewsModule.getNewsGlobal(
             page = 1
         )
+        setNotificationsForeground(
+            "Getting news global...",
+            1,
+            8
+        )
         val newsDiff: ArrayList<NewsGlobalItem> = NewsModule.getNewsGlobalDiff(
             source = newsCacheGlobal.newsListByDate,
             target = newsFromInternet
@@ -129,12 +134,21 @@ class NewsService : Service() {
             source = newsCacheGlobal.newsListByDate,
             target = newsDiff
         )
+        setNotificationsForeground(
+            "Getting news global...",
+            2,
+            8
+        )
         if (newsCacheGlobal.pageCurrent <= 1)
             newsCacheGlobal.pageCurrent += 1
         file.saveCacheNewsGlobal(
             newsCacheGlobal = newsCacheGlobal
         )
-
+        setNotificationsForeground(
+            "Getting news global...",
+            3,
+            8
+        )
         // Notify to user and clear to avoid leak memory.
         if (shouldNotifyUsers) {
             notifyUsersGlobal(
@@ -154,6 +168,11 @@ class NewsService : Service() {
         val newsFromInternet: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubject(
             page = 1
         )
+        setNotificationsForeground(
+            "Getting news subject...",
+            5,
+            8
+        )
         val newsDiff: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubjectDiff(
             source = newsCacheSubject.newsListByDate,
             target = newsFromInternet
@@ -164,12 +183,21 @@ class NewsService : Service() {
             source = newsCacheSubject.newsListByDate,
             target = newsDiff
         )
+        setNotificationsForeground(
+            "Getting news subject...",
+            6,
+            8
+        )
         if (newsCacheSubject.pageCurrent <= 1)
             newsCacheSubject.pageCurrent += 1
         file.saveCacheNewsSubject(
             newsCacheSubject = newsCacheSubject
         )
-
+        setNotificationsForeground(
+            "Getting news subject...",
+            7,
+            8
+        )
         // Notify to user and clear to avoid leak memory.
         if (shouldNotifyUsers) {
             notifyUsersSubject(
@@ -193,7 +221,7 @@ class NewsService : Service() {
                 context = this,
                 channel_id = "dut_news_global",
                 news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
-                news_title = "New notification from News Global",
+                news_title = getString(R.string.notification_newsglobal_title),
                 news_description = newsItem.title,
                 data = newsItem
             )
@@ -213,10 +241,10 @@ class NewsService : Service() {
             var notify = false
             // If enabled news filter, do following.
 
-            // If filter was empty -> Not set -> All news.
+            // If filter was empty -> Not set -> All news -> Enable notify.
             if (settings.newsFilterList.isEmpty())
                 notify = true
-            // If a news in filter list, enable notify.
+            // If a news in filter list -> Enable notify.
             else if (settings.newsFilterList.any { source ->
                     newsItem.affectedClass.any { targetGroup ->
                         targetGroup.codeList.any { target ->
@@ -230,25 +258,34 @@ class NewsService : Service() {
             if (!notify)
                 return@forEach
 
-            // Lecturer
-            var lecturer = newsItem.title.split("thông báo đến lớp:")[0]
-            if (lecturer.startsWith("Thầy "))
-                lecturer = lecturer.substring(5)
-            else if (lecturer.startsWith("Cô "))
-                lecturer = lecturer.substring(3)
-
-            // Lesson status
-            val lessonStatus = when (newsItem.lessonStatus) {
-                LessonStatus.Leaving -> "Leaving "
-                LessonStatus.MakeUp -> "Make up "
-                else -> ""
+            val notifyTitle = when (newsItem.lessonStatus) {
+                LessonStatus.Leaving -> {
+                    String.format(
+                        getString(R.string.notification_newssubject_titlewitharg),
+                        getString(R.string.notification_newssubject_leaving),
+                        newsItem.lecturerName
+                    )
+                }
+                LessonStatus.MakeUp -> {
+                    String.format(
+                        getString(R.string.notification_newssubject_titlewitharg),
+                        getString(R.string.notification_newssubject_makeup),
+                        newsItem.lecturerName
+                    )
+                }
+                else -> {
+                    String.format(
+                        getString(R.string.notification_newssubject_title),
+                        newsItem.lecturerName
+                    )
+                }
             }
 
             // Affected classrooms
             var affectedClassrooms = ""
             newsItem.affectedClass.forEach { className ->
                 if (affectedClassrooms.isEmpty()) {
-                    affectedClassrooms = "Affected classrooms: ${className.subjectName}"
+                    affectedClassrooms = className.subjectName
                 }
                 else {
                     affectedClassrooms += ", ${className.subjectName}"
@@ -267,24 +304,35 @@ class NewsService : Service() {
                 affectedClassrooms += ")"
             }
 
-            val notifyTitle = "New ${lessonStatus}notification from $lecturer"
-            var notifyContent = "${affectedClassrooms}\n\n"
             val notifyContentList = arrayListOf<String>()
-            when (newsItem.lessonStatus) {
-                LessonStatus.MakeUp -> {
-                    notifyContentList.add("on date: ${dateToString(newsItem.affectedDate, "dd/MM/yyyy")}")
-                    notifyContentList.add("\nwith lesson: ${if (newsItem.affectedLesson != null) newsItem.affectedLesson else "(unknown)"}")
-                    notifyContentList.add("\nin room: ${newsItem.affectedRoom}")
-                    notifyContent += notifyContentList.joinToString("")
+            // Affected classrooms
+            notifyContentList.add("${getString(R.string.notification_newssubject_appliedto, affectedClassrooms)}\n")
+            // Date and lessons
+            if (
+                newsItem.lessonStatus == LessonStatus.Leaving ||
+                newsItem.lessonStatus == LessonStatus.MakeUp
+            ) {
+                // Date
+                notifyContentList.add(String.format(
+                    getString(R.string.notification_newssubject_date),
+                    dateToString(newsItem.affectedDate, "dd/MM/yyyy")
+                ))
+                // Lessons
+                notifyContentList.add(String.format(
+                    getString(R.string.notification_newssubject_lesson),
+                    if (newsItem.affectedLesson != null)
+                        newsItem.affectedLesson else getString(R.string.notification_newssubject_unknown)
+                ))
+                // Make-up room
+                if (newsItem.lessonStatus == LessonStatus.MakeUp) {
+                    // Make up in room
+                    notifyContentList.add(String.format(
+                        getString(R.string.notification_newssubject_room),
+                        newsItem.affectedRoom
+                    ))
                 }
-                LessonStatus.Leaving -> {
-                    notifyContentList.add("on date: ${dateToString(newsItem.affectedDate, "dd/MM/yyyy")}")
-                    notifyContentList.add("\nwith lesson: ${if (newsItem.affectedLesson != null) newsItem.affectedLesson else "(unknown)"}")
-                    notifyContent += notifyContentList.joinToString("")
-                }
-                else -> {
-                    notifyContent += newsItem.contentString
-                }
+            } else {
+                notifyContentList.add(newsItem.contentString)
             }
 
             NotificationsUtils.showNewsNotification(
@@ -292,7 +340,7 @@ class NewsService : Service() {
                 channel_id = "dut_news_subject",
                 news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
                 news_title = notifyTitle,
-                news_description = notifyContent,
+                news_description = notifyContentList.joinToString("\n"),
                 data = newsItem
             )
         }
@@ -307,7 +355,7 @@ class NewsService : Service() {
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setOnlyAlertOnce(true)
-            .setContentTitle("DUT Service is running in background")
+            .setContentTitle("DUT News Service is running in background")
             .setContentText(contentText)
         if (progress != null && progressMax != null)
             builder.setProgress(progressMax, progress, false)

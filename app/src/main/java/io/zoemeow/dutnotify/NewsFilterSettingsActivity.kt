@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -103,7 +104,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                 )
             mainViewModel.requestSaveChanges()
             unsavedChanges.value = false
-            showSnackBarMessage("Successfully saved changes!", true)
+            showSnackBarMessage(getString(R.string.subjectnewsfilter_snackbar_successful), true)
         }
 
         if (unSaveChangedDialog.value) {
@@ -116,18 +117,18 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     .fillMaxWidth()
                     .wrapContentHeight(),
                 onDismissRequest = { unSaveChangedDialog.value = false },
-                title = { Text("Save unsaved changes?") },
+                title = { Text(stringResource(id = R.string.subjectnewsfilter_savechanges_title)) },
                 dismissButton = {
                     Row {
                         // Just disable this dialog
                         TextButton(
-                            content = { Text("Cancel") },
+                            content = { Text(stringResource(id = R.string.option_cancel)) },
                             onClick = { unSaveChangedDialog.value = false }
                         )
                         Spacer(modifier = Modifier.size(5.dp))
                         // Dismiss changed settings.
                         TextButton(
-                            content = { Text("No") },
+                            content = { Text(stringResource(id = R.string.option_no)) },
                             onClick = {
                                 setResult(RESULT_CANCELED)
                                 finish()
@@ -138,7 +139,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                 confirmButton = {
                     // Save changes
                     TextButton(
-                        content = { Text("Yes") },
+                        content = { Text(stringResource(id = R.string.option_yes)) },
                         onClick = {
                             saveChanges()
                             setResult(RESULT_OK)
@@ -147,7 +148,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     )
                 },
                 text = {
-                    Text("You have unsaved changes. Save them?")
+                    Text(stringResource(id = R.string.subjectnewsfilter_savechanges_description))
                 },
             )
         }
@@ -157,7 +158,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             topBar = {
                 SmallTopAppBar(
                     title = {
-                        Text("News filter settings")
+                        Text(stringResource(id = R.string.settings_subjectnewsfilter_name))
                     },
                     colors = TopAppBarDefaults.smallTopAppBarColors(
                         containerColor = Color.Transparent
@@ -285,7 +286,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             if (!isInIndexAvailableList(selectedIndex.value)) {
                 if (availableList.isEmpty()) {
                     selectedIndex.value = -1
-                    selectedFilterName.value = "No more subject available"
+                    selectedFilterName.value = getString(R.string.subjectnewsfilter_addfromsubjectschedule_nomore)
                 } else {
                     selectedIndex.value = 0
                     selectedFilterName.value = availableList[selectedIndex.value].name
@@ -309,7 +310,11 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     subjectCodeTempList.remove(it)
                     unsavedChanges.value = true
                     updateRequested()
-                    showSnackBarMessage("Deleted \"${it.name}\".")
+
+                    showSnackBarMessage(String.format(
+                        getString(R.string.subjectnewsfilter_snackbar_deleted),
+                        it.name
+                    ))
                 },
             )
 
@@ -324,7 +329,11 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                         subjectCodeTempList.add(it)
                     unsavedChanges.value = true
                     updateRequested()
-                    showSnackBarMessage("Added \"${it.name}\".")
+
+                    showSnackBarMessage(String.format(
+                        getString(R.string.subjectnewsfilter_snackbar_added),
+                        it.name
+                    ))
                 },
                 reloadAvailableNewsRequested = {
                     mainViewModel.accountDataStore.fetchSubjectSchedule()
@@ -344,7 +353,11 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                         subjectCodeTempList.add(it)
                     unsavedChanges.value = true
                     updateRequested()
-                    showSnackBarMessage("Added \"${it.name}\".")
+
+                    showSnackBarMessage(String.format(
+                        getString(R.string.subjectnewsfilter_snackbar_added),
+                        it.name
+                    ))
                 },
                 expended = columnAddManually.value,
                 onExpended = {
@@ -360,7 +373,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     subjectCodeTempList.clear()
                     unsavedChanges.value = true
                     updateRequested()
-                    showSnackBarMessage("Cleared all filters. Remember save changes to take effect.")
+                    showSnackBarMessage(getString(R.string.subjectnewsfilter_snackbar_deletedall))
                 },
                 expended = columnResetToDefault.value,
                 onExpended = {
@@ -380,19 +393,16 @@ class NewsFilterSettingsActivity: ComponentActivity() {
     ) {
         CustomSurface {
             CustomTitleAndExpandableColumn(
-                title = "Current Subject Code list",
+                title = stringResource(id = R.string.subjectnewsfilter_currentlist_name),
                 expanded = true,
                 onExpanded = { },
             ) {
                 if (subjectCodeList.isEmpty()) {
-                    Text(
-                        text = "- Your subject codes is empty! That\'s mean, all subject news will notify you.\n" +
-                                "- To enable this feature, just add at least one item. Your filter list will be here."
-                    )
+                    Text(text = stringResource(id = R.string.subjectnewsfilter_currentlist_empty))
                 }
                 else {
                     Text(
-                        text = "Your current subject code list (click a item to remove)",
+                        text = stringResource(id = R.string.subjectnewsfilter_currentlist_notempty),
                         modifier = Modifier.padding(bottom = 10.dp)
                     )
                     FlowRow(
@@ -429,7 +439,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
     ) {
         CustomSurface {
             CustomTitleAndExpandableColumn(
-                title = "Add from your subject schedule",
+                title = stringResource(id = R.string.subjectnewsfilter_addbyschedule_name),
                 expanded = expended,
                 onExpanded = { if (onExpended != null) onExpended() },
                 content = {
@@ -442,20 +452,20 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     ) {
                         if (mainViewModel.accountDataStore.loginState.value == LoginState.LoggingIn) {
                             Text(
-                                text = "We\'re re-login you in. Please wait...",
+                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loggingin),
                                 modifier = Modifier.padding(bottom = 10.dp)
                             )
                             CircularProgressIndicator()
                         }
                         else if (mainViewModel.accountDataStore.loginState.value != LoginState.LoggedIn) {
                             Text(
-                                text = "You need to login or check your account or check your internet before you can use this feature.",
+                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_checkyouraccount),
                                 modifier = Modifier.padding(bottom = 10.dp)
                             )
                         }
                         else if (mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running) {
                             Text(
-                                text = "We\'re loading your subject schedule. Please wait...",
+                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loadingsubject),
                                 modifier = Modifier.padding(bottom = 10.dp)
                             )
                             CircularProgressIndicator()
@@ -467,7 +477,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                             }
 
                             Text(
-                                text = "Choose a item and tap \"Add\" to add to filter above. Added item to filter won\'t be showed on this drop down again.",
+                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_addtips),
                                 modifier = Modifier.padding(bottom = 15.dp)
                             )
                             ExposedDropdownMenuBox(
@@ -484,7 +494,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                     readOnly = true,
                                     value = selectedFilterValue.value,
                                     onValueChange = {},
-                                    label = { Text("Choose your subject") },
+                                    label = { Text(stringResource(id = R.string.subjectnewsfilter_addbyschedule_adddropdownname)) },
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropDownExpanded.value) },
                                     colors = ExposedDropdownMenuDefaults.textFieldColors(),
                                     modifier = Modifier
@@ -520,18 +530,18 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                             ) {
                                 Button(
                                     content = {
-                                        Text("Refresh")
+                                        Text(stringResource(id = R.string.option_refresh))
                                     },
                                     onClick = {
                                         reloadAvailableNewsRequested()
                                     },
                                     modifier = Modifier
                                         .padding(end = 5.dp)
-                                        .weight(1f)
+                                        //.weight(1f)
                                 )
                                 Button(
                                     content = {
-                                        Text("Add filter")
+                                        Text(text = stringResource(id = R.string.option_add))
                                     },
                                     onClick = {
                                         try {
@@ -548,7 +558,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                     },
                                     modifier = Modifier
                                         .padding(start = 5.dp)
-                                        .weight(1f)
+                                        //.weight(1f)
                                 )
                             }
                         }
@@ -570,16 +580,12 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         val subjectName = remember { mutableStateOf("") }
         CustomSurface {
             CustomTitleAndExpandableColumn(
-                title = "Add filter manually",
+                title = stringResource(id = R.string.subjectnewsfilter_addmanually_title),
                 expanded = expended,
                 onExpanded = { if (onExpended != null) onExpended() },
             ) {
                 Text(
-                    text = "Enter your subject filter (you can view templates in sv.dut.udn.vn) and tap \"Add\" to add it to list in above.\n\n" +
-                            "- Example:\n" +
-                            "  - 19 | 01 | Subject name\n" +
-                            "  - xx | 94A | Subject name\n\n" +
-                            "Note: You need to enter carefully, otherwise you won\'t received notifications exactly.",
+                    text = stringResource(id = R.string.subjectnewsfilter_addmanually_addtips),
                     modifier = Modifier.padding(bottom = 5.dp)
                 )
                 Column(
@@ -621,14 +627,14 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     OutlinedTextField(
                         value = subjectName.value,
                         onValueChange = { subjectName.value = it },
-                        label = { Text("Subject name") },
+                        label = { Text(stringResource(id = R.string.subjectnewsfilter_addmanually_subjecttextbox)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight()
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Button(
-                        content = { Text("Add filter") },
+                        content = { Text(stringResource(id = R.string.option_add)) },
                         onClick = {
                             val item = SubjectCode(
                                 studentYearId.value,
@@ -651,7 +657,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
     ) {
         CustomSurface {
             CustomTitleAndExpandableColumn(
-                title = "Clear all filters",
+                title = stringResource(id = R.string.subjectnewsfilter_clearall_title),
                 expanded = expended,
                 onExpanded = { if (onExpended != null) onExpended() },
             ) {
@@ -663,12 +669,11 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Just click button below to clear.\n" +
-                                "Note: This will delete all filters you added before and cannot be undone.",
+                        text = stringResource(id = R.string.subjectnewsfilter_clearall_deletetips),
                         modifier = Modifier.padding(bottom = 5.dp)
                     )
                     Button(
-                        content = { Text("Confirm clear") },
+                        content = { Text(stringResource(id = R.string.options_clearall)) },
                         onClick = { onDelete() }
                     )
                 }
@@ -727,11 +732,13 @@ fun NewsFilterSettingsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun NewsFilterSettingsActivity.onPermissionResult(
     permission: String?,
     granted: Boolean,
     notifyToUser: Boolean = false
 ) {
+    // TODO: UNUSED_PARAMETER
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
