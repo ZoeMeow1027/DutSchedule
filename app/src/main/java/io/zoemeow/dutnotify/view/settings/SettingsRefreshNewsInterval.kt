@@ -60,7 +60,7 @@ fun SettingsRefreshNewsInterval(
                 enabled.value = false
             },
             title = {
-                Text("Refresh news interval")
+                Text(stringResource(id = R.string.settings_loadnewsinbackground_interval_name))
             },
             dismissButton = {
                 TextButton(
@@ -91,7 +91,14 @@ fun SettingsRefreshNewsInterval(
                         .fillMaxWidth()
                         .wrapContentHeight()
                 ) {
-                    Text("${newValue.value} minute${if (newValue.value > 1) "s" else ""}")
+                    Text(String.format(
+                        stringResource(id =
+                            if (newValue.value == 1)
+                                R.string.settings_loadnewsinbackground_interval_valuepartial
+                            else R.string.settings_loadnewsinbackground_interval_value
+                        ),
+                        newValue.value
+                    ))
                     Slider(
                         value = newValue.value.toFloat(),
                         onValueChange = {
@@ -117,7 +124,7 @@ fun SettingsRefreshNewsInterval(
                             contentDescription = "info_icon",
                             tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
                         )
-                        Text("This will change interval while checking news (like time break). Still in alpha.")
+                        Text(stringResource(id = R.string.settings_loadnewsinbackground_interval_description))
                     }
                 }
             }

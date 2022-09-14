@@ -23,8 +23,6 @@ import io.zoemeow.dutnotify.viewmodel.MainViewModel
 fun Account(
     mainViewModel: MainViewModel,
 ) {
-    val barTitle: MutableState<String> = remember { mutableStateOf("") }
-
     // Module for Logout alert dialog
     val dialogLogoutEnabled = remember { mutableStateOf(false) }
     AccountDialogLogout(
@@ -38,20 +36,6 @@ fun Account(
                 mainViewModel.accountCurrentPage.value = 1
         } else {
             mainViewModel.accountCurrentPage.value = 0
-        }
-    }
-
-    // Trigger when switch pages
-    LaunchedEffect(
-        mainViewModel.accountCurrentPage.value,
-    ) {
-        when (mainViewModel.accountCurrentPage.value) {
-            0 -> {
-                barTitle.value = "Not logged in"
-            }
-            1 -> {
-                barTitle.value = "Dashboard"
-            }
         }
     }
 
@@ -108,11 +92,8 @@ fun Account(
                     }
                 },
                 title = {
-                    Text(
-                        text = "${stringResource(id = R.string.topbar_account)}${
-                            if (barTitle.value.isNotEmpty()) " (${barTitle.value})" else ""
-                        }"
-                    )
+                    Text(stringResource(id = if (mainViewModel.accountDataStore.isStoreAccount())
+                        R.string.topbar_account_dashboard else R.string.topbar_account_notloggedin))
                 },
                 actions = {
                     if (mainViewModel.accountCurrentPage.value == 1) {

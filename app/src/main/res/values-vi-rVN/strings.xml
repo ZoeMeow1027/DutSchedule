@@ -2,14 +2,15 @@
 <resources>
     <string name="account_dashboard_dayandweekview_fetching">Chúng tôi đang tải lịch học của bạn. Vui lòng chờ…</string>
     <string name="account_dashboard_dayandweekview_nosubject">Bạn không có tiết học nào hôm nay.</string>
+    <string formatted="false" name="account_dashboard_dayandweekview_overview">Tổng quan (Tuần %d, %s)</string>
     <string name="account_dashboard_dayandweekview_subjectschedule">Lịch học</string>
+    <string formatted="false" name="account_dashboard_dayandweekview_subjectstatus">Tiết: %d-%d, phòng: %s</string>
     <string name="account_dashboard_dayandweekview_today">Hôm nay</string>
+    <string name="account_dashboard_dayandweekview_unknowndata">(không rõ dữ liệu)</string>
     <string name="account_dashboard_viewaccinfo">Xem thêm thông tin tài khoản</string>
     <string name="account_dashboard_viewsubjectfee">Xem toàn bộ học phí</string>
     <string name="account_dashboard_viewsubjectschedule">Xem toàn bộ lịch học và lịch thi</string>
     <string name="account_page_accinfo">Thông tin tài khoản</string>
-    <string name="account_page_dashboard">Dashboard</string>
-    <string name="account_page_notloggedin">Chưa đăng nhập</string>
     <string name="account_page_subjectfee">Học phí</string>
     <string name="account_page_subjectschedule">Lịch học</string>
 
@@ -23,15 +24,36 @@
     <string name="news_tab_global">Chung</string>
     <string name="news_tab_subject">Lớp HP</string>
 
-    <string name="notification_newsinbackground_faileddisabled">Chúng tôi đã gặp sự cố khi tắt tính năng cập nhật tin tức trong nền cho bạn!</string>
-    <string name="notification_newsinbackground_failedenabled">Chúng tôi đã gặp sự cố khi bật tính năng cập nhật tin tức trong nền cho bạn!</string>
-    <string name="notification_newsinbackground_failedextended">Bạn có thể thử lại. Nếu vẫn gặp sự cố, vui lòng báo cáo qua GitHub.</string>
-    <string name="notification_newsinbackground_successfuldisabled">Đã tắt tính năng cập nhật tin tức trong nền!</string>
-    <string name="notification_newsinbackground_successfulenabled">Đã bật tính năng cập nhật tin tức trong nền!</string>
+    <string formatted="false" name="newsdetails_subject_date">Ngày: %s</string>
+    <string formatted="false" name="newsdetails_subject_lessonleaving">Tiết học sẽ nghỉ: %s</string>
+    <string formatted="false" name="newsdetails_subject_lessonmakeup">Tiết học sẽ học bù: %s</string>
+    <string formatted="false" name="newsdetails_subject_room">Học bù vào phòng: %s</string>
+    <string formatted="false" name="newsdetails_subject_status">Trạng thái: %s</string>
+    <string name="newsdetails_subject_statusleaving">Nghỉ học</string>
+    <string name="newsdetails_subject_statusmakeup">Học bù</string>
+    <string formatted="false" name="newsdetails_subject_title">Tin tức lớp học phần từ %s</string>
+    <string name="newsdetails_title">Chi tiết tin tức</string>
 
+    <string name="notification_newsglobal_title">Thông báo chung</string>
+    <string formatted="false" name="notification_newssubject_appliedto">Áp dụng với: %s</string>
+    <string formatted="false" name="notification_newssubject_date">Vào lúc: %s</string>
+    <string name="notification_newssubject_leaving">nghỉ học</string>
+    <string formatted="false" name="notification_newssubject_lesson">Tiết học sẽ %s: %s</string>
+    <string name="notification_newssubject_makeup">học bù</string>
+    <string formatted="false" name="notification_newssubject_room">Trong phòng: %s</string>
+    <string formatted="false" name="notification_newssubject_title">Thông báo mới từ %s</string>
+    <string formatted="false" name="notification_newssubject_titlewitharg">Thông báo %s từ %s</string>
+    <string name="notification_newssubject_unknown">(không rõ)</string>
+
+    <string name="option_add">Thêm</string>
     <string name="option_cancel">Hủy</string>
     <string name="option_commit">Lưu thay đổi</string>
+    <string name="option_no">Không</string>
     <string name="option_ok">OK</string>
+    <string name="option_refresh">Tải lại</string>
+    <string name="option_yes">Có</string>
+
+    <string name="options_clearall">Xóa tất cả</string>
 
     <string name="settings_apptheme_dark">Chế độ tối</string>
     <string name="settings_apptheme_dynamiccolor_enable">Màu ứng dụng theo hệ thống</string>
@@ -40,31 +62,76 @@
     <string name="settings_apptheme_light">Chế độ sáng</string>
     <string name="settings_apptheme_name">Chủ đề ứng dụng</string>
     <string name="settings_apptheme_note">Hệ điều hành của bạn cần tối thiểu:\n- Android 9 để đặt chủ đề theo hệ thống.\n- Android 12 để bật chế độ màu ứng dụng theo hệ thống.</string>
+    <string name="settings_backgroundimage_disabledandroid13">Tính năng này tạm thời bị vô hiệu hóa ở Android 13</string>
     <string name="settings_backgroundimage_fromsystem">Từ hình nền thiết bị</string>
     <string name="settings_backgroundimage_name">Hình nền của ứng dụng</string>
     <string name="settings_backgroundimage_none">Không</string>
     <string name="settings_backgroundimage_note">Lưu ý:\n - Hãy nhớ rằng tùy chọn này vẫn đang ở trong giai đoạn thử nghiệm, nó có thể không hoạt động tốt.\n - \"Chọn một ảnh\" tạm thời bị vô hiệu hóa do chưa thể hoạt động.</string>
     <string name="settings_backgroundimage_specific">Chọn một ảnh</string>
     <string name="settings_blacktheme_description">Rất hữu ích trên thiết bị có màn hình AMOLED vì có thể tiết kiệm pin. Chỉ hoạt động khi ở chế độ tối. Hoạt động tốt khi tắt hình nền của ứng dụng.</string>
-    <string name="settings_blacktheme_name">Chế độ nền đen</string>
+    <string name="settings_blacktheme_name">Nền đen</string>
     <string name="settings_category_aboutapplication">Về ứng dụng</string>
     <string name="settings_category_account">Tài khoản</string>
     <string name="settings_category_appearance">Cá nhân hóa</string>
-    <string name="settings_category_loadnewsinbackground">Tải tin tức trong nền</string>
     <string name="settings_category_miscellaneous">Linh tinh</string>
-    <string name="settings_changelog_description">Nhấn vào đây để xem lịch sử phiên bản của ứng dụng này.</string>
+    <string name="settings_category_news">Tin tức</string>
+    <string name="settings_changelog_description">Nhấn vào đây để xem lịch sử phiên bản của ứng dụng này trên GitHub</string>
     <string name="settings_changelog_name">Lịch sử phiên bản</string>
-    <string name="settings_github_name">GitHub (nhấn để mở repo)</string>
-    <string name="settings_loadnewsinbackground_enabled_description">Bật tính năng này để cập nhật tin tức, ngay cả khi bạn tắt ứng dụng, không phải buộc dừng nó ;))</string>
-    <string name="settings_loadnewsinbackground_enabled_name">Bật tính năng này</string>
+    <string name="settings_githubrepo_name">GitHub Repository (nhấn để mở)</string>
+    <string name="settings_loadnewsinbackground_description">Cập nhật và thông báo tin tức trong nền cho bạn</string>
+    <string name="settings_loadnewsinbackground_interval_description">Khoảng thời gian nghỉ của ứng dụng giữa các lúc kiểm tra tin tức. Đang trong beta.</string>
     <string name="settings_loadnewsinbackground_interval_name">Khoảng thời gian nghỉ</string>
+    <string name="settings_loadnewsinbackground_interval_value">Mỗi %d phút</string>
+    <string name="settings_loadnewsinbackground_interval_valuepartial">Mỗi %d phút</string>
+    <string name="settings_loadnewsinbackground_name">Tải tin tức trong nền</string>
+    <string name="settings_loadnewsinbackground_timeactive_description">Cài đặt này sẽ thay đổi khoảng thời gian ứng dụng sử dụng để tránh việc sử dụng dữ liệu và pin lúc buổi tối. Vẫn đang trong beta.</string>
+    <string name="settings_loadnewsinbackground_timeactive_guide">Nhấp vào thời gian bạn muốn chỉnh và nhớ lưu thay đổi nếu bạn đã thay đổi xong.</string>
     <string name="settings_loadnewsinbackground_timeactive_name">Khoảng thời gian hoạt động</string>
-    <string name="settings_loadnewsinbackground_timeactive_value" formatted="false">Từ %s đến %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_timeend">Thời gian kết thúc</string>
+    <string name="settings_loadnewsinbackground_timeactive_timestart">Thời gian bắt đầu</string>
+    <string formatted="false" name="settings_loadnewsinbackground_timeactive_value">Từ %s đến %s%s</string>
     <string name="settings_loadnewsinbackground_timeactive_valueextended">hôm sau</string>
-    <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định.</string>
+    <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định</string>
     <string name="settings_openlinkincustomtab_name">Mở liên kết trong ứng dụng</string>
+    <string formatted="false" name="settings_schoolyear_afterchange">Năm học của bạn sau khi lưu thay đổi:\n - Năm học: 20%d - 20%d\n - Học kỳ: %d</string>
+    <string name="settings_schoolyear_name">Năm học</string>
+    <string name="settings_schoolyear_schoolyearmodifyoption">Năm học</string>
+    <string name="settings_schoolyear_semestermodifyoption">Học kỳ</string>
+    <string formatted="false" name="settings_schoolyear_value">Năm học 20%d-20%d, học kỳ %d (sẽ ảnh hưởng đến hiển thị lịch học của bạn)</string>
+    <string name="settings_subjectnewsfilter_description">Chỉ nhận thông báo về lớp học phần mà bạn đã chọn</string>
+    <string name="settings_subjectnewsfilter_name">Lọc thông báo lớp học phần</string>
     <string name="settings_version_name">Phiên bản</string>
 
+    <string name="snackbar_newsinbackground_faileddisabled">Chúng tôi đã gặp sự cố khi tắt tính năng cập nhật tin tức trong nền cho bạn!</string>
+    <string name="snackbar_newsinbackground_failedenabled">Chúng tôi đã gặp sự cố khi bật tính năng cập nhật tin tức trong nền cho bạn!</string>
+    <string name="snackbar_newsinbackground_failedextended">Bạn có thể thử lại. Nếu vẫn gặp sự cố, vui lòng báo cáo qua GitHub.</string>
+    <string name="snackbar_newsinbackground_successfuldisabled">Đã tắt tính năng cập nhật tin tức trong nền!</string>
+    <string name="snackbar_newsinbackground_successfulenabled">Đã bật tính năng cập nhật tin tức trong nền!</string>
+
+    <string name="subjectnewsfilter_addbyschedule_adddropdownname">Chọn môn học của bạn</string>
+    <string name="subjectnewsfilter_addbyschedule_addtips">Chọn một môn học và nhấn \"Thêm\" để thêm vào bộ lọc ở trên. Môn học đã thêm ở trên sẽ không xuất hiện ở đây nữa.</string>
+    <string name="subjectnewsfilter_addbyschedule_checkyouraccount">Bạn cần kiểm tra lại tài khoản hoặc kết nối mạng của bạn trước khi sử dụng tùy chọn này.</string>
+    <string name="subjectnewsfilter_addbyschedule_loadingsubject">Chúng tôi đang tải lịch học của bạn. Vui lòng chờ…</string>
+    <string name="subjectnewsfilter_addbyschedule_loggingin">Chúng tôi đang đăng nhập lại cho bạn. Vui lòng chờ…</string>
+    <string name="subjectnewsfilter_addbyschedule_name">Thêm từ lịch học của bạn</string>
+    <string name="subjectnewsfilter_addfromsubjectschedule_nomore">Không còn lớp học phần có sẵn</string>
+    <string name="subjectnewsfilter_addmanually_addtips">Thêm bộ lọc thủ công của bạn (bạn có thể xem mẫu trong sv.dut.udn.vn) và nhấn \"Thêm\" để thêm bộ lọc ở trên.\n\nVí dụ:\n- 19 | 01 | Tên môn học\n- xx | 94A | Tên môn học\n\nLưu ý:\n- Bạn cần nhập cẩn thận, nếu không bạn sẽ không nhận thông báo chính xác nữa.\n- Bạn có thể sử dụng \"Xóa tất cả\" ở dưới để đặt lại bộ lọc.</string>
+    <string name="subjectnewsfilter_addmanually_subjecttextbox">Tên môn học</string>
+    <string name="subjectnewsfilter_addmanually_title">Thêm bộ lọc thủ công</string>
+    <string name="subjectnewsfilter_clearall_deletetips">Chỉ cần nhấn nút ở dưới để xóa tất cả.\nChú ý:\n- Điều này sẽ xóa tất cả bộ lọc mà bạn đã thêm trước đó và không thể hoàn tác.\n- Nếu bạn chưa lưu và muốn thay đổi quyết định, hãy thoát cài đặt này và chọn KHÔNG LƯU THAY ĐỔI.</string>
+    <string name="subjectnewsfilter_clearall_title">Xóa tất cả bộ lọc</string>
+    <string name="subjectnewsfilter_currentlist_empty">- Danh sách hiện tại của bạn đang trống! Điều đó có nghĩa là ứng dụng sẽ thông báo tất cả tin tức lớp học phần cho bạn.\n- Để bật tính năng này, chỉ cần thêm một bộ lọc. Danh sách bộ lọc của bạn sẽ hiển thị tại đây.</string>
+    <string name="subjectnewsfilter_currentlist_name">Danh sách bộ lọc hiện tại</string>
+    <string name="subjectnewsfilter_currentlist_notempty">Danh sách bộ lọc hiện tại của bạn (nhấn vào một mục để xóa)</string>
+    <string name="subjectnewsfilter_savechanges_description">Bạn có thay đổi chưa được lưu. Lưu chúng?</string>
+    <string name="subjectnewsfilter_savechanges_title">Lưu thay đổi cài đặt?</string>
+    <string formatted="false" name="subjectnewsfilter_snackbar_added">Đã thêm %s</string>
+    <string formatted="false" name="subjectnewsfilter_snackbar_deleted">Đã xóa %s</string>
+    <string name="subjectnewsfilter_snackbar_deletedall">Đã xóa tất cả bộ lọc! Nhớ lưu lại để thay đổi có hiệu lực.</string>
+    <string name="subjectnewsfilter_snackbar_successful">Đã lưu thay đổi!</string>
+
     <string name="topbar_account">Tài khoản</string>
+    <string name="topbar_account_dashboard">Tài khoản (Bảng điều khiển)</string>
+    <string name="topbar_account_notloggedin">Tài khoản (Chưa đăng nhập)</string>
     <string name="topbar_news">Tin tức</string>
 </resources>

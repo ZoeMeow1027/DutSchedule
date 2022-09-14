@@ -146,15 +146,15 @@ fun AccountPageDashboard(
             onYearChanged = { },
             onResetView = {
                 dayOfWeek.value = getCurrentDayOfWeek() - 1
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
-                    week = week.value,
-                    dayOfWeek = dayOfWeek.value
-                )
                 week.value = getDUTWeek()
                 weekList.apply {
                     clear()
                     addAll(getDateListFromWeek(week = week.value))
                 }
+                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                    week = week.value,
+                    dayOfWeek = dayOfWeek.value
+                )
             },
             onItemClicked = {
                 mainViewModel.subjectScheduleItem.value = it

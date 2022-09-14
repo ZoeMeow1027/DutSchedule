@@ -46,7 +46,7 @@ fun News(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
-                title = { Text(stringResource(id = R.string.navbar_news)) },
+                title = { Text(stringResource(id = R.string.topbar_news)) },
                 actions = {
                     var count = 0
                     for (tabItem in tabList) {

@@ -288,10 +288,10 @@ fun MainActivity.onPermissionResult(
                 try {
                     val msg: String
                     if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                        msg = getString(R.string.notification_newsinbackground_successfulenabled)
+                        msg = getString(R.string.snackbar_newsinbackground_successfulenabled)
                         NewsService.startService(this)
                     } else {
-                        msg = getString(R.string.notification_newsinbackground_successfuldisabled)
+                        msg = getString(R.string.snackbar_newsinbackground_successfuldisabled)
                         NewsService.cancelSchedule(this)
                     }
                     if (notifyToUser)
@@ -306,9 +306,9 @@ fun MainActivity.onPermissionResult(
                         )
                     mainViewModel.requestSaveChanges()
                     mainViewModel.showSnackBarMessage(
-                        if (valueBefore) getString(R.string.notification_newsinbackground_failedenabled)
-                        else getString(R.string.notification_newsinbackground_faileddisabled) + " " +
-                        getString(R.string.notification_newsinbackground_failedextended),
+                        if (valueBefore) getString(R.string.snackbar_newsinbackground_failedenabled)
+                        else getString(R.string.snackbar_newsinbackground_faileddisabled) + " " +
+                        getString(R.string.snackbar_newsinbackground_failedextended),
                     )
                 }
             }
