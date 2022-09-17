@@ -78,6 +78,12 @@ class AccountModule {
         else accountSession.sessionIdLastRequest = 0
     }
 
+    private fun clearLogin() {
+        accountSession.sessionId = ""
+        accountSession.username = null
+        accountSession.password = null
+    }
+
     /**
      * Get new Session ID from sv.dut.udn.vn.
      */
@@ -177,13 +183,13 @@ class AccountModule {
     ) {
         try {
             CoroutineScope(Dispatchers.IO).launch {
-                accountSession.username = null
-                accountSession.password = null
-                kotlin.runCatching {
-                    Account.logout(accountSession.sessionId)
-                }
+                val temp = accountSession.sessionId
+                clearLogin()
                 generateNewSessionId()
                 updateSessionIdLastRequest()
+                kotlin.runCatching {
+                    Account.logout(temp)
+                }
             }
 
             saveSettings()

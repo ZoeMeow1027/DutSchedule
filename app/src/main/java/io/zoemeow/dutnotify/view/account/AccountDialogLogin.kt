@@ -1,5 +1,6 @@
 package io.zoemeow.dutnotify.view.account
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,13 +12,17 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
@@ -28,6 +33,7 @@ fun AccountDialogLogin(
 ) {
     val passTextFieldFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current as MainActivity
 
     val enabledControl: MutableState<Boolean> = remember { mutableStateOf(true) }
     val username: MutableState<String> = remember { mutableStateOf("") }
@@ -36,11 +42,21 @@ fun AccountDialogLogin(
 
     fun login() {
         focusManager.clearFocus()
-        mainViewModel.accountDataStore.login(
-            username = username.value,
-            password = password.value,
-            remembered = rememberLogin.value
-        )
+        // mainViewModel.accountDataStore.login(
+        //     username = username.value,
+        //     password = password.value,
+        //     remembered = rememberLogin.value
+        // )
+
+        Intent(context, AccountService::class.java).apply {
+            putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGIN)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_USERNAME, username.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PASSWORD, password.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_REMEMBERED, rememberLogin.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PRELOAD, true)
+        }.also {
+            context.startService(it)
+        }
     }
 
     @Composable

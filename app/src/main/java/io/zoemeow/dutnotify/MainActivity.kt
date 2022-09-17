@@ -29,9 +29,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.utils.NotificationsUtils
@@ -87,12 +89,18 @@ class MainActivity : ComponentActivity() {
                 // this will be scheduled to new UnixTimestamp.
                 NewsService.startService(context = applicationContext)
 
-                // Re-login
-                mainViewModel.accountDataStore.reLogin(
-                    silent = false,
-                    reloadSubject = true,
-                    schoolYearItem = mainViewModel.appSettings.value.schoolYear,
-                )
+                Intent(this@MainActivity, AccountService::class.java).apply {
+                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
+                }.also {
+                    this@MainActivity.startService(it)
+                }
+
+                Intent(this@MainActivity, AccountService::class.java).apply {
+                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
+                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
+                }.also {
+                    this@MainActivity.startService(it)
+                }
 
                 isInitialized = true
             }

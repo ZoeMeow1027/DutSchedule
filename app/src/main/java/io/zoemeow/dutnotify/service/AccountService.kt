@@ -3,9 +3,12 @@ package io.zoemeow.dutnotify.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutnotify.model.account.AccountCache
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
@@ -14,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@Suppress("SpellCheckingInspection")
+@Suppress("SpellCheckingInspection", "DEPRECATION")
 class AccountService: Service() {
     override fun onCreate() {
         initialize()
@@ -22,19 +25,67 @@ class AccountService: Service() {
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.d("AccountService", "Triggered")
 
+        when (intent.getStringExtra(AccountServiceCode.ACTION)) {
+            AccountServiceCode.ACTION_LOGINSTARTUP -> {
+                Log.d("AccountService", "Triggered relogin")
+                val preload = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, false)
+                reLogin(preload)
+            }
+            AccountServiceCode.ACTION_LOGIN -> {
+                val username = intent.getStringExtra(AccountServiceCode.ARGUMENT_LOGIN_USERNAME)
+                val password = intent.getStringExtra(AccountServiceCode.ARGUMENT_LOGIN_PASSWORD)
+                val remember = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGIN_REMEMBERED, false)
+                val preload = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGIN_PRELOAD, false)
+                if (username == null || password == null) {
+                    // TODO: Invaild value here!
+                } else login(username, password, remember, preload)
+            }
+            AccountServiceCode.ACTION_LOGOUT -> {
+                Log.d("AccountService", "Triggered logout")
+                logout()
+            }
+            AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {
+                try {
+                    val schoolYearItem = intent.getSerializableExtra(AccountServiceCode.ARGUMENT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
+                    fetchSubjectSchedule(schoolYearItem)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                    fetchSubjectSchedule()
+                }
+            }
+            AccountServiceCode.ACTION_SUBJECTFEE -> {
+                try {
+                    val schoolYearItem = intent.getSerializableExtra(AccountServiceCode.ARGUMENT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
+                    fetchSubjectFee(schoolYearItem)
+                } catch (ex: Exception) {
+                    ex.printStackTrace()
+                    fetchSubjectFee()
+                }
+            }
+            AccountServiceCode.ACTION_ACCOUNTINFORMATION -> {
+                fetchAccountInformation()
+            }
+            AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN -> {
+                // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
+                Intent(AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN).apply {
+                    putExtra(AccountServiceCode.DATA, accModule.hasSavedLogin())
+                }.also {
+                    sendBroadcast(it)
+                }
+            }
+            else -> { }
+        }
 
-        return START_STICKY
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
         // TODO("Not yet implemented")
+        Log.d("AccountService", "onBind()")
         return null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
     private lateinit var file: FileModule
@@ -51,6 +102,7 @@ class AccountService: Service() {
         if (!this::file.isInitialized) {
             file = FileModule(this)
             accModule = AccountModule()
+            accModule.loadSettings(file.getAccountSettings())
         }
     }
 
@@ -76,8 +128,8 @@ class AccountService: Service() {
 
         if (isProcessingLogin) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_LOGIN).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -86,8 +138,8 @@ class AccountService: Service() {
 
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
         isProcessingLogin = true
-        Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_LOGIN).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
@@ -100,13 +152,13 @@ class AccountService: Service() {
                     remember = remembered,
                     forceReLogin = true,
                     onResult = { result ->
-                        val intent = Intent(AccountBroadcastReceiver.STATUS_LOGIN)
+                        val intent = Intent(AccountServiceCode.ACTION_LOGIN)
                         if (result) {
                             // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
                         } else {
                             // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_FAILED)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
 
                         isProcessingLogin = false
@@ -130,8 +182,8 @@ class AccountService: Service() {
 
         if (isProcessingLogin) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_LOGOUT).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -140,22 +192,22 @@ class AccountService: Service() {
 
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
         isProcessingLogin = true
-        Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_LOGOUT).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
-                accModule.logout(
-                    onResult = { _ ->
-                        // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                        isProcessingLogin = false
-                        saveSettings()
+                // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
+                isProcessingLogin = false
 
-                        val intent = Intent(AccountBroadcastReceiver.STATUS_LOGIN)
-                        intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
+                accModule.logout(
+                    onResult = {
+                        saveSettings()
+                        val intent = Intent(AccountServiceCode.ACTION_LOGOUT)
+                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
                         sendBroadcast(intent)
                     }
                 )
@@ -170,8 +222,8 @@ class AccountService: Service() {
 
         if (isProcessingSubjectSchedule) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_SUBJECTSCHEDULE).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -179,8 +231,8 @@ class AccountService: Service() {
         }
 
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountBroadcastReceiver.STATUS_SUBJECTSCHEDULE).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
@@ -191,18 +243,18 @@ class AccountService: Service() {
                 accModule.getSubjectSchedule(
                     schoolYearItem = schoolYearItem,
                     onResult = { arrayList ->
-                        val intent = Intent(AccountBroadcastReceiver.STATUS_SUBJECTSCHEDULE)
+                        val intent = Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE)
 
                         if (arrayList != null) {
                             appCache.subjectScheduleList.clear()
                             appCache.subjectScheduleList.addAll(arrayList)
 
                             // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_DATA, appCache.subjectScheduleList)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
+                            intent.putExtra(AccountServiceCode.DATA, appCache.subjectScheduleList)
                         } else {
                             // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_FAILED)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
 
                         isProcessingSubjectSchedule = false
@@ -222,8 +274,8 @@ class AccountService: Service() {
 
         if (isProcessingSubjectFee) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_SUBJECTFEE).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_SUBJECTFEE).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -231,8 +283,8 @@ class AccountService: Service() {
         }
 
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountBroadcastReceiver.STATUS_SUBJECTFEE).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_SUBJECTFEE).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
@@ -243,18 +295,18 @@ class AccountService: Service() {
                 accModule.getSubjectFee(
                     schoolYearItem = schoolYearItem,
                     onResult = { arrayList ->
-                        val intent = Intent(AccountBroadcastReceiver.STATUS_SUBJECTFEE)
+                        val intent = Intent(AccountServiceCode.ACTION_SUBJECTFEE)
 
                         if (arrayList != null) {
                             appCache.subjectFeeList.clear()
                             appCache.subjectFeeList.addAll(arrayList)
 
                             // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_DATA, arrayList)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
+                            intent.putExtra(AccountServiceCode.DATA, arrayList)
                         } else {
                             // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_FAILED)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
 
                         isProcessingSubjectFee = false
@@ -272,8 +324,8 @@ class AccountService: Service() {
 
         if (isProcessingAccountInformation) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_ACCOUNTINFORMATION).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -282,8 +334,8 @@ class AccountService: Service() {
 
         isProcessingAccountInformation = true
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountBroadcastReceiver.STATUS_ACCOUNTINFORMATION).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
@@ -292,17 +344,17 @@ class AccountService: Service() {
             withContext(Dispatchers.IO) {
                 accModule.getAccountInformation(
                     onResult = { item ->
-                        val intent = Intent(AccountBroadcastReceiver.STATUS_ACCOUNTINFORMATION)
+                        val intent = Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION)
 
                         if (item != null) {
                             appCache.accountInformation = item
 
                             // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_DATA, item)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
+                            intent.putExtra(AccountServiceCode.DATA, item)
                         } else {
                             // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_FAILED)
+                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
 
                         isProcessingAccountInformation = false
@@ -322,8 +374,8 @@ class AccountService: Service() {
 
         if (isProcessingLogin) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-                putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_ALREADYPROCESSING)
+            Intent(AccountServiceCode.ACTION_LOGINSTARTUP).apply {
+                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
             }.also {
                 sendBroadcast(it)
             }
@@ -332,8 +384,8 @@ class AccountService: Service() {
 
         isProcessingLogin = true
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountBroadcastReceiver.STATUS_LOGIN).apply {
-            putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_PROCESSING)
+        Intent(AccountServiceCode.ACTION_LOGINSTARTUP).apply {
+            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
         }.also {
             sendBroadcast(it)
         }
@@ -341,17 +393,18 @@ class AccountService: Service() {
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 accModule.checkIsLoggedIn { result ->
-                    val intent = Intent(AccountBroadcastReceiver.STATUS_LOGIN)
+                    val intent = Intent(AccountServiceCode.ACTION_LOGINSTARTUP)
 
                     if (result) {
                         // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                        intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_SUCCESSFUL)
+                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
                     } else {
                         // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                        intent.putExtra(AccountBroadcastReceiver.DATATYPE_STATUS, AccountBroadcastReceiver.STATUSTYPE_FAILED)
+                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                     }
                     saveSettings()
 
+                    isProcessingLogin = false
                     sendBroadcast(intent)
 
                     if (preload && result) {
@@ -362,5 +415,9 @@ class AccountService: Service() {
                 }
             }
         }
+    }
+
+    override fun sendBroadcast(intent: Intent) {
+        LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
     }
 }

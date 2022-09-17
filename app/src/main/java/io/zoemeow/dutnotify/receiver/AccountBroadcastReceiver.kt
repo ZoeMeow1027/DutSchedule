@@ -3,31 +3,12 @@ package io.zoemeow.dutnotify.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 
 abstract class AccountBroadcastReceiver: BroadcastReceiver() {
-    @Suppress("SpellCheckingInspection")
-    companion object {
-        const val STATUS_LOGIN = "status.login"
-        const val STATUS_SUBJECTSCHEDULE = "status.subjectschedule"
-        const val STATUS_SUBJECTFEE = "status.subjectfee"
-        const val STATUS_ACCOUNTINFORMATION = "status.accountinformation"
-
-        // Optimal
-        const val DATATYPE_STATUS = "datatype.statustype"
-        const val DATATYPE_DATA = "datatype.data"
-        const val DATATYPE_MSG_ERROR = "datatype.msg.error"
-
-        // Required
-        const val STATUSTYPE_UNKNOWN = "statustype.unknown"
-        const val STATUSTYPE_PROCESSING = "statustype.processing"
-        const val STATUSTYPE_ALREADYPROCESSING = "statustype.alreadyprocessing"
-        const val STATUSTYPE_SUCCESSFUL = "statustype.successful"
-        const val STATUSTYPE_FAILED = "statustype.failed"
-    }
-
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
-        intent.getStringExtra(DATATYPE_STATUS).also {
+        intent.getStringExtra(AccountServiceCode.STATUS).also {
             if (it != null) {
                 onStatusReceived(
                     key = intent.action ?: "",
@@ -35,7 +16,7 @@ abstract class AccountBroadcastReceiver: BroadcastReceiver() {
                 )
             }
         }
-        intent.getSerializableExtra(DATATYPE_DATA).also {
+        intent.getSerializableExtra(AccountServiceCode.DATA).also {
             if (it != null) {
                 onDataReceived(
                     key = intent.action ?: "",
@@ -43,7 +24,7 @@ abstract class AccountBroadcastReceiver: BroadcastReceiver() {
                 )
             }
         }
-        intent.getStringExtra(DATATYPE_MSG_ERROR).also {
+        intent.getStringExtra(AccountServiceCode.ERRORMESSAGE).also {
             if (it != null) {
                 onErrorReceived(
                     key = intent.action ?: "",

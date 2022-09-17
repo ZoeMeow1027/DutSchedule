@@ -104,7 +104,7 @@ fun AccountPageDashboard(
         )
     }
 
-    val dayOfWeek = remember { mutableStateOf(getCurrentDayOfWeek() - 1) }
+    val dayOfWeek = remember { mutableStateOf(if (getCurrentDayOfWeek() - 1 == 0) 7 else getCurrentDayOfWeek() - 1) }
     val week = remember { mutableStateOf(getDUTWeek()) }
     val weekList = remember { mutableStateListOf<LocalDate>().apply {
         addAll(getDateListFromWeek(week = week.value))
@@ -120,11 +120,11 @@ fun AccountPageDashboard(
     ) {
         AccountSubWeekList(
             mainViewModel = mainViewModel,
-            isGettingData = (mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running),
+            isGettingData = (mainViewModel.Account_Process_SubjectSchedule.value == ProcessState.Running),
             dayOfWeek = dayOfWeek.value,
             onDayOfWeekChanged = {
                 dayOfWeek.value = it
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                mainViewModel.filterSubjectScheduleByDay(
                     week = week.value,
                     dayOfWeek = dayOfWeek.value
                 )
@@ -137,7 +137,7 @@ fun AccountPageDashboard(
                     clear()
                     addAll(getDateListFromWeek(week = week.value))
                 }
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                mainViewModel.filterSubjectScheduleByDay(
                     week = week.value,
                     dayOfWeek = dayOfWeek.value
                 )
@@ -146,12 +146,13 @@ fun AccountPageDashboard(
             onYearChanged = { },
             onResetView = {
                 dayOfWeek.value = getCurrentDayOfWeek() - 1
+                if (dayOfWeek.value == 0) dayOfWeek.value = 7
                 week.value = getDUTWeek()
                 weekList.apply {
                     clear()
                     addAll(getDateListFromWeek(week = week.value))
                 }
-                mainViewModel.accountDataStore.filterSubjectScheduleByDay(
+                mainViewModel.filterSubjectScheduleByDay(
                     week = week.value,
                     dayOfWeek = dayOfWeek.value
                 )
@@ -178,8 +179,10 @@ fun AccountPageDashboard(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BasicInformation(
-                    username = mainViewModel.accountDataStore.username.value,
-                    accountInformation = mainViewModel.accountDataStore.accountInformation.value,
+                    username = mainViewModel.Account_Data_AccountInformation.value?.studentId ?: "(unknown)",
+//                    username = mainViewModel.accountDataStore.username.value,
+                    accountInformation = mainViewModel.Account_Data_AccountInformation.value,
+//                    accountInformation = mainViewModel.accountDataStore.accountInformation.value,
                 )
                 Spacer(modifier = Modifier.size(15.dp))
                 CustomButton(
