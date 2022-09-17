@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
+import io.zoemeow.dutnotify.model.account.AccountCache
 import io.zoemeow.dutnotify.model.account.AccountSession
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.news.NewsCache
@@ -17,6 +18,7 @@ class FileModule(
     private val pathNewsCacheSubject = "${context.cacheDir.path}/cache_news_subject.json"
     private val pathSettings = "${context.filesDir.path}/settings.json"
     private val pathAccountSettings = "${context.filesDir.path}/account.json"
+    private val pathAccountCache = "${context.filesDir.path}/cache_account.json"
 
     fun saveCacheNewsGlobal(
         newsCacheGlobal: NewsCache<NewsGlobalItem>
@@ -118,5 +120,30 @@ class FileModule(
     ) {
         val file = File(pathAccountSettings)
         file.writeText(Gson().toJson(accountSession))
+    }
+
+    fun getAccountCache(): AccountCache {
+        val file = File(pathAccountCache)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val accountCache = Gson().fromJson<AccountCache>(
+                    text,
+                    (object : TypeToken<AccountCache>() {}.type)
+                )
+                this.close()
+                return accountCache
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return AccountCache()
+        }
+    }
+
+    fun saveAccountCache(
+        accountCache: AccountCache
+    ) {
+        val file = File(pathAccountCache)
+        file.writeText(Gson().toJson(accountCache))
     }
 }

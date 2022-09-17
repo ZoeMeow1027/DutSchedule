@@ -26,7 +26,6 @@ import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getCurrentDayOfWeek
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

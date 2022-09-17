@@ -320,8 +320,12 @@ class NewsService : Service() {
                 // Lessons
                 notifyContentList.add(String.format(
                     getString(R.string.notification_newssubject_lesson),
-                    if (newsItem.affectedLesson != null)
-                        newsItem.affectedLesson else getString(R.string.notification_newssubject_unknown)
+                    when (newsItem.lessonStatus) {
+                        LessonStatus.Leaving -> getString(R.string.notification_newssubject_leaving)
+                        LessonStatus.MakeUp -> getString(R.string.notification_newssubject_makeup)
+                        else -> ""
+                    },
+                    if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else getString(R.string.notification_newssubject_unknown),
                 ))
                 // Make-up room
                 if (newsItem.lessonStatus == LessonStatus.MakeUp) {
