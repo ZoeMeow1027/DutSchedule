@@ -147,19 +147,19 @@ class MainActivity : ComponentActivity() {
                                 val intent = Intent(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
                                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
                             }
-                            MainNavRoutes.Account.route -> {
-                                if (arrayListOf(
-                                        LoginState.NotTriggered,
-                                        LoginState.NotLoggedIn
-                                    ).contains(mainViewModel.accountDataStore.loginState.value)
-                                ) {
-                                    if (mainViewModel.accountCurrentPage.value != 0)
-                                        mainViewModel.accountCurrentPage.value = 0
-                                } else {
-                                    if (mainViewModel.accountCurrentPage.value != 1)
-                                        mainViewModel.accountCurrentPage.value = 1
-                                }
-                            }
+//                            MainNavRoutes.Account.route -> {
+//                                if (arrayListOf(
+//                                        LoginState.NotTriggered,
+//                                        LoginState.NotLoggedIn
+//                                    ).contains(mainViewModel.accountDataStore.loginState.value)
+//                                ) {
+//                                    if (mainViewModel.accountCurrentPage.value != 0)
+//                                        mainViewModel.accountCurrentPage.value = 0
+//                                } else {
+//                                    if (mainViewModel.accountCurrentPage.value != 1)
+//                                        mainViewModel.accountCurrentPage.value = 1
+//                                }
+//                            }
                             else -> {}
                         }
                     }

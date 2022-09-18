@@ -87,8 +87,8 @@ fun AccountDialogLogin(
         }
     }
 
-    LaunchedEffect(mainViewModel.accountDataStore.loginState.value) {
-        when (mainViewModel.accountDataStore.loginState.value) {
+    LaunchedEffect(mainViewModel.Account_LoginProcess.value) {
+        when (mainViewModel.Account_LoginProcess.value) {
             LoginState.NotLoggedIn, LoginState.NotLoggedInButRemembered, LoginState.NotTriggered -> {
                 // Enable controls again
                 enabledControl.value = true
@@ -212,7 +212,7 @@ fun AccountDialogLogin(
                         Text("Remember your login")
                     }
                     Spacer(modifier = Modifier.size(15.dp))
-                    LoggingIn(mainViewModel.accountDataStore.loginState.value)
+                    LoggingIn(mainViewModel.Account_LoginProcess.value)
                 }
             }
         )

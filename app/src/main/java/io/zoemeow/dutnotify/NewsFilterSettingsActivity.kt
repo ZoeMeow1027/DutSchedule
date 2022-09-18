@@ -35,10 +35,12 @@ import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
@@ -58,15 +60,21 @@ class NewsFilterSettingsActivity: ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 registerBroadcastReceiver(context = applicationContext)
-
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
 
                 // Re-login to receive new data from server.
-                mainViewModel.accountDataStore.reLogin(
-                    silent = true,
-                    reloadSubject = true,
-                    schoolYearItem = mainViewModel.appSettings.value.schoolYear,
-                )
+                Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
+                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
+                }.also {
+                    this@NewsFilterSettingsActivity.startService(it)
+                }
+
+                Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
+                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
+                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
+                }.also {
+                    this@NewsFilterSettingsActivity.startService(it)
+                }
             }
 
             MainActivityTheme(
@@ -270,7 +278,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         fun updateRequested() {
             availableList.apply {
                 clear()
-                mainViewModel.accountDataStore.subjectSchedule.forEach {
+                mainViewModel.Account_Data_SubjectSchedule.forEach {
                     val item = SubjectCode(
                         studentYearId = it.id.studentYearId,
                         classId = it.id.classId,
@@ -336,7 +344,12 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                     ))
                 },
                 reloadAvailableNewsRequested = {
-                    mainViewModel.accountDataStore.fetchSubjectSchedule()
+                    Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
+                        putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                    }.also {
+                        this@NewsFilterSettingsActivity.startService(it)
+                    }
+                    // mainViewModel.accountDataStore.fetchSubjectSchedule()
                 },
                 expended = columnAddBySubSch.value,
                 onExpended = {
@@ -450,116 +463,125 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (mainViewModel.accountDataStore.loginState.value == LoginState.LoggingIn) {
-                            Text(
-                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loggingin),
-                                modifier = Modifier.padding(bottom = 10.dp)
-                            )
-                            CircularProgressIndicator()
-                        }
-                        else if (mainViewModel.accountDataStore.loginState.value != LoginState.LoggedIn) {
-                            Text(
-                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_checkyouraccount),
-                                modifier = Modifier.padding(bottom = 10.dp)
-                            )
-                        }
-                        else if (mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running) {
-                            Text(
-                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loadingsubject),
-                                modifier = Modifier.padding(bottom = 10.dp)
-                            )
-                            CircularProgressIndicator()
-                        }
-                        else {
-                            val dropDownExpanded = remember { mutableStateOf(false) }
-                            LaunchedEffect(Unit) {
-                                updateRequested()
-                            }
-
-                            Text(
-                                text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_addtips),
-                                modifier = Modifier.padding(bottom = 15.dp)
-                            )
-                            ExposedDropdownMenuBox(
-                                expanded = dropDownExpanded.value,
-                                onExpandedChange = {
-                                    if (availableList.isNotEmpty())
-                                        dropDownExpanded.value = !dropDownExpanded.value
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(bottom = 5.dp)
-                            ) {
-                                OutlinedTextField(
-                                    readOnly = true,
-                                    value = selectedFilterValue.value,
-                                    onValueChange = {},
-                                    label = { Text(stringResource(id = R.string.subjectnewsfilter_addbyschedule_adddropdownname)) },
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropDownExpanded.value) },
-                                    colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(bottom = 5.dp)
+                        when (mainViewModel.Account_LoginProcess.value) {
+                            LoginState.LoggingIn -> {
+                                Text(
+                                    text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loggingin),
+                                    modifier = Modifier.padding(bottom = 10.dp)
                                 )
-                                ExposedDropdownMenu(
-                                    expanded = dropDownExpanded.value,
-                                    onDismissRequest = { dropDownExpanded.value = false },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight()
-                                        .padding(bottom = 5.dp)
-                                ) {
-                                    availableList.forEach {
-                                        DropdownMenuItem(
-                                            text = { Text(it.name) },
-                                            onClick = {
-                                                selectedIndex.value = availableList.indexOf(it)
-                                                dropDownExpanded.value = false
-                                                updateRequested()
-                                            }
+                                CircularProgressIndicator()
+                            }
+                            LoginState.NotLoggedInButRemembered,
+                            LoginState.NotLoggedIn,
+                            LoginState.NotTriggered,
+                            LoginState.AccountLocked -> {
+                                Text(
+                                    text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_checkyouraccount),
+                                    modifier = Modifier.padding(bottom = 10.dp)
+                                )
+                            }
+                            LoginState.LoggedIn -> {
+                                when (mainViewModel.Account_Process_SubjectSchedule.value) {
+                                    ProcessState.Running -> {
+                                        Text(
+                                            text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_loadingsubject),
+                                            modifier = Modifier.padding(bottom = 10.dp)
                                         )
+                                        CircularProgressIndicator()
+                                    }
+                                    else -> {
+                                        val dropDownExpanded = remember { mutableStateOf(false) }
+                                        LaunchedEffect(Unit) {
+                                            updateRequested()
+                                        }
+
+                                        Text(
+                                            text = stringResource(id = R.string.subjectnewsfilter_addbyschedule_addtips),
+                                            modifier = Modifier.padding(bottom = 15.dp)
+                                        )
+                                        ExposedDropdownMenuBox(
+                                            expanded = dropDownExpanded.value,
+                                            onExpandedChange = {
+                                                if (availableList.isNotEmpty())
+                                                    dropDownExpanded.value = !dropDownExpanded.value
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(bottom = 5.dp)
+                                        ) {
+                                            OutlinedTextField(
+                                                readOnly = true,
+                                                value = selectedFilterValue.value,
+                                                onValueChange = {},
+                                                label = { Text(stringResource(id = R.string.subjectnewsfilter_addbyschedule_adddropdownname)) },
+                                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropDownExpanded.value) },
+                                                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(bottom = 5.dp)
+                                            )
+                                            ExposedDropdownMenu(
+                                                expanded = dropDownExpanded.value,
+                                                onDismissRequest = { dropDownExpanded.value = false },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight()
+                                                    .padding(bottom = 5.dp)
+                                            ) {
+                                                availableList.forEach {
+                                                    DropdownMenuItem(
+                                                        text = { Text(it.name) },
+                                                        onClick = {
+                                                            selectedIndex.value = availableList.indexOf(it)
+                                                            dropDownExpanded.value = false
+                                                            updateRequested()
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center
+                                        ) {
+                                            Button(
+                                                content = {
+                                                    Text(stringResource(id = R.string.option_refresh))
+                                                },
+                                                onClick = {
+                                                    reloadAvailableNewsRequested()
+                                                },
+                                                modifier = Modifier
+                                                    .padding(end = 5.dp)
+                                                //.weight(1f)
+                                            )
+                                            Button(
+                                                content = {
+                                                    Text(text = stringResource(id = R.string.option_add))
+                                                },
+                                                onClick = {
+                                                    try {
+                                                        val subjectScheduleItem = availableList[selectedIndex.value]
+                                                        val item = SubjectCode(
+                                                            studentYearId = subjectScheduleItem.id.studentYearId,
+                                                            classId = subjectScheduleItem.id.classId,
+                                                            name = subjectScheduleItem.name
+                                                        )
+                                                        addRequested(item)
+                                                    } catch (ex: Exception) {
+                                                        // Can't add to list.
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .padding(start = 5.dp)
+                                                //.weight(1f)
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Button(
-                                    content = {
-                                        Text(stringResource(id = R.string.option_refresh))
-                                    },
-                                    onClick = {
-                                        reloadAvailableNewsRequested()
-                                    },
-                                    modifier = Modifier
-                                        .padding(end = 5.dp)
-                                        //.weight(1f)
-                                )
-                                Button(
-                                    content = {
-                                        Text(text = stringResource(id = R.string.option_add))
-                                    },
-                                    onClick = {
-                                        try {
-                                            val subjectScheduleItem = availableList[selectedIndex.value]
-                                            val item = SubjectCode(
-                                                studentYearId = subjectScheduleItem.id.studentYearId,
-                                                classId = subjectScheduleItem.id.classId,
-                                                name = subjectScheduleItem.name
-                                            )
-                                            addRequested(item)
-                                        } catch (ex: Exception) {
-                                            // Can't add to list.
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .padding(start = 5.dp)
-                                        //.weight(1f)
-                                )
                             }
                         }
                     }

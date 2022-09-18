@@ -387,7 +387,7 @@ class AccountDetailsActivity : ComponentActivity() {
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                             .clickable {
                                 subjectScheduleItem.value =
-                                    mainViewModel.accountDataStore.subjectSchedule.firstOrNull { it.id.toString(false) == item.id.toString(false) }
+                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull { it.id.toString(false) == item.id.toString(false) }
                                 dialogEnabled.value = true
                             }
                     ) {

@@ -78,15 +78,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      */
     val mainActivityIsDarkTheme: MutableState<Boolean> = mutableStateOf(false)
 
-    /**
-     * Account: Current page of account nav. route.
-     *
-     * 0: Not logged in
-     * 1: Dashboard
-     */
-    val accountCurrentPage: MutableState<Int> = mutableStateOf(0)
-
-
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
 
@@ -96,23 +87,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     // News UI area
     val newsDataStore: NewsDataStore = NewsDataStore(this)
 
-    // Account area
-    val accountDataStore: AccountDataStore = AccountDataStore(
-        mainViewModel = this,
-        accountModule = AccountModule(),
-        appSettings = appSettings.value,
-    )
-
     fun requestSaveChanges() {
         file.saveAppSettings(
             appSettings = appSettings.value
         )
-
-//        accountDataStore.saveSettings { accountSession ->
-//            file.saveAccountSettings(
-//                accountSession = accountSession
-//            )
-//        }
     }
 
     fun showSnackBarMessage(
@@ -198,13 +176,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     val Account_HasSaved = mutableStateOf(false)
+    val Account_LoginProcess = mutableStateOf(LoginState.NotTriggered)
     val Account_Process_SubjectSchedule: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
     val Account_Process_SubjectFee: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
     val Account_Process_AccountInformation: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
     val Account_Data_SubjectSchedule: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
     val Account_Data_SubjectFee: SnapshotStateList<SubjectFeeItem> = mutableStateListOf()
-    val Account_Data_SubjectScheduleByDay: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
     val Account_Data_AccountInformation: MutableState<AccountInformation?> = mutableStateOf(null)
+    val Account_Data_SubjectScheduleByDay: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
 
     fun filterSubjectScheduleByDay(
         week: Int = DUTDateUtils.getDUTWeek(),
@@ -239,48 +218,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     AccountServiceCode.ACTION_LOGIN -> {
                         when (value) {
                             AccountServiceCode.STATUS_SUCCESSFUL -> {
+                                Account_LoginProcess.value = LoginState.LoggedIn
                                 Account_HasSaved.value = true
-                                accountCurrentPage.value = 1
 
                                 requestSaveChanges()
                                 showSnackBarMessage("Successfully login!", true)
                             }
                             AccountServiceCode.STATUS_FAILED -> {
+                                Account_LoginProcess.value = LoginState.NotLoggedIn
                                 Account_HasSaved.value = false
-                                accountCurrentPage.value = 0
 
                                 requestSaveChanges()
                             }
                             AccountServiceCode.STATUS_PROCESSING -> {
+                                Account_LoginProcess.value = LoginState.LoggingIn
                                 Account_HasSaved.value = false
-                                accountCurrentPage.value = 0
-                            }
-                            AccountServiceCode.STATUS_ALREADYPROCESSING -> {
-
                             }
                         }
                     }
                     AccountServiceCode.ACTION_LOGINSTARTUP -> {
-                        if (Account_HasSaved.value) {
-                            accountCurrentPage.value = 1
-                        } else {
-                            accountCurrentPage.value = 0
-                        }
-
                         when (value) {
                             AccountServiceCode.STATUS_SUCCESSFUL -> {
+                                Account_LoginProcess.value = LoginState.LoggedIn
                                 requestSaveChanges()
 
                                 showSnackBarMessage("Successfully re-login!", true)
                             }
                             AccountServiceCode.STATUS_FAILED -> {
+                                if (Account_HasSaved.value) {
+                                    Account_LoginProcess.value = LoginState.NotLoggedInButRemembered
+                                } else {
+                                    Account_LoginProcess.value = LoginState.NotLoggedIn
+                                }
                                 requestSaveChanges()
-                            }
-                            AccountServiceCode.STATUS_PROCESSING -> {
-
-                            }
-                            AccountServiceCode.STATUS_ALREADYPROCESSING -> {
-
                             }
                         }
                     }
@@ -288,7 +258,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         when (value) {
                             AccountServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_HasSaved.value = false
-                                accountCurrentPage.value = 0
                                 showSnackBarMessage("Successfully logout!", true)
                             }
                         }
@@ -336,6 +305,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
+            @Suppress("UNCHECKED_CAST")
             override fun onDataReceived(key: String, data: Any) {
                 Log.d("AccountService", "Triggered data")
                 when (key) {
