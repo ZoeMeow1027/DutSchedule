@@ -14,9 +14,11 @@
     <string name="account_login_fieldpassword">Password</string>
     <string name="account_login_fieldusername">Username</string>
     <string name="account_login_loginbtn">Login</string>
-    <string name="account_login_statusfailed">Something went wrong with your account! Make sure your login is correct.\nIf everything is ok, please check your internet connection or make sure your account hasn\'t been locked.</string>
-    <string name="account_login_statusloggingin">We are logging you in. Please wait...</string>
+    <string name="account_login_statusfailed">Something went wrong with your account! Make sure your login is correct.\nIf everything is OK, please check your internet connection or make sure your account hasn\'t been locked.</string>
+    <string name="account_login_statusloggingin">We are logging you in. Please wait…</string>
     <string name="account_login_title">Login</string>
+    <string name="account_logout_description">Logout will clear your login on this device, so if you want to view your subject schedule dashboard again, you will need login again.\n\nContinue logout?</string>
+    <string name="account_logout_title">Logout</string>
     <string name="account_notloggedin_btnlogin">Login</string>
     <string name="account_notloggedin_description">Login to use more features in this app.</string>
     <string name="account_notloggedin_title">You are not logged in</string>
@@ -24,7 +26,7 @@
     <string name="account_page_subjectfee">Subject Fee</string>
     <string name="account_page_subjectschedule">Subject Schedule</string>
 
-    <string name="app_name">DUT</string>
+    <string name="app_name">Subject Notifier</string>
 
     <string name="navbar_account">Account</string>
     <string name="navbar_main">Main</string>
@@ -58,6 +60,7 @@
     <string name="option_add">Add</string>
     <string name="option_cancel">Cancel</string>
     <string name="option_commit">Commit Changes</string>
+    <string name="option_continue">Continue</string>
     <string name="option_no">No</string>
     <string name="option_ok">OK</string>
     <string name="option_refresh">Refresh</string>

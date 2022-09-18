@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutnotify.R
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -30,18 +32,16 @@ fun AccountDialogLogout(
                 .fillMaxWidth()
                 .wrapContentHeight(),
             onDismissRequest = { enabled.value = false },
-            title = { Text("Logout") },
+            title = { Text(stringResource(id = R.string.account_logout_title)) },
             text = {
-                Text(
-                    text = "Logout will clear subjects cache. You will need to login again to continue receiving subjects.\n\nAre you sure you want to continue?"
-                )
+                Text(text = stringResource(id = R.string.account_logout_description))
             },
             dismissButton = {
                 TextButton(
                     onClick = {
                         enabled.value = false
                     },
-                    content = { Text("Never mind") }
+                    content = { Text(stringResource(id = R.string.option_cancel)) }
                 )
             },
             confirmButton = {
@@ -50,7 +50,7 @@ fun AccountDialogLogout(
                         enabled.value = false
                         logoutRequest()
                     },
-                    content = { Text("Continue") }
+                    content = { Text(stringResource(id = R.string.option_continue)) }
                 )
             },
         )

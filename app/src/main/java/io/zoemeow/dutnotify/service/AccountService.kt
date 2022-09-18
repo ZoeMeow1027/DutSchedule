@@ -11,7 +11,6 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
-import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,6 +31,32 @@ class AccountService: Service() {
             AccountServiceCode.ACTION_LOGINSTARTUP -> {
                 Log.d("AccountService", "Triggered relogin")
                 val preload = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, false)
+                // AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
+                Intent(AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN).apply {
+                    putExtra(AccountServiceCode.DATA, accModule.hasSavedLogin())
+                }.also {
+                    sendBroadcast(it)
+                }
+                // Preload cache of Subject schedule, subject fee and account information
+                // subject schedule
+                Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE).apply {
+                    putExtra(AccountServiceCode.DATA, appCache.subjectScheduleList)
+                }.also {
+                    sendBroadcast(it)
+                }
+                // Subject fee
+                Intent(AccountServiceCode.ACTION_SUBJECTFEE).apply {
+                    putExtra(AccountServiceCode.DATA, appCache.subjectFeeList)
+                }.also {
+                    sendBroadcast(it)
+                }
+                // Account information
+                Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION).apply {
+                    putExtra(AccountServiceCode.DATA, appCache.accountInformation)
+                }.also {
+                    sendBroadcast(it)
+                }
+                // Re-login account
                 reLogin(preload)
             }
             AccountServiceCode.ACTION_LOGIN -> {
@@ -45,6 +70,9 @@ class AccountService: Service() {
             }
             AccountServiceCode.ACTION_LOGOUT -> {
                 Log.d("AccountService", "Triggered logout")
+                appCache.subjectScheduleList.clear()
+                appCache.subjectFeeList.clear()
+                appCache.accountInformation = null
                 logout()
             }
             AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {

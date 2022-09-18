@@ -81,13 +81,14 @@ class MainActivity : ComponentActivity() {
                 NotificationsUtils.initializeNotificationChannel(this)
 
             if (!isInitialized) {
-                registerBroadcastReceiver(context = applicationContext)
+                registerBroadcastReceiver(context = this@MainActivity)
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
 
                 // Initialize refresh news services
                 // Just to reload news. If schedule has been enabled,
                 // this will be scheduled to new UnixTimestamp.
-                NewsService.startService(context = applicationContext)
+                NewsService.startService(context = this@MainActivity)
+
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
@@ -257,7 +258,6 @@ fun MainActivity.onPermissionResult(
     granted: Boolean,
     notifyToUser: Boolean = false
 ) {
-
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
