@@ -306,7 +306,7 @@ class NewsService : Service() {
 
             val notifyContentList = arrayListOf<String>()
             // Affected classrooms
-            notifyContentList.add("${getString(R.string.notification_newssubject_appliedto, affectedClassrooms)}\n")
+            notifyContentList.add("${String.format(getString(R.string.notification_newssubject_appliedto), affectedClassrooms)}\n")
             // Date and lessons
             if (
                 newsItem.lessonStatus == LessonStatus.Leaving ||
