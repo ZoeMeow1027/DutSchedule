@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,13 +39,14 @@ import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
-import java.text.DecimalFormat
 
 class AccountDetailsActivity : ComponentActivity() {
     private val scaffoldTitle = mutableStateOf("")
@@ -86,28 +88,39 @@ class AccountDetailsActivity : ComponentActivity() {
         intent: Intent,
     ) {
         val type: String? = intent.getStringExtra("type")
+        val context = LocalContext.current
 
         val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
         val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
         val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
         LaunchedEffect(Unit) {
+
+
             when (type) {
                 "subject_schedule" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectschedule)
-                    mainViewModel.accountDataStore.fetchSubjectSchedule()
+                    val intentService = Intent(context, AccountService::class.java)
+                    intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                    context.startService(intentService)
                 }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
-                    mainViewModel.accountDataStore.fetchSubjectSchedule()
-                    mainViewModel.accountDataStore.fetchSubjectFee()
+                    val intentService = Intent(context, AccountService::class.java)
+                    intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                    context.startService(intentService)
+                    val intentService2 = Intent(context, AccountService::class.java)
+                    intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
+                    context.startService(intentService2)
                 }
                 "account_information" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_accinfo)
-                    mainViewModel.accountDataStore.fetchAccountInformation()
+                    val intentService = Intent(context, AccountService::class.java)
+                    intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
+                    context.startService(intentService)
                 }
                 else -> {
                     setResult(RESULT_CANCELED)
@@ -117,16 +130,16 @@ class AccountDetailsActivity : ComponentActivity() {
         }
 
         LaunchedEffect(
-            mainViewModel.accountDataStore.procAccSubSch.value,
-            mainViewModel.accountDataStore.procAccSubFee.value,
-            mainViewModel.accountDataStore.procAccInfo.value
+            mainViewModel.Account_Process_SubjectSchedule.value,
+            mainViewModel.Account_Process_SubjectFee.value,
+            mainViewModel.Account_Process_AccountInformation.value
         ) {
             swipeRefreshStateSubjectSchedule.isRefreshing =
-                mainViewModel.accountDataStore.procAccSubSch.value == ProcessState.Running
+                mainViewModel.Account_Process_SubjectSchedule.value == ProcessState.Running
             swipeRefreshStateSubjectFee.isRefreshing =
-                mainViewModel.accountDataStore.procAccSubFee.value == ProcessState.Running
+                mainViewModel.Account_Process_SubjectFee.value == ProcessState.Running
             swipeRefreshStateAccInfo.isRefreshing =
-                mainViewModel.accountDataStore.procAccInfo.value == ProcessState.Running
+                mainViewModel.Account_Process_AccountInformation.value == ProcessState.Running
         }
 
         Scaffold(
@@ -181,31 +194,39 @@ class AccountDetailsActivity : ComponentActivity() {
                 "subject_schedule" -> {
                     SubjectScheduleList(
                         padding = padding,
-                        subjectScheduleList = mainViewModel.accountDataStore.subjectSchedule,
+                        subjectScheduleList = mainViewModel.Account_Data_SubjectSchedule,
                         swipeRefreshState = swipeRefreshStateSubjectSchedule,
                         reloadRequested = {
-                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
+                            val intentService = Intent(context, AccountService::class.java)
+                            intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                            startService(intentService)
                         }
                     )
                 }
                 "subject_fee" -> {
                     SubjectFeeList(
                         padding = padding,
-                        subjectFeeList = mainViewModel.accountDataStore.subjectFee,
+                        subjectFeeList = mainViewModel.Account_Data_SubjectFee,
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
-                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
-                            mainViewModel.accountDataStore.fetchSubjectFee(mainViewModel.appSettings.value.schoolYear)
+                            val intentService = Intent(context, AccountService::class.java)
+                            intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                            context.startService(intentService)
+                            val intentService2 = Intent(context, AccountService::class.java)
+                            intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
+                            context.startService(intentService2)
                         }
                     )
                 }
                 "account_information" -> {
                     AccountInformation(
                         padding = padding,
-                        accountInformation = mainViewModel.accountDataStore.accountInformation.value,
+                        accountInformation = mainViewModel.Account_Data_AccountInformation.value,
                         swipeRefreshState = swipeRefreshStateAccInfo,
                         reloadRequested = {
-                            mainViewModel.accountDataStore.fetchAccountInformation()
+                            val intentService = Intent(context, AccountService::class.java)
+                            intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
+                            startService(intentService)
                         }
                     )
                 }
@@ -363,7 +384,7 @@ class AccountDetailsActivity : ComponentActivity() {
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                             .clickable {
                                 subjectScheduleItem.value =
-                                    mainViewModel.accountDataStore.subjectSchedule.firstOrNull { it.id.toString(false) == item.id.toString(false) }
+                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull { it.id.equalsTwoDigits(item.id) }
                                 dialogEnabled.value = true
                             }
                     ) {

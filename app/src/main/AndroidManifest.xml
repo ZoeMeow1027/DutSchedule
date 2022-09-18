@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="io.zoemeow.dutnotify">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- This permission is required for Background Image Android 12 -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -31,12 +30,20 @@
             android:name=".receiver.AppBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
+        <receiver
+            android:name=".receiver.AccountBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" />
         <service
             android:name=".service.NewsService"
             android:enabled="true"
             android:exported="true"
             android:label="Check news in background"
             android:permission="android.permission.FOREGROUND_SERVICE" />
+        <service android:name=".service.AccountService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="Account Service" />
         <activity
             android:name=".PermissionRequestActivity"
             android:exported="false" />

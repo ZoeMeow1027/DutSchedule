@@ -1,5 +1,6 @@
 package io.zoemeow.dutnotify.view.account
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -11,13 +12,19 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.R
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
@@ -28,6 +35,7 @@ fun AccountDialogLogin(
 ) {
     val passTextFieldFocusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
+    val context = LocalContext.current as MainActivity
 
     val enabledControl: MutableState<Boolean> = remember { mutableStateOf(true) }
     val username: MutableState<String> = remember { mutableStateOf("") }
@@ -36,25 +44,26 @@ fun AccountDialogLogin(
 
     fun login() {
         focusManager.clearFocus()
-        mainViewModel.accountDataStore.login(
-            username = username.value,
-            password = password.value,
-            remembered = rememberLogin.value
-        )
+
+        Intent(context, AccountService::class.java).apply {
+            putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGIN)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_USERNAME, username.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PASSWORD, password.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_REMEMBERED, rememberLogin.value)
+            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PRELOAD, true)
+        }.also {
+            context.startService(it)
+        }
     }
 
     @Composable
     fun LoggingIn(loginState: LoginState) {
         when (loginState) {
             LoginState.LoggingIn -> {
-                Text("We are logging you in. Please wait...")
+                Text(stringResource(id = R.string.account_login_statusloggingin))
             }
             LoginState.NotLoggedIn, LoginState.NotLoggedInButRemembered -> {
-                Text(
-                    "Something went wrong with your account! " +
-                            "Make sure your username and password is correct." +
-                            "\nIf everything is ok, just try again, or check your internet connection."
-                )
+                Text(text = stringResource(id = R.string.account_login_statusfailed))
             }
             else -> {
 
@@ -71,12 +80,11 @@ fun AccountDialogLogin(
         }
     }
 
-    LaunchedEffect(mainViewModel.accountDataStore.loginState.value) {
-        when (mainViewModel.accountDataStore.loginState.value) {
+    LaunchedEffect(mainViewModel.Account_LoginProcess.value) {
+        when (mainViewModel.Account_LoginProcess.value) {
             LoginState.NotLoggedIn, LoginState.NotLoggedInButRemembered, LoginState.NotTriggered -> {
                 // Enable controls again
                 enabledControl.value = true
-                // TODO: Notify login failed here!
             }
             // If is logging in
             LoginState.LoggingIn -> {
@@ -117,7 +125,7 @@ fun AccountDialogLogin(
 
             },
             title = {
-                Text("Login")
+                Text(stringResource(id = R.string.account_login_title))
             },
             dismissButton = {
                 TextButton(
@@ -126,7 +134,7 @@ fun AccountDialogLogin(
                         enabled.value = false
                     },
                     content = {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.option_cancel))
                     }
                 )
             },
@@ -137,7 +145,7 @@ fun AccountDialogLogin(
                         login()
                     },
                     content = {
-                        Text("Login")
+                        Text(stringResource(id = R.string.account_login_loginbtn))
                     }
                 )
             },
@@ -151,7 +159,7 @@ fun AccountDialogLogin(
                         enabled = enabledControl.value,
                         value = username.value,
                         onValueChange = { username.value = it },
-                        label = { Text("Username") },
+                        label = { Text(stringResource(id = R.string.account_login_fieldusername)) },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Next
@@ -167,7 +175,7 @@ fun AccountDialogLogin(
                         enabled = enabledControl.value,
                         value = password.value,
                         onValueChange = { password.value = it },
-                        label = { Text("Password") },
+                        label = { Text(stringResource(id = R.string.account_login_fieldpassword)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
@@ -193,10 +201,10 @@ fun AccountDialogLogin(
                             onCheckedChange = { rememberLogin.value = it },
                         )
                         Spacer(modifier = Modifier.size(5.dp))
-                        Text("Remember your login")
+                        Text(stringResource(id = R.string.account_login_checkboxrememberlogin))
                     }
                     Spacer(modifier = Modifier.size(15.dp))
-                    LoggingIn(mainViewModel.accountDataStore.loginState.value)
+                    LoggingIn(mainViewModel.Account_LoginProcess.value)
                 }
             }
         )

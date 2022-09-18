@@ -7,13 +7,14 @@ plugins {
 
 android {
     compileSdk 33
+    namespace 'io.zoemeow.dutnotify'
 
     defaultConfig {
         applicationId "io.zoemeow.dutnotify"
         minSdk 21 // Android Lollipop - 5.0
         targetSdk 33 // Android Tiramisu - 13
-        versionCode 492
-        versionName "1.0-beta7"
+        versionCode 501
+        versionName "1.0-beta8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -35,7 +36,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = '1.2.0'
+        kotlinCompilerExtensionVersion = '1.3.1'
     }
     kotlinOptions {
         jvmTarget = '1.8'

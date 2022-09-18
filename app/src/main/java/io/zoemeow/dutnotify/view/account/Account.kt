@@ -1,5 +1,6 @@
 package io.zoemeow.dutnotify.view.account
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,11 +12,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
+import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
+import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,38 +28,18 @@ import io.zoemeow.dutnotify.viewmodel.MainViewModel
 fun Account(
     mainViewModel: MainViewModel,
 ) {
+    val context = LocalContext.current as MainActivity
+
     // Module for Logout alert dialog
     val dialogLogoutEnabled = remember { mutableStateOf(false) }
     AccountDialogLogout(
         enabled = dialogLogoutEnabled,
-        logoutRequest = { mainViewModel.accountDataStore.logout() }
-    )
-
-    LaunchedEffect(mainViewModel.accountDataStore.loginState.value) {
-        if (mainViewModel.accountDataStore.isStoreAccount()) {
-            if (mainViewModel.accountCurrentPage.value < 1)
-                mainViewModel.accountCurrentPage.value = 1
-        } else {
-            mainViewModel.accountCurrentPage.value = 0
-        }
-    }
-
-    // If logout, will return to not logged in screen
-    BackHandler(
-        enabled = (
-                if (arrayListOf(LoginState.NotTriggered, LoginState.NotLoggedIn).contains(
-                        mainViewModel.accountDataStore.loginState.value
-                    )
-                ) {
-                    mainViewModel.accountCurrentPage.value > 0
-                } else mainViewModel.accountCurrentPage.value > 1
-                ),
-        onBack = {
-            mainViewModel.accountCurrentPage.value =
-                if (arrayListOf(LoginState.NotTriggered, LoginState.NotLoggedIn).contains(
-                        mainViewModel.accountDataStore.loginState.value
-                    )
-                ) 0 else 1
+        logoutRequest = {
+            Intent(context, AccountService::class.java).apply {
+                putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGOUT)
+            }.also {
+                context.startService(it)
+            }
         }
     )
 
@@ -65,38 +50,12 @@ fun Account(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
-                navigationIcon = {
-                    if (mainViewModel.accountCurrentPage.value >= 2) {
-                        Box(
-                            modifier = Modifier
-                                .width(48.dp)
-                                .height(48.dp)
-                                .clickable {
-                                    mainViewModel.accountCurrentPage.value =
-                                        if (arrayListOf(
-                                                LoginState.NotLoggedInButRemembered,
-                                                LoginState.LoggedIn
-                                            ).contains(mainViewModel.accountDataStore.loginState.value)
-                                        )
-                                            1 else 0
-                                },
-                            content = {
-                                Icon(
-                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
-                                    contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
-                        )
-                    }
-                },
                 title = {
-                    Text(stringResource(id = if (mainViewModel.accountDataStore.isStoreAccount())
+                    Text(stringResource(id = if (mainViewModel.Account_HasSaved.value)
                         R.string.topbar_account_dashboard else R.string.topbar_account_notloggedin))
                 },
                 actions = {
-                    if (mainViewModel.accountCurrentPage.value == 1) {
+                    if (mainViewModel.Account_HasSaved.value) {
                         Box(
                             modifier = Modifier
                                 .width(48.dp)
@@ -118,14 +77,14 @@ fun Account(
             )
         },
         content = { padding ->
-            when (mainViewModel.accountCurrentPage.value) {
-                0 -> {
+            when (mainViewModel.Account_HasSaved.value) {
+                false -> {
                     AccountPageNotLoggedIn(
                         padding = padding,
                         mainViewModel = mainViewModel
                     )
                 }
-                1 -> {
+                true -> {
                     AccountPageDashboard(
                         mainViewModel = mainViewModel,
                         padding = padding,

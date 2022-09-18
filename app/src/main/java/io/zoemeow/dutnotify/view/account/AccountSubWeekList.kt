@@ -202,12 +202,12 @@ fun AccountSubWeekList(
         }
         // Day view
         if (!isGettingData) {
-            if (mainViewModel.accountDataStore.subjectScheduleByDay.size > 0) {
+            if (mainViewModel.Account_Data_SubjectScheduleByDay.size > 0) {
                 Text(
                     text = stringResource(id = R.string.account_dashboard_dayandweekview_subjectschedule),
                     modifier = Modifier.padding(bottom = 5.dp)
                 )
-                mainViewModel.accountDataStore.subjectScheduleByDay.forEach { item ->
+                mainViewModel.Account_Data_SubjectScheduleByDay.forEach { item ->
                     var desc = ""
                     item.subjectStudy.scheduleList.filter { schItem -> schItem.dayOfWeek == if (dayOfWeek > 6) 0 else dayOfWeek }
                         .forEach {

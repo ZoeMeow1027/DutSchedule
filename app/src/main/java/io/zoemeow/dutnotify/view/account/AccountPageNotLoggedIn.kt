@@ -9,7 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -32,21 +35,22 @@ fun AccountPageNotLoggedIn(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "You are not logged in",
+            text = stringResource(id = R.string.account_notloggedin_title),
             style = MaterialTheme.typography.headlineSmall
         )
         Spacer(modifier = Modifier.size(5.dp))
         Text(
-            text = "Login to use more features in this app.",
-            style = MaterialTheme.typography.titleMedium
+            text = stringResource(id = R.string.account_notloggedin_description),
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.size(5.dp))
         Button(
             onClick = {
-                mainViewModel.accountDataStore.loginState.value = LoginState.NotTriggered
+                mainViewModel.Account_LoginProcess.value = LoginState.NotTriggered
                 dialogLoginEnabled.value = true
             },
-            content = { Text("Login") }
+            content = { Text(stringResource(id = R.string.account_notloggedin_btnlogin)) }
         )
     }
 }

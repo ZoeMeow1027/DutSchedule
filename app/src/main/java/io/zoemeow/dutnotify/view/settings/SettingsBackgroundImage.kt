@@ -22,6 +22,7 @@ import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.onPermissionResult
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -53,13 +54,17 @@ fun SettingsBackgroundImage(
         )
         mainViewModel.requestSaveChanges()
 
-        Intent(activity, PermissionRequestActivity::class.java)
-            .apply {
-                putExtra("permissions.list", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
-            }
-            .also {
-                activity.startActivity(it)
-            }
+        if (PermissionRequestActivity.checkPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            activity.onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+        } else {
+            Intent(activity, PermissionRequestActivity::class.java)
+                .apply {
+                    putExtra("permissions.list", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+                }
+                .also {
+                    activity.startActivity(it)
+                }
+        }
 
         enabled.value = false
     }

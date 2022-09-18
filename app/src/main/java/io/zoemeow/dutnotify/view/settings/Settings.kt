@@ -263,7 +263,7 @@ fun Settings(
                 SettingsOptionHeader(headerText = stringResource(id = R.string.settings_category_aboutapplication))
                 SettingsOptionItemClickable(
                     title = stringResource(id = R.string.settings_version_name),
-                    description = BuildConfig.VERSION_NAME,
+                    description = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                 )
                 SettingsOptionItemClickable(
                     title = stringResource(id = R.string.settings_changelog_name),
