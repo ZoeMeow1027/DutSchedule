@@ -10,6 +10,16 @@
     <string name="account_dashboard_viewaccinfo">Xem thêm thông tin tài khoản</string>
     <string name="account_dashboard_viewsubjectfee">Xem toàn bộ học phí</string>
     <string name="account_dashboard_viewsubjectschedule">Xem toàn bộ lịch học và lịch thi</string>
+    <string name="account_login_checkboxrememberlogin">Lưu thông tin đăng nhập của tôi</string>
+    <string name="account_login_fieldpassword">Mật khẩu</string>
+    <string name="account_login_fieldusername">Mã số sinh viên</string>
+    <string name="account_login_loginbtn">Đăng nhập</string>
+    <string name="account_login_statusfailed">Không thể đăng nhập cho bạn! Đảm bảo rằng tài khoản của bạn đã được nhập chính xác.\nNếu mọi thứ đều đúng, vui lòng kiểm tra kết nối của bạn hoặc đảm bảo rằng tài khoản của bạn không bị khóa bởi trường.</string>
+    <string name="account_login_statusloggingin">Chúng tôi đang đăng nhập cho bạn. Vui lòng chờ...</string>
+    <string name="account_login_title">Đăng nhập</string>
+    <string name="account_notloggedin_btnlogin">Đăng nhập</string>
+    <string name="account_notloggedin_description">Đăng nhập để sử dụng nhiều chức năng hơn của ứng dụng này.</string>
+    <string name="account_notloggedin_title">Bạn chưa đăng nhập</string>
     <string name="account_page_accinfo">Thông tin tài khoản</string>
     <string name="account_page_subjectfee">Học phí</string>
     <string name="account_page_subjectschedule">Lịch học</string>

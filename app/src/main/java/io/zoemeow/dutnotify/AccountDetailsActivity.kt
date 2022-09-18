@@ -47,7 +47,6 @@ import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
-import java.text.DecimalFormat
 
 class AccountDetailsActivity : ComponentActivity() {
     private val scaffoldTitle = mutableStateOf("")
@@ -96,35 +95,38 @@ class AccountDetailsActivity : ComponentActivity() {
         val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
         LaunchedEffect(Unit) {
-            val intentService = Intent(context, AccountService::class.java)
+
 
             when (type) {
                 "subject_schedule" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectschedule)
+                    val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-                    // mainViewModel.accountDataStore.fetchSubjectSchedule()
+                    context.startService(intentService)
                 }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
+                    val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-                    intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
-//                    mainViewModel.accountDataStore.fetchSubjectSchedule()
-//                    mainViewModel.accountDataStore.fetchSubjectFee()
+                    context.startService(intentService)
+                    val intentService2 = Intent(context, AccountService::class.java)
+                    intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
+                    context.startService(intentService2)
                 }
                 "account_information" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_accinfo)
+                    val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
-//                    mainViewModel.accountDataStore.fetchAccountInformation()
+                    context.startService(intentService)
                 }
                 else -> {
                     setResult(RESULT_CANCELED)
                     finish()
                 }
             }
-            context.startService(intentService)
         }
 
         LaunchedEffect(
@@ -198,7 +200,6 @@ class AccountDetailsActivity : ComponentActivity() {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
                             startService(intentService)
-//                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
                         }
                     )
                 }
@@ -210,13 +211,10 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-                            startService(intentService)
-
+                            context.startService(intentService)
                             val intentService2 = Intent(context, AccountService::class.java)
                             intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
-                            startService(intentService2)
-//                            mainViewModel.accountDataStore.fetchSubjectSchedule(mainViewModel.appSettings.value.schoolYear)
-//                            mainViewModel.accountDataStore.fetchSubjectFee(mainViewModel.appSettings.value.schoolYear)
+                            context.startService(intentService2)
                         }
                     )
                 }
@@ -229,7 +227,6 @@ class AccountDetailsActivity : ComponentActivity() {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
                             startService(intentService)
-//                            mainViewModel.accountDataStore.fetchAccountInformation()
                         }
                     )
                 }
@@ -387,7 +384,7 @@ class AccountDetailsActivity : ComponentActivity() {
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                             .clickable {
                                 subjectScheduleItem.value =
-                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull { it.id.toString(false) == item.id.toString(false) }
+                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull { it.id.equalsTwoDigits(item.id) }
                                 dialogEnabled.value = true
                             }
                     ) {

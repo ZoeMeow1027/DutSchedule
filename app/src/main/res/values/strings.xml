@@ -10,6 +10,16 @@
     <string name="account_dashboard_viewaccinfo">View more account Information</string>
     <string name="account_dashboard_viewsubjectfee">View all subject fee</string>
     <string name="account_dashboard_viewsubjectschedule">View all subject schedule</string>
+    <string name="account_login_checkboxrememberlogin">Remember my login</string>
+    <string name="account_login_fieldpassword">Password</string>
+    <string name="account_login_fieldusername">Username</string>
+    <string name="account_login_loginbtn">Login</string>
+    <string name="account_login_statusfailed">Something went wrong with your account! Make sure your login is correct.\nIf everything is ok, please check your internet connection or make sure your account hasn\'t been locked.</string>
+    <string name="account_login_statusloggingin">We are logging you in. Please wait...</string>
+    <string name="account_login_title">Login</string>
+    <string name="account_notloggedin_btnlogin">Login</string>
+    <string name="account_notloggedin_description">Login to use more features in this app.</string>
+    <string name="account_notloggedin_title">You are not logged in</string>
     <string name="account_page_accinfo">Account Information</string>
     <string name="account_page_subjectfee">Subject Fee</string>
     <string name="account_page_subjectschedule">Subject Schedule</string>
