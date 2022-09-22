@@ -36,6 +36,7 @@ import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
 import io.zoemeow.dutnotify.view.navbar.MainBottomNavigationBar
@@ -262,10 +263,11 @@ fun MainActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
+                mainViewModel.mainActivityBackgroundDrawable.value =
+                    AppUtils.getCurrentWallpaperBackground(
+                        context = this,
+                        type = mainViewModel.appSettings.value.backgroundImage.option
+                    )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,

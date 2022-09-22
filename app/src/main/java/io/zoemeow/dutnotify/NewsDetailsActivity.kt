@@ -221,10 +221,11 @@ fun NewsDetailsActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
+                mainViewModel.mainActivityBackgroundDrawable.value =
+                    AppUtils.getCurrentWallpaperBackground(
+                        context = this,
+                        type = mainViewModel.appSettings.value.backgroundImage.option
+                    )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,

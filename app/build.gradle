@@ -15,7 +15,7 @@ android {
         applicationId "io.zoemeow.dutnotify"
         minSdk 21 // Android Lollipop - 5.0
         targetSdk 33 // Android Tiramisu - 13
-        versionCode 516
+        versionCode 518
         versionName "1.0-beta9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

@@ -1,12 +1,18 @@
 package io.zoemeow.dutnotify.utils
 
+import android.Manifest
+import android.app.WallpaperManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.net.Uri
+import android.os.Build
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
+import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -75,6 +81,53 @@ class AppUtils {
             }
 
             return result
+        }
+
+        /**
+         * Get current drawable for your background wallpaper.
+         */
+        fun getCurrentWallpaperBackground(
+            context: Context,
+            type: BackgroundImageType,
+            path: String? = null,
+        ): Drawable? {
+            try {
+                when (type) {
+                    BackgroundImageType.Unset -> {
+                        return null
+                    }
+                    BackgroundImageType.FromWallpaper -> {
+                        // For Android 12 or earlier
+                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                            val permissionCheck = PermissionRequestActivity.checkPermission(
+                                context = context,
+                                permission = Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                            if (permissionCheck) {
+                                val wallpaperManager = WallpaperManager.getInstance(context)
+                                return wallpaperManager.drawable
+                            } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
+                        }
+                        // For Android 13 or greater
+                        else {
+                            val permissionCheck = PermissionRequestActivity.checkPermission(
+                                context = context,
+                                permission = Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                            if (permissionCheck) {
+                                val wallpaperManager = WallpaperManager.getInstance(context)
+                                return wallpaperManager.drawable
+                            } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
+                        }
+                    }
+                    BackgroundImageType.FromItemYouSpecific -> {
+                        return null
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                return null
+            }
         }
     }
 }

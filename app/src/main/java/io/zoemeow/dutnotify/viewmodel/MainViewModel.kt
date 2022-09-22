@@ -49,35 +49,10 @@ class MainViewModel @Inject constructor(
     val subjectScheduleItem: MutableState<SubjectScheduleItem?> = mutableStateOf(null)
     val subjectScheduleEnabled: MutableState<Boolean> = mutableStateOf(false)
 
-    // Drawable and painter for background image
-    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
-
     /**
-     * Get current drawable for background image. Image loaded will save to backgroundPainter.
+     * Drawable and painter for background image.
      */
-    fun reloadAppBackground(
-        context: Context,
-        type: BackgroundImageType,
-    ) {
-        try {
-            // This will get background wallpaper from launcher.
-            if (type == BackgroundImageType.FromWallpaper) {
-                if (
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    val wallpaperManager = WallpaperManager.getInstance(context)
-                    mainActivityBackgroundDrawable.value = wallpaperManager.drawable
-                } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
-            }
-            // Otherwise set to null
-            else mainActivityBackgroundDrawable.value = null
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-    }
+    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
 
     /**
      * Main Activity: Check if current theme is dark mode.
@@ -319,6 +294,10 @@ class MainViewModel @Inject constructor(
                             clear()
                             addAll(data as ArrayList<SubjectScheduleItem>)
                         }
+                        filterSubjectScheduleByDay(
+                            week = DUTDateUtils.getDUTWeek(),
+                            dayOfWeek = if (DUTDateUtils.getCurrentDayOfWeek() - 1 == 0) 7 else DUTDateUtils.getCurrentDayOfWeek() - 1
+                        )
                     }
                     AccountServiceCode.ACTION_SUBJECTFEE -> {
                         Account_Data_SubjectFee.apply {

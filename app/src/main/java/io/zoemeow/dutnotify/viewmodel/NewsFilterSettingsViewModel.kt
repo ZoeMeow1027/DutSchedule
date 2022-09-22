@@ -102,6 +102,9 @@ class NewsFilterSettingsViewModel @Inject constructor(
                                 }
                                 requestSaveChanges()
                             }
+                            AccountServiceCode.STATUS_PROCESSING -> {
+                                Account_LoginProcess.value = LoginState.LoggingIn
+                            }
                         }
                     }
                     AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {
