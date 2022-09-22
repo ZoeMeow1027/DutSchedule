@@ -5,9 +5,16 @@ import android.content.Context
 import android.content.Intent
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 
-abstract class AccountBroadcastReceiver(private val packageFilter: String) : BroadcastReceiver() {
+abstract class AccountBroadcastReceiver : BroadcastReceiver {
     // this.componentName.className
     // 'class'::class.java.name
+    private lateinit var packageFilter: String
+
+    constructor() { }
+
+    constructor(packageFilter: String) {
+        this.packageFilter = packageFilter
+    }
 
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
