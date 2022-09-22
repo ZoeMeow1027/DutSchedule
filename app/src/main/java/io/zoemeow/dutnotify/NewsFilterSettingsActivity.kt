@@ -31,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
+import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
@@ -43,12 +44,16 @@ import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.viewmodel.MainViewModel
+import io.zoemeow.dutnotify.viewmodel.NewsFilterSettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class NewsFilterSettingsActivity: ComponentActivity() {
-    internal lateinit var mainViewModel: MainViewModel
+    companion object {
+        private var isInitialized = false
+    }
+    private lateinit var mainViewModel: NewsFilterSettingsViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var scope: CoroutineScope
 
@@ -56,25 +61,21 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            mainViewModel = viewModel()
-
-            LaunchedEffect(Unit) {
+            if (!isInitialized) {
+                mainViewModel = viewModel()
                 registerBroadcastReceiver(context = applicationContext)
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
 
                 // Re-login to receive new data from server.
                 Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
+                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
+                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(AccountServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
                 }.also {
                     this@NewsFilterSettingsActivity.startService(it)
                 }
 
-                Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
-                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
-                }.also {
-                    this@NewsFilterSettingsActivity.startService(it)
-                }
+                isInitialized = true
             }
 
             MainActivityTheme(
@@ -91,9 +92,15 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         }
     }
 
+    override fun onDestroy() {
+        isInitialized = false
+        finish()
+        super.onDestroy()
+    }
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
     @Composable
-    fun MainScreen(mainViewModel: MainViewModel) {
+    fun MainScreen(mainViewModel: NewsFilterSettingsViewModel) {
         snackBarState = SnackbarHostState()
         scope = rememberCoroutineScope()
 
@@ -235,7 +242,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
 
     @Composable
     fun MainBody(
-        mainViewModel: MainViewModel,
+        mainViewModel: NewsFilterSettingsViewModel,
         padding: PaddingValues,
         subjectCodeTempList: SnapshotStateList<SubjectCode>,
         unsavedChanges: MutableState<Boolean>,
@@ -312,7 +319,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                 .padding(padding),
         ) {
             // Your current subject schedule and subject codes you has added before.
-            SurfaceCurrentSubjectCodeList(
+            MainBody_CurrentSubjectList(
                 subjectCodeList = subjectCodeTempList,
                 deleteRequested = {
                     subjectCodeTempList.remove(it)
@@ -327,7 +334,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             )
 
             // Load from your subject schedule to add to filter.
-            SurfaceAddFromSubjectSchedule(
+            MainBody_AddFromSubjectSchedule(
                 availableList = availableList,
                 selectedIndex = selectedIndex,
                 selectedFilterValue = selectedFilterName,
@@ -400,7 +407,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SurfaceCurrentSubjectCodeList(
+    private fun MainBody_CurrentSubjectList(
         subjectCodeList: SnapshotStateList<SubjectCode>,
         deleteRequested: (SubjectCode) -> Unit,
     ) {
@@ -440,7 +447,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SurfaceAddFromSubjectSchedule(
+    private fun MainBody_AddFromSubjectSchedule(
         availableList: SnapshotStateList<SubjectScheduleItem>,
         selectedIndex: MutableState<Int>,
         selectedFilterValue: MutableState<String>,
@@ -731,95 +738,94 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             content()
         }
     }
-}
 
+    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
+        object : AppBroadcastReceiver() {
+            override fun onNewsReloadRequested() {}
+            override fun onAccountReloadRequested(newsType: String) {}
+            override fun onSettingsReloadRequested() { }
+            override fun onNewsScrollToTopRequested() { }
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
 
-fun NewsFilterSettingsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
-    object : AppBroadcastReceiver() {
-        override fun onNewsReloadRequested() {}
-        override fun onAccountReloadRequested(newsType: String) {}
-        override fun onSettingsReloadRequested() { }
-        override fun onNewsScrollToTopRequested() { }
-        override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
-
-        override fun onPermissionRequested(
-            permission: String?,
-            granted: Boolean,
-            notifyToUser: Boolean
-        ) {
-            onPermissionResult(permission, granted, notifyToUser)
+            override fun onPermissionRequested(
+                permission: String?,
+                granted: Boolean,
+                notifyToUser: Boolean
+            ) {
+                onPermissionResult(permission, granted, notifyToUser)
+            }
+        }.apply {
+            return this
         }
-    }.apply {
-        return this
     }
-}
 
-@Suppress("UNUSED_PARAMETER")
-fun NewsFilterSettingsActivity.onPermissionResult(
-    permission: String?,
-    granted: Boolean,
-    notifyToUser: Boolean = false
-) {
-    // TODO: UNUSED_PARAMETER
-    when (permission) {
-        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-            if (granted) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
+    private fun registerBroadcastReceiver(context: Context) {
+        LocalBroadcastManager.getInstance(context).registerReceiver(
+            getAppBroadcastReceiver(),
+            IntentFilter().apply {
+                addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+                addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+                addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+            }
+        )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun onPermissionResult(
+        permission: String?,
+        granted: Boolean,
+        notifyToUser: Boolean = false
+    ) {
+        // TODO: UNUSED_PARAMETER
+        when (permission) {
+            Manifest.permission.READ_EXTERNAL_STORAGE -> {
+                if (granted) {
+                    mainViewModel.reloadAppBackground(
+                        context = this,
+                        type = mainViewModel.appSettings.value.backgroundImage.option
                     )
-                )
-                mainViewModel.requestSaveChanges()
-                mainViewModel.showSnackBarMessage(
-                    "Missing permission for background image. " +
-                            "This setting will be turned off to avoid another issues."
-                )
+                } else {
+                    mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                        optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                        value = BackgroundImage(
+                            option = BackgroundImageType.Unset,
+                            path = null
+                        )
+                    )
+                    mainViewModel.requestSaveChanges()
+//                    mainViewModel.showSnackBarMessage(
+//                        "Missing permission for background image. " +
+//                                "This setting will be turned off to avoid another issues."
+//                    )
+                }
             }
+            else -> {}
         }
-        else -> { }
-    }
-}
-
-fun NewsFilterSettingsActivity.registerBroadcastReceiver(context: Context) {
-    LocalBroadcastManager.getInstance(context).registerReceiver(
-        getAppBroadcastReceiver(),
-        IntentFilter().apply {
-            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
-            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
-            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
-        }
-    )
-}
-
-fun NewsFilterSettingsActivity.checkSettingsPermissionOnStartup(
-    mainViewModel: MainViewModel
-) {
-    val permissionList = arrayListOf<String>()
-
-    // Read external storage - Background Image
-    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-        if (!PermissionRequestActivity.checkPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
     }
 
-    if (permissionList.isNotEmpty()) {
-        Intent(this, PermissionRequestActivity::class.java)
-            .apply {
-                putExtra("permissions.list", permissionList.toTypedArray())
-            }
-            .also {
-                this.startActivity(it)
-            }
+    private fun checkSettingsPermissionOnStartup(
+        mainViewModel: NewsFilterSettingsViewModel
+    ) {
+        val permissionList = arrayListOf<String>()
+
+        // Read external storage - Background Image
+        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+            if (!PermissionRequestActivity.checkPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+        }
+
+        if (permissionList.isNotEmpty()) {
+            Intent(this, PermissionRequestActivity::class.java)
+                .apply {
+                    putExtra("permissions.list", permissionList.toTypedArray())
+                }
+                .also {
+                    this.startActivity(it)
+                }
+        }
     }
 }

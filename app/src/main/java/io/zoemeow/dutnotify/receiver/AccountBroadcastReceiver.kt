@@ -5,14 +5,24 @@ import android.content.Context
 import android.content.Intent
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 
-abstract class AccountBroadcastReceiver: BroadcastReceiver() {
+abstract class AccountBroadcastReceiver(private val packageFilter: String) : BroadcastReceiver() {
+    // this.componentName.className
+    // 'class'::class.java.name
+
     @Suppress("DEPRECATION")
     override fun onReceive(context: Context, intent: Intent) {
+        val callFrom = intent.getStringExtra(AccountServiceCode.SOURCE_COMPONENT)
+        if (callFrom == null) {
+            return
+        } else if (callFrom.lowercase() != packageFilter.lowercase()) {
+            return
+        }
+
         intent.getStringExtra(AccountServiceCode.STATUS).also {
             if (it != null) {
                 onStatusReceived(
                     key = intent.action ?: "",
-                    value = it
+                    value = it,
                 )
             }
         }

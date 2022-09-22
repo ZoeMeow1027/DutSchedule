@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -34,6 +35,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.SwipeRefreshState
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
@@ -48,6 +50,7 @@ import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
+@AndroidEntryPoint
 class AccountDetailsActivity : ComponentActivity() {
     private val scaffoldTitle = mutableStateOf("")
     internal lateinit var mainViewModel: MainViewModel
@@ -60,7 +63,6 @@ class AccountDetailsActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 registerBroadcastReceiver(context = applicationContext)
-
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
             }
 
@@ -95,14 +97,13 @@ class AccountDetailsActivity : ComponentActivity() {
         val swipeRefreshStateAccInfo = rememberSwipeRefreshState(false)
 
         LaunchedEffect(Unit) {
-
-
             when (type) {
                 "subject_schedule" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectschedule)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                    intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                     context.startService(intentService)
                 }
                 "subject_fee" -> {
@@ -110,9 +111,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         applicationContext.getString(R.string.account_page_subjectfee)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                    intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                     context.startService(intentService)
                     val intentService2 = Intent(context, AccountService::class.java)
                     intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
+                    intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                     context.startService(intentService2)
                 }
                 "account_information" -> {
@@ -120,6 +123,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         applicationContext.getString(R.string.account_page_accinfo)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
+                    intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                     context.startService(intentService)
                 }
                 else -> {
@@ -199,6 +203,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                            intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                             startService(intentService)
                         }
                     )
@@ -211,9 +216,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
+                            intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                             context.startService(intentService)
                             val intentService2 = Intent(context, AccountService::class.java)
                             intentService2.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTFEE)
+                            intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                             context.startService(intentService2)
                         }
                     )
@@ -226,6 +233,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_ACCOUNTINFORMATION)
+                            intentService.putExtra(AccountServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                             startService(intentService)
                         }
                     )
@@ -470,25 +478,36 @@ class AccountDetailsActivity : ComponentActivity() {
             }
         }
     }
-}
 
-fun AccountDetailsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
-    object : AppBroadcastReceiver() {
-        override fun onNewsReloadRequested() {}
-        override fun onAccountReloadRequested(newsType: String) {}
-        override fun onSettingsReloadRequested() { }
-        override fun onNewsScrollToTopRequested() { }
-        override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
+        object : AppBroadcastReceiver() {
+            override fun onNewsReloadRequested() {}
+            override fun onAccountReloadRequested(newsType: String) {}
+            override fun onSettingsReloadRequested() { }
+            override fun onNewsScrollToTopRequested() { }
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
 
-        override fun onPermissionRequested(
-            permission: String?,
-            granted: Boolean,
-            notifyToUser: Boolean
-        ) {
-            onPermissionResult(permission, granted, notifyToUser)
+            override fun onPermissionRequested(
+                permission: String?,
+                granted: Boolean,
+                notifyToUser: Boolean
+            ) {
+                onPermissionResult(permission, granted, notifyToUser)
+            }
+        }.apply {
+            return this
         }
-    }.apply {
-        return this
+    }
+
+    private fun registerBroadcastReceiver(context: Context) {
+        LocalBroadcastManager.getInstance(context).registerReceiver(
+            getAppBroadcastReceiver(),
+            IntentFilter().apply {
+                addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+                addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+                addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+            }
+        )
     }
 }
 
@@ -521,17 +540,6 @@ fun AccountDetailsActivity.onPermissionResult(
         }
         else -> { }
     }
-}
-
-fun AccountDetailsActivity.registerBroadcastReceiver(context: Context) {
-    LocalBroadcastManager.getInstance(context).registerReceiver(
-        getAppBroadcastReceiver(),
-        IntentFilter().apply {
-            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
-            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
-            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
-        }
-    )
 }
 
 fun AccountDetailsActivity.checkSettingsPermissionOnStartup(

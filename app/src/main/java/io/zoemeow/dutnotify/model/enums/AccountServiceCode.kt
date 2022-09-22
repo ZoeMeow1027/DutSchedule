@@ -33,5 +33,8 @@ class AccountServiceCode {
 
         // Send to broadcast a error message.
         const val ERRORMESSAGE = "errormessage"
+
+        // Define service what component is required (REQUIRED)
+        const val SOURCE_COMPONENT = "source.component"
     }
 }

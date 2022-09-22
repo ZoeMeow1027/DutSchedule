@@ -22,8 +22,8 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
-import io.zoemeow.dutnotify.utils.LazyList_EndOfListHandler
 
 @Composable
 fun NewsSubject(
@@ -38,7 +38,7 @@ fun NewsSubject(
         swipeRefreshState.isRefreshing = (isLoading == ProcessState.Running)
     }
 
-    LazyList_EndOfListHandler(
+    AppUtils.LazyList_EndOfListHandler(
         listState = lazyListState,
         onLoadMore = { reloadRequested(false) }
     )

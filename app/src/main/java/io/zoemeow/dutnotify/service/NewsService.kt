@@ -21,9 +21,9 @@ import io.zoemeow.dutnotify.model.news.NewsCache
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.module.NewsModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
 import io.zoemeow.dutnotify.utils.NotificationsUtils
-import io.zoemeow.dutnotify.utils.getMD5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -220,7 +220,7 @@ class NewsService : Service() {
             NotificationsUtils.showNewsNotification(
                 context = this,
                 channel_id = "dut_news_global",
-                news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
+                news_md5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
                 news_title = getString(R.string.notification_newsglobal_title),
                 news_description = newsItem.title,
                 data = newsItem
@@ -342,7 +342,7 @@ class NewsService : Service() {
             NotificationsUtils.showNewsNotification(
                 context = this,
                 channel_id = "dut_news_subject",
-                news_md5 = getMD5("${newsItem.date}_${newsItem.title}"),
+                news_md5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
                 news_title = notifyTitle,
                 news_description = notifyContentList.joinToString("\n"),
                 data = newsItem
