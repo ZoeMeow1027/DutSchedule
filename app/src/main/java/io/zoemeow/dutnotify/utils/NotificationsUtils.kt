@@ -90,7 +90,7 @@ class NotificationsUtils {
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
-                calcMD5CharValue(news_md5),
+                AppUtils.calcMD5CharValue(news_md5),
                 notificationIntent,
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                     (PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -108,7 +108,7 @@ class NotificationsUtils {
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
             with(NotificationManagerCompat.from(context)) {
-                notify(calcMD5CharValue(news_md5), builder.build())
+                notify(AppUtils.calcMD5CharValue(news_md5), builder.build())
             }
         }
     }

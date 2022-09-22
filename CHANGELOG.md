@@ -3,19 +3,49 @@
 - This will save add developer log for this application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow5466/DUTNotify/commits](https://github.com/ZoeMeow5466/DUTNotify/commits).
 
+## 1.0-beta9 (518)
+
+### Important notes
+
+- Renamed app to **Subject Notifier**.
+
+### What's new
+
+- Added back: [Google Dagger/Hilt]
+- NewsFilterSettings ViewModel for NewsFilterSettingsActivity.
+
+### What's changed
+
+- Implemented in Vietnamese strings.
+- Merge some files in Utils into a class.
+- Preload subject schedule, subject fee and account information.
+- Move reloadAppBackground to getCurrentWallpaperBackground in AppUtils.
+- Implemented LoginState performance in NewsFilterSettingsActivity.
+- Implemented with AccountBroadcastReceiver for only receive specific targets.
+
+### Fixed
+
+- [In 1.0-beta7] Update NewsService.kt for line 309: String.format error.
+
 ## 1.0-beta8 (501)
 
 ### What's new
+
 - AccountBroadcastReceiver and AccountService. This will replace AccountDataStore in ViewModel.
 - AccountCache. However, this isn't working yet.
 
 ### What's changed
+
 - Gradle updated to 7.5.1.
+
 - Implements with Vietnamese strings.
--
-### Fixed
+
+- 
+
 - Included a fix for [#8](https://github.com/ZoeMeow5466/DUTNotify/issues/8)
+
 - Fixed no loading in subject fee activity.
+
 - Fixed request permission in background image when permission is already granded.
 
 ## 1.0-beta7 (492)

@@ -1,8 +1,15 @@
 package io.zoemeow.dutnotify.utils
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.WallpaperManager
+import android.content.Context
+import android.graphics.drawable.Drawable
+import android.os.Build
 import io.zoemeow.dutapi.Utils
 import io.zoemeow.dutapi.objects.dutschoolyear.DUTSchoolYearItem
+import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus

@@ -11,7 +11,6 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
-import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -26,13 +25,45 @@ class AccountService: Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        Log.d("AccountService", "Triggered")
+        val callFrom = intent.getStringExtra(AccountServiceCode.SOURCE_COMPONENT)
+            ?: return super.onStartCommand(intent, flags, startId)
+
+        Log.d("AccountService", "Triggered from: $callFrom")
 
         when (intent.getStringExtra(AccountServiceCode.ACTION)) {
             AccountServiceCode.ACTION_LOGINSTARTUP -> {
                 Log.d("AccountService", "Triggered relogin")
                 val preload = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, false)
-                reLogin(preload)
+                // AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
+                sendToBroadcast(
+                    action = AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN,
+                    data = accModule.hasSavedLogin(),
+                    callFrom = callFrom
+                )
+                // Preload cache of Subject schedule, subject fee and account information
+                // subject schedule
+                sendToBroadcast(
+                    action = AccountServiceCode.ACTION_SUBJECTSCHEDULE,
+                    data = appCache.subjectScheduleList,
+                    callFrom = callFrom
+                )
+                // Subject fee
+                sendToBroadcast(
+                    action = AccountServiceCode.ACTION_SUBJECTFEE,
+                    data = appCache.subjectFeeList,
+                    callFrom = callFrom
+                )
+                // Account information
+                sendToBroadcast(
+                    action = AccountServiceCode.ACTION_ACCOUNTINFORMATION,
+                    data = appCache.accountInformation,
+                    callFrom = callFrom
+                )
+                // Re-login account
+                reLogin(
+                    preload = preload,
+                    callFrom = callFrom
+                )
             }
             AccountServiceCode.ACTION_LOGIN -> {
                 val username = intent.getStringExtra(AccountServiceCode.ARGUMENT_LOGIN_USERNAME)
@@ -40,41 +71,53 @@ class AccountService: Service() {
                 val remember = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGIN_REMEMBERED, false)
                 val preload = intent.getBooleanExtra(AccountServiceCode.ARGUMENT_LOGIN_PRELOAD, false)
                 if (username == null || password == null) {
-                    // TODO: Invaild value here!
-                } else login(username, password, remember, preload)
+                    sendToBroadcast(
+                        action = AccountServiceCode.ACTION_LOGIN,
+                        status = AccountServiceCode.STATUS_FAILED,
+                        callFrom = callFrom
+                    )
+                } else login(username, password, remember, preload, callFrom = callFrom)
             }
             AccountServiceCode.ACTION_LOGOUT -> {
                 Log.d("AccountService", "Triggered logout")
-                logout()
+                appCache.subjectScheduleList.clear()
+                appCache.subjectFeeList.clear()
+                appCache.accountInformation = null
+                logout(callFrom = callFrom)
             }
             AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {
                 try {
                     val schoolYearItem = intent.getSerializableExtra(AccountServiceCode.ARGUMENT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
-                    fetchSubjectSchedule(schoolYearItem)
+                    fetchSubjectSchedule(
+                        schoolYearItem = schoolYearItem,
+                        callFrom = callFrom
+                    )
                 } catch (ex: Exception) {
                     ex.printStackTrace()
-                    fetchSubjectSchedule()
+                    fetchSubjectSchedule(callFrom = callFrom)
                 }
             }
             AccountServiceCode.ACTION_SUBJECTFEE -> {
                 try {
                     val schoolYearItem = intent.getSerializableExtra(AccountServiceCode.ARGUMENT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
-                    fetchSubjectFee(schoolYearItem)
+                    fetchSubjectFee(
+                        schoolYearItem = schoolYearItem,
+                        callFrom = callFrom
+                    )
                 } catch (ex: Exception) {
                     ex.printStackTrace()
-                    fetchSubjectFee()
+                    fetchSubjectFee(callFrom = callFrom)
                 }
             }
             AccountServiceCode.ACTION_ACCOUNTINFORMATION -> {
-                fetchAccountInformation()
+                fetchAccountInformation(callFrom = callFrom)
             }
             AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN -> {
-                // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-                Intent(AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN).apply {
-                    putExtra(AccountServiceCode.DATA, accModule.hasSavedLogin())
-                }.also {
-                    sendBroadcast(it)
-                }
+                sendToBroadcast(
+                    action = AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN,
+                    data = accModule.hasSavedLogin(),
+                    callFrom = callFrom
+                )
             }
             else -> { }
         }
@@ -123,26 +166,27 @@ class AccountService: Service() {
         password: String,
         remembered: Boolean = false,
         preload: Boolean = false,
+        callFrom: String,
     ) {
         loadSettings()
 
         if (isProcessingLogin) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_LOGIN).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_LOGIN,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom
+            )
             return
         }
 
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
         isProcessingLogin = true
-        Intent(AccountServiceCode.ACTION_LOGIN).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
+        sendToBroadcast(
+            AccountServiceCode.ACTION_LOGIN,
+            AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
@@ -152,24 +196,18 @@ class AccountService: Service() {
                     remember = remembered,
                     forceReLogin = true,
                     onResult = { result ->
-                        val intent = Intent(AccountServiceCode.ACTION_LOGIN)
-                        if (result) {
-                            // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                        } else {
-                            // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
-                        }
-
                         isProcessingLogin = false
                         saveSettings()
-
-                        sendBroadcast(intent)
+                        sendToBroadcast(
+                            action = AccountServiceCode.ACTION_LOGIN,
+                            status = if (result) AccountServiceCode.STATUS_SUCCESSFUL else AccountServiceCode.STATUS_FAILED,
+                            callFrom = callFrom
+                        )
 
                         if (preload && result) {
-                            fetchSubjectSchedule()
-                            fetchSubjectFee()
-                            fetchAccountInformation()
+                            fetchSubjectSchedule(callFrom = callFrom)
+                            fetchSubjectFee(callFrom = callFrom)
+                            fetchAccountInformation(callFrom = callFrom)
                         }
                     }
                 )
@@ -177,38 +215,40 @@ class AccountService: Service() {
         }
     }
 
-    private fun logout() {
+    private fun logout(
+        callFrom: String,
+    ) {
         loadSettings()
 
         if (isProcessingLogin) {
-            // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_LOGOUT).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_LOGOUT,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom
+            )
             return
         }
 
-        // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
         isProcessingLogin = true
-        Intent(AccountServiceCode.ACTION_LOGOUT).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
+        sendToBroadcast(
+            action = AccountServiceCode.ACTION_LOGOUT,
+            status = AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
-                // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                isProcessingLogin = false
-
                 accModule.logout(
                     onResult = {
+                        isProcessingLogin = false
                         saveSettings()
-                        val intent = Intent(AccountServiceCode.ACTION_LOGOUT)
-                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                        sendBroadcast(intent)
+
+                        sendToBroadcast(
+                            action = AccountServiceCode.ACTION_LOGOUT,
+                            status = AccountServiceCode.STATUS_SUCCESSFUL,
+                            callFrom = callFrom
+                        )
+                        stopSelf()
                     }
                 )
             }
@@ -216,51 +256,45 @@ class AccountService: Service() {
     }
 
     private fun fetchSubjectSchedule(
-        schoolYearItem: SchoolYearItem = appSettings.schoolYear
+        schoolYearItem: SchoolYearItem = appSettings.schoolYear,
+        callFrom: String,
     ) {
         loadSettings()
 
         if (isProcessingSubjectSchedule) {
-            // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_SUBJECTSCHEDULE,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom
+            )
             return
         }
 
-        // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
         isProcessingSubjectSchedule = true
+        sendToBroadcast(
+            action = AccountServiceCode.ACTION_SUBJECTSCHEDULE,
+            status = AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 accModule.getSubjectSchedule(
                     schoolYearItem = schoolYearItem,
                     onResult = { arrayList ->
-                        val intent = Intent(AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-
                         if (arrayList != null) {
                             appCache.subjectScheduleList.clear()
                             appCache.subjectScheduleList.addAll(arrayList)
-
-                            // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                            intent.putExtra(AccountServiceCode.DATA, appCache.subjectScheduleList)
-                        } else {
-                            // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
-
                         isProcessingSubjectSchedule = false
                         saveSettings()
 
-                        sendBroadcast(intent)
+                        sendToBroadcast(
+                            action = AccountServiceCode.ACTION_SUBJECTSCHEDULE,
+                            status = if (arrayList != null) AccountServiceCode.STATUS_SUCCESSFUL else AccountServiceCode.STATUS_FAILED,
+                            data = appCache.subjectScheduleList,
+                            callFrom = callFrom
+                        )
                     }
                 )
             }
@@ -268,99 +302,89 @@ class AccountService: Service() {
     }
 
     private fun fetchSubjectFee(
-        schoolYearItem: SchoolYearItem = appSettings.schoolYear
+        schoolYearItem: SchoolYearItem = appSettings.schoolYear,
+        callFrom: String,
     ) {
         loadSettings()
 
         if (isProcessingSubjectFee) {
-            // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_SUBJECTFEE).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_SUBJECTFEE,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom
+            )
             return
         }
 
-        // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountServiceCode.ACTION_SUBJECTFEE).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
         isProcessingSubjectFee = true
+        sendToBroadcast(
+            action = AccountServiceCode.ACTION_SUBJECTFEE,
+            status = AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 accModule.getSubjectFee(
                     schoolYearItem = schoolYearItem,
                     onResult = { arrayList ->
-                        val intent = Intent(AccountServiceCode.ACTION_SUBJECTFEE)
-
                         if (arrayList != null) {
                             appCache.subjectFeeList.clear()
                             appCache.subjectFeeList.addAll(arrayList)
-
-                            // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                            intent.putExtra(AccountServiceCode.DATA, arrayList)
-                        } else {
-                            // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
                         }
 
                         isProcessingSubjectFee = false
                         saveSettings()
 
-                        sendBroadcast(intent)
+                        sendToBroadcast(
+                            action = AccountServiceCode.ACTION_SUBJECTFEE,
+                            status = if (arrayList != null) AccountServiceCode.STATUS_SUCCESSFUL else AccountServiceCode.STATUS_FAILED,
+                            data = arrayList,
+                            callFrom = callFrom
+                        )
                     }
                 )
             }
         }
     }
 
-    private fun fetchAccountInformation() {
+    private fun fetchAccountInformation(
+        callFrom: String,
+    ) {
         loadSettings()
 
         if (isProcessingAccountInformation) {
-            // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_ACCOUNTINFORMATION,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom
+            )
             return
         }
 
         isProcessingAccountInformation = true
-        // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
+        sendToBroadcast(
+            action = AccountServiceCode.ACTION_ACCOUNTINFORMATION,
+            status = AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 accModule.getAccountInformation(
                     onResult = { item ->
-                        val intent = Intent(AccountServiceCode.ACTION_ACCOUNTINFORMATION)
-
-                        if (item != null) {
+                        if (item != null)
                             appCache.accountInformation = item
-
-                            // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                            intent.putExtra(AccountServiceCode.DATA, item)
-                        } else {
-                            // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                            intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
-                        }
 
                         isProcessingAccountInformation = false
                         saveSettings()
 
-                        sendBroadcast(intent)
+                        sendToBroadcast(
+                            action = AccountServiceCode.ACTION_ACCOUNTINFORMATION,
+                            status = if (item != null) AccountServiceCode.STATUS_SUCCESSFUL else AccountServiceCode.STATUS_FAILED,
+                            data = item,
+                            callFrom = callFrom
+                        )
                     }
                 )
             }
@@ -369,48 +393,42 @@ class AccountService: Service() {
 
     private fun reLogin(
         preload: Boolean = false,
+        callFrom: String,
     ) {
         loadSettings()
 
         if (isProcessingLogin) {
-            // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
-            Intent(AccountServiceCode.ACTION_LOGINSTARTUP).apply {
-                putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_ALREADYPROCESSING)
-            }.also {
-                sendBroadcast(it)
-            }
+            sendToBroadcast(
+                action = AccountServiceCode.ACTION_LOGINSTARTUP,
+                status = AccountServiceCode.STATUS_ALREADYPROCESSING,
+                callFrom = callFrom,
+            )
             return
         }
 
         isProcessingLogin = true
-        // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
-        Intent(AccountServiceCode.ACTION_LOGINSTARTUP).apply {
-            putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_PROCESSING)
-        }.also {
-            sendBroadcast(it)
-        }
+        sendToBroadcast(
+            action = AccountServiceCode.ACTION_LOGINSTARTUP,
+            status = AccountServiceCode.STATUS_PROCESSING,
+            callFrom = callFrom
+        )
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
                 accModule.checkIsLoggedIn { result ->
-                    val intent = Intent(AccountServiceCode.ACTION_LOGINSTARTUP)
-
-                    if (result) {
-                        // Send broadcast with TYPE_LOGIN = STATUS_SUCCESSFUL
-                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_SUCCESSFUL)
-                    } else {
-                        // Send broadcast with TYPE_LOGIN = STATUS_FAILED
-                        intent.putExtra(AccountServiceCode.STATUS, AccountServiceCode.STATUS_FAILED)
-                    }
+                    isProcessingLogin = false
                     saveSettings()
 
-                    isProcessingLogin = false
-                    sendBroadcast(intent)
+                    sendToBroadcast(
+                        action = AccountServiceCode.ACTION_LOGINSTARTUP,
+                        status = if (result) AccountServiceCode.STATUS_SUCCESSFUL else AccountServiceCode.STATUS_FAILED,
+                        callFrom = callFrom,
+                    )
 
                     if (preload && result) {
-                        fetchSubjectSchedule()
-                        fetchSubjectFee()
-                        fetchAccountInformation()
+                        fetchSubjectSchedule(callFrom = callFrom)
+                        fetchSubjectFee(callFrom = callFrom)
+                        fetchAccountInformation(callFrom = callFrom)
                     }
                 }
             }
@@ -419,5 +437,22 @@ class AccountService: Service() {
 
     override fun sendBroadcast(intent: Intent) {
         LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+    }
+
+    private fun sendToBroadcast(
+        action: String,
+        status: String? = null,
+        data: Any? = null,
+        errorMsg: String? = null,
+        callFrom: String,
+    ) {
+        Intent(action).apply {
+            if (status != null) putExtra(AccountServiceCode.STATUS, status)
+            if (data != null) putExtra(AccountServiceCode.DATA, data as java.io.Serializable)
+            if (errorMsg != null) putExtra(AccountServiceCode.ERRORMESSAGE, errorMsg)
+            putExtra(AccountServiceCode.SOURCE_COMPONENT, callFrom)
+        }.also {
+            sendBroadcast(it)
+        }
     }
 }

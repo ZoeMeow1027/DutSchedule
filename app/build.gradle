@@ -3,6 +3,8 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-android'
     id 'kotlin-kapt'
+
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
@@ -13,8 +15,8 @@ android {
         applicationId "io.zoemeow.dutnotify"
         minSdk 21 // Android Lollipop - 5.0
         targetSdk 33 // Android Tiramisu - 13
-        versionCode 501
-        versionName "1.0-beta8"
+        versionCode 518
+        versionName "1.0-beta9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -108,6 +110,10 @@ dependencies {
 
     // dutapi-library/dutapi.java from GitHub (from JitPack.io)
     implementation 'com.github.dutapi-library:dutapi.java:1.7.3'
+
+    // Google Dagger/Hilt
+    implementation "com.google.dagger:hilt-android:2.43.2"
+    kapt "com.google.dagger:hilt-compiler:2.43.2"
 }
 
 // https://kotlinlang.org/docs/opt-in-requirements.html#module-wide-opt-in

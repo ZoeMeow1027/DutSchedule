@@ -26,7 +26,7 @@ import io.zoemeow.dutnotify.ui.custom.CustomDivider
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemClickable
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemSwitch
-import io.zoemeow.dutnotify.utils.openLink
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -269,7 +269,7 @@ fun Settings(
                     title = stringResource(id = R.string.settings_changelog_name),
                     description = stringResource(id = R.string.settings_changelog_description),
                     clickable = {
-                        openLink(
+                        AppUtils.openLink(
                             "https://github.com/ZoeMeow5466/DUTNotify/blob/stable/CHANGELOG.md",
                             context,
                             true
@@ -280,7 +280,7 @@ fun Settings(
                     title = stringResource(id = R.string.settings_githubrepo_name),
                     description = "https://github.com/ZoeMeow5466/DUTNotify",
                     clickable = {
-                        openLink(
+                        AppUtils.openLink(
                             "https://github.com/ZoeMeow5466/DUTNotify",
                             context,
                             true

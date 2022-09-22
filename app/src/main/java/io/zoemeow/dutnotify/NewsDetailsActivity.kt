@@ -26,6 +26,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
@@ -33,11 +34,12 @@ import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.utils.openLink
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.view.news.NewsDetailsGlobal
 import io.zoemeow.dutnotify.view.news.NewsDetailsSubject
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
+@AndroidEntryPoint
 class NewsDetailsActivity : ComponentActivity() {
     private val newsTitle = mutableStateOf("")
     internal lateinit var mainViewModel: MainViewModel
@@ -50,7 +52,6 @@ class NewsDetailsActivity : ComponentActivity() {
 
             LaunchedEffect(Unit) {
                 registerBroadcastReceiver(context = applicationContext)
-
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
             }
 
@@ -142,7 +143,7 @@ class NewsDetailsActivity : ComponentActivity() {
                 newsType = type,
                 newsData = data,
                 linkClicked = {
-                    openLink(it, this, mainViewModel.appSettings.value.openLinkInCustomTab)
+                    AppUtils.openLink(it, this, mainViewModel.appSettings.value.openLinkInCustomTab)
                 },
             )
         }
@@ -179,25 +180,36 @@ class NewsDetailsActivity : ComponentActivity() {
             }
         }
     }
-}
 
-fun NewsDetailsActivity.getAppBroadcastReceiver(): AppBroadcastReceiver {
-    object : AppBroadcastReceiver() {
-        override fun onNewsReloadRequested() {}
-        override fun onAccountReloadRequested(newsType: String) {}
-        override fun onSettingsReloadRequested() { }
-        override fun onNewsScrollToTopRequested() { }
-        override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
+        object : AppBroadcastReceiver() {
+            override fun onNewsReloadRequested() {}
+            override fun onAccountReloadRequested(newsType: String) {}
+            override fun onSettingsReloadRequested() { }
+            override fun onNewsScrollToTopRequested() { }
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
 
-        override fun onPermissionRequested(
-            permission: String?,
-            granted: Boolean,
-            notifyToUser: Boolean
-        ) {
-            onPermissionResult(permission, granted, notifyToUser)
+            override fun onPermissionRequested(
+                permission: String?,
+                granted: Boolean,
+                notifyToUser: Boolean
+            ) {
+                onPermissionResult(permission, granted, notifyToUser)
+            }
+        }.apply {
+            return this
         }
-    }.apply {
-        return this
+    }
+
+    private fun registerBroadcastReceiver(context: Context) {
+        LocalBroadcastManager.getInstance(context).registerReceiver(
+            getAppBroadcastReceiver(),
+            IntentFilter().apply {
+                addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+                addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+                addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+            }
+        )
     }
 }
 
@@ -209,10 +221,11 @@ fun NewsDetailsActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
+                mainViewModel.mainActivityBackgroundDrawable.value =
+                    AppUtils.getCurrentWallpaperBackground(
+                        context = this,
+                        type = mainViewModel.appSettings.value.backgroundImage.option
+                    )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
@@ -230,17 +243,6 @@ fun NewsDetailsActivity.onPermissionResult(
         }
         else -> { }
     }
-}
-
-fun NewsDetailsActivity.registerBroadcastReceiver(context: Context) {
-    LocalBroadcastManager.getInstance(context).registerReceiver(
-        getAppBroadcastReceiver(),
-        IntentFilter().apply {
-            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
-            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
-            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
-        }
-    )
 }
 
 fun NewsDetailsActivity.checkSettingsPermissionOnStartup(

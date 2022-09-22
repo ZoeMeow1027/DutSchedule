@@ -15,8 +15,10 @@
     <string name="account_login_fieldusername">Mã số sinh viên</string>
     <string name="account_login_loginbtn">Đăng nhập</string>
     <string name="account_login_statusfailed">Không thể đăng nhập cho bạn! Đảm bảo rằng tài khoản của bạn đã được nhập chính xác.\nNếu mọi thứ đều đúng, vui lòng kiểm tra kết nối của bạn hoặc đảm bảo rằng tài khoản của bạn không bị khóa bởi trường.</string>
-    <string name="account_login_statusloggingin">Chúng tôi đang đăng nhập cho bạn. Vui lòng chờ...</string>
+    <string name="account_login_statusloggingin">Chúng tôi đang đăng nhập cho bạn. Vui lòng chờ…</string>
     <string name="account_login_title">Đăng nhập</string>
+    <string name="account_logout_description">Đăng xuất sẽ xóa thông tin đăng nhập của bạn được lưu trên thiết bị này, vì vậy nếu bạn muốn xem lịch học, lịch thi và thông tin tài khoản, bạn cần đăng nhập lại.\n\nTiếp tục đăng xuất?</string>
+    <string name="account_logout_title">Đăng xuất</string>
     <string name="account_notloggedin_btnlogin">Đăng nhập</string>
     <string name="account_notloggedin_description">Đăng nhập để sử dụng nhiều chức năng hơn của ứng dụng này.</string>
     <string name="account_notloggedin_title">Bạn chưa đăng nhập</string>
@@ -24,7 +26,7 @@
     <string name="account_page_subjectfee">Học phí</string>
     <string name="account_page_subjectschedule">Lịch học</string>
 
-    <string name="app_name">DUT</string>
+    <string name="app_name">Subject Notifier</string>
 
     <string name="navbar_account">Tài khoản</string>
     <string name="navbar_main">Chính</string>
@@ -58,6 +60,7 @@
     <string name="option_add">Thêm</string>
     <string name="option_cancel">Hủy</string>
     <string name="option_commit">Lưu thay đổi</string>
+    <string name="option_continue">Tiếp tục</string>
     <string name="option_no">Không</string>
     <string name="option_ok">OK</string>
     <string name="option_refresh">Tải lại</string>

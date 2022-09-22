@@ -27,15 +27,16 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
-import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
+import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
 import io.zoemeow.dutnotify.view.navbar.MainBottomNavigationBar
@@ -46,6 +47,7 @@ import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     companion object {
         private var isInitialized = false
@@ -81,16 +83,18 @@ class MainActivity : ComponentActivity() {
                 NotificationsUtils.initializeNotificationChannel(this)
 
             if (!isInitialized) {
-                registerBroadcastReceiver(context = applicationContext)
+                registerBroadcastReceiver(context = this@MainActivity)
                 checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
 
                 // Initialize refresh news services
                 // Just to reload news. If schedule has been enabled,
                 // this will be scheduled to new UnixTimestamp.
-                NewsService.startService(context = applicationContext)
+                NewsService.startService(context = this@MainActivity)
+
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
+                    putExtra(AccountServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }
@@ -98,6 +102,7 @@ class MainActivity : ComponentActivity() {
                 Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
                     putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(AccountServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }
@@ -147,19 +152,6 @@ class MainActivity : ComponentActivity() {
                                 val intent = Intent(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
                                 LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
                             }
-//                            MainNavRoutes.Account.route -> {
-//                                if (arrayListOf(
-//                                        LoginState.NotTriggered,
-//                                        LoginState.NotLoggedIn
-//                                    ).contains(mainViewModel.accountDataStore.loginState.value)
-//                                ) {
-//                                    if (mainViewModel.accountCurrentPage.value != 0)
-//                                        mainViewModel.accountCurrentPage.value = 0
-//                                } else {
-//                                    if (mainViewModel.accountCurrentPage.value != 1)
-//                                        mainViewModel.accountCurrentPage.value = 1
-//                                }
-//                            }
                             else -> {}
                         }
                     }
@@ -203,7 +195,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    internal fun getAppBroadcastReceiver(): AppBroadcastReceiver {
+    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
@@ -250,6 +242,17 @@ class MainActivity : ComponentActivity() {
         val policy = ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
     }
+
+    private fun registerBroadcastReceiver(context: Context) {
+        LocalBroadcastManager.getInstance(context).registerReceiver(
+            getAppBroadcastReceiver(),
+            IntentFilter().apply {
+                addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
+                addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
+                addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
+            }
+        )
+    }
 }
 
 fun MainActivity.onPermissionResult(
@@ -257,14 +260,14 @@ fun MainActivity.onPermissionResult(
     granted: Boolean,
     notifyToUser: Boolean = false
 ) {
-
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.reloadAppBackground(
-                    context = this,
-                    type = mainViewModel.appSettings.value.backgroundImage.option
-                )
+                mainViewModel.mainActivityBackgroundDrawable.value =
+                    AppUtils.getCurrentWallpaperBackground(
+                        context = this,
+                        type = mainViewModel.appSettings.value.backgroundImage.option
+                    )
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
@@ -323,17 +326,6 @@ fun MainActivity.onPermissionResult(
         }
         else -> { }
     }
-}
-
-fun MainActivity.registerBroadcastReceiver(context: Context) {
-    LocalBroadcastManager.getInstance(context).registerReceiver(
-        getAppBroadcastReceiver(),
-        IntentFilter().apply {
-            addAction(AppBroadcastReceiver.SNACKBARMESSAGE)
-            addAction(AppBroadcastReceiver.NEWS_SCROLLALLTOTOP)
-            addAction(AppBroadcastReceiver.RUNTIME_PERMISSION_REQUESTED)
-        }
-    )
 }
 
 fun MainActivity.checkSettingsPermissionOnStartup(

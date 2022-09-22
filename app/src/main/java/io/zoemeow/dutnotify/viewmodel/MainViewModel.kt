@@ -14,13 +14,15 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
+import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AccountServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
@@ -28,7 +30,6 @@ import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.news.NewsCache
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
-import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
@@ -37,41 +38,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @Suppress("PropertyName")
-class MainViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class MainViewModel @Inject constructor(
+    private val file: FileModule,
+    private val application: Application,
+) : ViewModel() {
     val subjectScheduleItem: MutableState<SubjectScheduleItem?> = mutableStateOf(null)
     val subjectScheduleEnabled: MutableState<Boolean> = mutableStateOf(false)
 
-    // Drawable and painter for background image
-    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
-
     /**
-     * Get current drawable for background image. Image loaded will save to backgroundPainter.
+     * Drawable and painter for background image.
      */
-    fun reloadAppBackground(
-        context: Context,
-        type: BackgroundImageType,
-    ) {
-        try {
-            // This will get background wallpaper from launcher.
-            if (type == BackgroundImageType.FromWallpaper) {
-                if (
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    val wallpaperManager = WallpaperManager.getInstance(context)
-                    mainActivityBackgroundDrawable.value = wallpaperManager.drawable
-                } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
-            }
-            // Otherwise set to null
-            else mainActivityBackgroundDrawable.value = null
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-    }
+    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
 
     /**
      * Main Activity: Check if current theme is dark mode.
@@ -80,9 +61,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
-
-    // File Module
-    private lateinit var file: FileModule
 
     // News UI area
     val newsDataStore: NewsDataStore = NewsDataStore(this)
@@ -106,7 +84,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             AppBroadcastReceiver.SNACKBARMESSAGE_CLOSEOLDMSG,
             forceCloseOld
         )
-        LocalBroadcastManager.getInstance(getApplication<Application>().applicationContext)
+        LocalBroadcastManager.getInstance(application.applicationContext)
             .sendBroadcast(intent)
     }
 
@@ -168,7 +146,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             override fun onSettingsReloadRequested() {
                 appSettings.value = file.getAppSettings()
-//                accountDataStore.loadSettings(file.getAccountSettings())
             }
         }.apply {
             return this
@@ -211,9 +188,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun getAccountBroadcastReceiver(): AccountBroadcastReceiver {
-        object : AccountBroadcastReceiver() {
+        object : AccountBroadcastReceiver(packageFilter = MainActivity::class.java.name) {
             override fun onStatusReceived(key: String, value: String) {
-                Log.d("AccountService", "Triggered status")
+                Log.d("AccountService", "AccountBroadcastReceiver - $key: $value")
                 when (key) {
                     AccountServiceCode.ACTION_LOGIN -> {
                         when (value) {
@@ -317,6 +294,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             clear()
                             addAll(data as ArrayList<SubjectScheduleItem>)
                         }
+                        filterSubjectScheduleByDay(
+                            week = DUTDateUtils.getDUTWeek(),
+                            dayOfWeek = if (DUTDateUtils.getCurrentDayOfWeek() - 1 == 0) 7 else DUTDateUtils.getCurrentDayOfWeek() - 1
+                        )
                     }
                     AccountServiceCode.ACTION_SUBJECTFEE -> {
                         Account_Data_SubjectFee.apply {
@@ -342,6 +323,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         Log.d("MainViewModel", "Destroyed")
+        LocalBroadcastManager.getInstance(application.applicationContext).unregisterReceiver(
+            getAppBroadcastReceiver()
+        )
+        LocalBroadcastManager.getInstance(application.applicationContext).unregisterReceiver(
+            getAccountBroadcastReceiver()
+        )
         super.onCleared()
     }
 
@@ -350,9 +337,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         run {
             if (initOnce)
                 return@run
-
-            file = FileModule(application.applicationContext)
-            appSettings.value = file.getAppSettings()
 
             LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
                 getAccountBroadcastReceiver(),
@@ -371,6 +355,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 getAppBroadcastReceiver(),
                 IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
             )
+
+            appSettings.value = file.getAppSettings()
 
             // Reload news from cache
             val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
