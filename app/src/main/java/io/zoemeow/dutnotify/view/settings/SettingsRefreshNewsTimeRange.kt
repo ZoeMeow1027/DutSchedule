@@ -1,6 +1,7 @@
 package io.zoemeow.dutnotify.view.settings
 
 import android.app.TimePickerDialog
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.AlertDialog
@@ -22,7 +23,8 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.service.NewsService
+import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.service.NewsService2
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -95,8 +97,14 @@ fun SettingsRefreshNewsTimeRange(
         enabled.value = false
         try {
             if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                NewsService.cancelSchedule(context)
-                NewsService.startService(context)
+                NewsService2.cancelSchedule(context)
+                NewsService2.startService(
+                    context = context,
+                    intent = Intent(context, NewsService2::class.java).apply {
+                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALL)
+                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                    }
+                )
             }
         } catch (ex: Exception) {
             ex.printStackTrace()

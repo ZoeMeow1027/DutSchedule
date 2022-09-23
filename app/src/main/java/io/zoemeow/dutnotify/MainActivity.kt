@@ -34,7 +34,7 @@ import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
-import io.zoemeow.dutnotify.service.NewsService
+import io.zoemeow.dutnotify.service.NewsService2
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
@@ -89,8 +89,24 @@ class MainActivity : ComponentActivity() {
                 // Initialize refresh news services
                 // Just to reload news. If schedule has been enabled,
                 // this will be scheduled to new UnixTimestamp.
-                NewsService.startService(context = this@MainActivity)
 
+                // NewsService.startService(context = this@MainActivity)
+                controlNewsServiceInBackground(false)
+
+                NewsService2.startService(
+                    context = this@MainActivity,
+                    intent = Intent(this@MainActivity, NewsService2::class.java).apply {
+                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_INITIALIZATION)
+                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                    }
+                )
+                NewsService2.startService(
+                    context = this@MainActivity,
+                    intent = Intent(this@MainActivity, NewsService2::class.java).apply {
+                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALL)
+                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                    }
+                )
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
@@ -188,11 +204,42 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    override fun onResume() {
+        controlNewsServiceInBackground(false)
+        super.onResume()
+    }
+
+    override fun onPause() {
+        controlNewsServiceInBackground(true)
+        super.onPause()
+    }
+
     override fun onDestroy() {
         // Unregister to completely destroyed.
         LocalBroadcastManager.getInstance(this)
             .unregisterReceiver(getAppBroadcastReceiver())
+        controlNewsServiceInBackground(true)
         super.onDestroy()
+    }
+
+    private fun controlNewsServiceInBackground(enabled: Boolean) {
+        try {
+            if (enabled) {
+                if (mainViewModel.appSettings.value.refreshNewsEnabled)
+                    NewsService2.startService(
+                        context = this@MainActivity,
+                        intent = Intent(this@MainActivity, NewsService2::class.java).apply {
+                            putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND)
+                            putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
+                        }
+                    )
+            }
+            else {
+                NewsService2.cancelSchedule(this)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+        }
     }
 
     private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
@@ -300,10 +347,8 @@ fun MainActivity.onPermissionResult(
                     val msg: String
                     if (mainViewModel.appSettings.value.refreshNewsEnabled) {
                         msg = getString(R.string.snackbar_newsinbackground_successfulenabled)
-                        NewsService.startService(this)
                     } else {
                         msg = getString(R.string.snackbar_newsinbackground_successfuldisabled)
-                        NewsService.cancelSchedule(this)
                     }
                     if (notifyToUser)
                         mainViewModel.showSnackBarMessage(msg)

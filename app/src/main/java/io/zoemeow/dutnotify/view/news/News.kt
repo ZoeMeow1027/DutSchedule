@@ -16,9 +16,13 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.NewsPageType
+import io.zoemeow.dutnotify.model.enums.ProcessState
+import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.service.NewsService2
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -42,7 +46,7 @@ fun News(
         containerColor = Color.Transparent,
         contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),
@@ -99,12 +103,21 @@ fun News(
                 HorizontalPager(count = tabList.size, state = pagerState) { index ->
                     when (index) {
                         0 -> NewsGlobal(
-                            newsGlobalList = mainViewModel.newsDataStore.listNewsGlobalByDate,
-                            isLoading = mainViewModel.newsDataStore.procNewsGlobal.value,
+                            newsGlobalList = mainViewModel.News_Data_Global,
+                            isLoading = mainViewModel.News_Process_Global.value,
                             lazyListState = lazyListTabGlobal,
                             reloadRequested = {
-                                mainViewModel.newsDataStore.fetchNewsGlobal(
-                                    if (it) NewsPageType.GetFirstPage else NewsPageType.NextPage
+                                NewsService2.startService(
+                                    context = context,
+                                    intent = Intent(context, NewsService2::class.java).apply {
+                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHGLOBAL)
+                                        putExtra(
+                                            ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
+                                            if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
+                                            else ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
+                                        )
+                                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                                    }
                                 )
                             },
                             itemClicked = { newsItem ->
@@ -115,12 +128,21 @@ fun News(
                             }
                         )
                         1 -> NewsSubject(
-                            newsSubjectList = mainViewModel.newsDataStore.listNewsSubjectByDate,
-                            isLoading = mainViewModel.newsDataStore.procNewsSubject.value,
+                            newsSubjectList = mainViewModel.News_Data_Subject,
+                            isLoading = mainViewModel.News_Process_Subject.value,
                             lazyListState = lazyListTabSubject,
                             reloadRequested = {
-                                mainViewModel.newsDataStore.fetchNewsSubject(
-                                    if (it) NewsPageType.GetFirstPage else NewsPageType.NextPage
+                                NewsService2.startService(
+                                    context = context,
+                                    intent = Intent(context, NewsService2::class.java).apply {
+                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHSUBJECT)
+                                        putExtra(
+                                            ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
+                                            if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
+                                            else ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
+                                        )
+                                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                                    }
                                 )
                             },
                             itemClicked = { newsItem ->

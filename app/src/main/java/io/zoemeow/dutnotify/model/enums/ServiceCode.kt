@@ -5,6 +5,12 @@ class ServiceCode {
     companion object {
         // Send to broadcast a action
         const val ACTION = "action"
+        // News Service
+        const val ACTION_NEWS_INITIALIZATION = "action.news.initialization"
+        const val ACTION_NEWS_FETCHGLOBAL = "action.news.fetchglobal"
+        const val ACTION_NEWS_FETCHSUBJECT = "action.news.fetchsubject"
+        const val ACTION_NEWS_FETCHALL = "action.news.fetchall"
+        const val ACTION_NEWS_FETCHALLBACKGROUND = "action.news.fetchallbackground"
         // Account Service
         const val ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN = "action.account.getstatus.hassavedlogin"
         const val ACTION_ACCOUNT_LOGIN = "action.account.login"
@@ -15,6 +21,11 @@ class ServiceCode {
         const val ACTION_ACCOUNT_ACCOUNTINFORMATION = "action.account.accountinformation"
 
         // Add arguments
+        const val ARGUMENT_NEWS_PAGEOPTION = "argument.news.pageoption"
+        const val ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE = "argument.news.pageoption.nextpage"
+        const val ARGUMENT_NEWS_PAGEOPTION_RESETTO1 = "argument.news.pageoption.resetto1"
+        const val ARGUMENT_NEWS_PAGEOPTION_GETPAGE1 = "argument.news.pageoption.getpage1"
+        const val ARGUMENT_NEWS_NOTIFYTOUSER = "argument.news.notifytouser"
         const val ARGUMENT_ACCOUNT_LOGIN_USERNAME = "argument.account.login.username"
         const val ARGUMENT_ACCOUNT_LOGIN_PASSWORD = "argument.account.login.password"
         const val ARGUMENT_ACCOUNT_LOGIN_REMEMBERED = "argument.account.login.remembered"

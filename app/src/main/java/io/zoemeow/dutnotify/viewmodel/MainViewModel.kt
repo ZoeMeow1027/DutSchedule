@@ -27,6 +27,7 @@ import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
+import io.zoemeow.dutnotify.receiver.NewsBroadcastReceiver
 import io.zoemeow.dutnotify.utils.DUTDateUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,15 +57,6 @@ class MainViewModel @Inject constructor(
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
 
-    // News UI area
-    val newsDataStore: NewsDataStore = NewsDataStore(this)
-
-    fun requestSaveChanges() {
-        file.saveAppSettings(
-            appSettings = appSettings.value
-        )
-    }
-
     fun showSnackBarMessage(
         title: String,
         forceCloseOld: Boolean = false
@@ -82,23 +74,67 @@ class MainViewModel @Inject constructor(
             .sendBroadcast(intent)
     }
 
-    fun requestSaveCache() {
-        file.saveCacheNewsGlobal(
-            NewsCache(
-                newsListByDate = arrayListOf<NewsGroupByDate<NewsGlobalItem>>().apply {
-                    addAll(newsDataStore.listNewsGlobalByDate)
-                },
-                pageCurrent = newsDataStore.newsGlobalPageCurrent.value
-            )
-        )
-        file.saveCacheNewsSubject(
-            NewsCache(
-                newsListByDate = arrayListOf<NewsGroupByDate<NewsSubjectItem>>().apply {
-                    addAll(newsDataStore.listNewsSubjectByDate)
-                },
-                pageCurrent = newsDataStore.newsSubjectPageCurrent.value
-            )
-        )
+    fun requestSaveChanges() {
+        file.saveAppSettings(appSettings = appSettings.value)
+    }
+
+    val News_Process_Global = mutableStateOf(ProcessState.NotRanYet)
+    val News_Data_Global = mutableStateListOf<NewsGroupByDate<NewsGlobalItem>>()
+    val News_Process_Subject = mutableStateOf(ProcessState.NotRanYet)
+    val News_Data_Subject = mutableStateListOf<NewsGroupByDate<NewsSubjectItem>>()
+
+    private fun getNewsBroadcastReceiver(): NewsBroadcastReceiver {
+        // MainActivity::class.java.name
+        object: NewsBroadcastReceiver() {
+            override fun onStatusReceived(key: String, value: String) {
+                Log.d("NewsService", "onStatusReceived - $key: $value")
+                when (key) {
+                    ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+                        when (value) {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
+                                News_Process_Global.value = ProcessState.Successful
+                            }
+                            ServiceCode.STATUS_FAILED -> {
+                                News_Process_Global.value = ProcessState.Failed
+                            }
+                            ServiceCode.STATUS_PROCESSING -> {
+                                News_Process_Global.value = ProcessState.Running
+                            }
+                        }
+                    }
+                    ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+                        when (value) {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
+                                News_Process_Subject.value = ProcessState.Successful
+                            }
+                            ServiceCode.STATUS_FAILED -> {
+                                News_Process_Subject.value = ProcessState.Failed
+                            }
+                            ServiceCode.STATUS_PROCESSING -> {
+                                News_Process_Subject.value = ProcessState.Running
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            override fun onDataReceived(key: String, data: Any) {
+                Log.d("NewsService", "onDataReceived - $key")
+                when (key) {
+                    ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+                        News_Data_Global.clear()
+                        News_Data_Global.addAll(data as ArrayList<NewsGroupByDate<NewsGlobalItem>>)
+                    }
+                    ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+                        News_Data_Subject.clear()
+                        News_Data_Subject.addAll(data as ArrayList<NewsGroupByDate<NewsSubjectItem>>)
+                    }
+                }
+            }
+
+            override fun onErrorReceived(key: String, msg: String) { }
+        }.apply { return this }
     }
 
     private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
@@ -112,30 +148,22 @@ class MainViewModel @Inject constructor(
             ) { }
 
             override fun onNewsReloadRequested() {
-                CoroutineScope(Dispatchers.Main).launch {
-                    withContext(Dispatchers.IO) {
-                        file.getCacheNewsGlobal().apply {
-                            newsDataStore.newsGlobalPageCurrent.value = pageCurrent
-                            newsDataStore.listNewsGlobalByDate.swapList(newsListByDate)
-                        }
-                        file.getCacheNewsSubject().apply {
-                            newsDataStore.newsSubjectPageCurrent.value = pageCurrent
-                            newsDataStore.listNewsSubjectByDate.swapList(newsListByDate)
-                        }
-                    }
-                }
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    withContext(Dispatchers.IO) {
+//                        file.getCacheNewsGlobal().apply {
+//                            newsDataStore.newsGlobalPageCurrent.value = pageCurrent
+//                            newsDataStore.listNewsGlobalByDate.swapList(newsListByDate)
+//                        }
+//                        file.getCacheNewsSubject().apply {
+//                            newsDataStore.newsSubjectPageCurrent.value = pageCurrent
+//                            newsDataStore.listNewsSubjectByDate.swapList(newsListByDate)
+//                        }
+//                    }
+//                }
             }
 
             override fun onAccountReloadRequested(newsType: String) {
-                when (newsType) {
-                    ACCOUNT_SUBJECTSCHEDULE_RELOADREQUESTED -> {
 
-                    }
-                    ACCOUNT_SUBJECTFEE_RELOADREQUESTED -> {
-                    }
-                    ACCOUNT_ACCINFORMATION_RELOADREQUESTED -> {
-                    }
-                }
             }
 
             override fun onSettingsReloadRequested() {
@@ -192,14 +220,11 @@ class MainViewModel @Inject constructor(
                                 Account_LoginProcess.value = LoginState.LoggedIn
                                 Account_HasSaved.value = true
 
-                                requestSaveChanges()
                                 showSnackBarMessage("Successfully login!", true)
                             }
                             ServiceCode.STATUS_FAILED -> {
                                 Account_LoginProcess.value = LoginState.NotLoggedIn
                                 Account_HasSaved.value = false
-
-                                requestSaveChanges()
                             }
                             ServiceCode.STATUS_PROCESSING -> {
                                 Account_LoginProcess.value = LoginState.LoggingIn
@@ -211,7 +236,6 @@ class MainViewModel @Inject constructor(
                         when (value) {
                             ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
-                                requestSaveChanges()
 
                                 showSnackBarMessage("Successfully re-login!", true)
                             }
@@ -221,7 +245,6 @@ class MainViewModel @Inject constructor(
                                 } else {
                                     Account_LoginProcess.value = LoginState.NotLoggedIn
                                 }
-                                requestSaveChanges()
                             }
                         }
                     }
@@ -317,12 +340,11 @@ class MainViewModel @Inject constructor(
 
     override fun onCleared() {
         Log.d("MainViewModel", "Destroyed")
-        LocalBroadcastManager.getInstance(application.applicationContext).unregisterReceiver(
-            getAppBroadcastReceiver()
-        )
-        LocalBroadcastManager.getInstance(application.applicationContext).unregisterReceiver(
-            getAccountBroadcastReceiver()
-        )
+        LocalBroadcastManager.getInstance(application.applicationContext).apply {
+            unregisterReceiver(getNewsBroadcastReceiver())
+            unregisterReceiver(getAccountBroadcastReceiver())
+            unregisterReceiver(getAppBroadcastReceiver())
+        }
         super.onCleared()
     }
 
@@ -332,29 +354,37 @@ class MainViewModel @Inject constructor(
             if (initOnce)
                 return@run
 
-            LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
-                getAccountBroadcastReceiver(),
-                IntentFilter().apply {
-                    addAction(ServiceCode.ACTION_ACCOUNT_LOGIN)
-                    addAction(ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
-                    addAction(ServiceCode.ACTION_ACCOUNT_LOGOUT)
-                    addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                    addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
-                    addAction(ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
-                    addAction(ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
-                }
-            )
-
-            LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
-                getAppBroadcastReceiver(),
-                IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-            )
-
             appSettings.value = file.getAppSettings()
 
-            // Reload news from cache
-            val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-            LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+            LocalBroadcastManager.getInstance(application.applicationContext).apply {
+                registerReceiver(
+                    getNewsBroadcastReceiver(),
+                    IntentFilter().apply {
+                        addAction(ServiceCode.ACTION_NEWS_FETCHGLOBAL)
+                        addAction(ServiceCode.ACTION_NEWS_FETCHSUBJECT)
+                    }
+                )
+                registerReceiver(
+                    getAccountBroadcastReceiver(),
+                    IntentFilter().apply {
+                        addAction(ServiceCode.ACTION_ACCOUNT_LOGIN)
+                        addAction(ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
+                        addAction(ServiceCode.ACTION_ACCOUNT_LOGOUT)
+                        addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
+                        addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
+                        addAction(ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
+                        addAction(ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
+                    }
+                )
+                // TODO: This line will be deleted.
+//                registerReceiver(
+//                    getAppBroadcastReceiver(),
+//                    IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
+//                )
+                // Reload news from cache
+                // TODO: This line will also be deleted.
+                // sendBroadcast(Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY))
+            }
 
             Log.d("MainViewModel", "Initialized")
             initOnce = true

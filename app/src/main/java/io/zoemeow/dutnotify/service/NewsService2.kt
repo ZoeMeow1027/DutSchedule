@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutapi.objects.enums.LessonStatus
@@ -15,14 +16,15 @@ import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
+import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
-import io.zoemeow.dutnotify.model.news.NewsCache
+import io.zoemeow.dutnotify.model.enums.NewsPageType
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.module.NewsModule
-import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.utils.AppUtils
-import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.dateToString
+import io.zoemeow.dutnotify.utils.DUTDateUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -30,184 +32,215 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class NewsService : Service() {
+class NewsService2: Service() {
+    private lateinit var file: FileModule
+    private lateinit var settings: AppSettings
+    private var fetchInBackground = false
+
     override fun onCreate() {
-        setNotificationsForeground("Preparing...")
+        setNotificationOnForeground("Loading settings...")
+        file = FileModule(this)
+        settings = file.getAppSettings()
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
+        Log.d("NewsService", "Triggered NewsService2 start")
+
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
-                doWorkBackground()
+                doWorkBackground(intent)
             }
         }.invokeOnCompletion {
             it?.printStackTrace()
             stopSelf()
         }
+
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        // TODO("Return the communication channel to the service.")
+    override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     override fun onDestroy() {
         // Schedule next run.
-        scheduleNextRunIfNeeded()
+        if (fetchInBackground) scheduleNextRunIfNeeded()
         // Just destroy this service.
         super.onDestroy()
     }
 
-    /**
-     * Schedule next run when needed.
-     */
-    private fun scheduleNextRunIfNeeded() {
-        // Get current settings.
-        val settings = FileModule(this).getAppSettings()
-        // If not enabled, will skip set alarm.
-        if (!settings.refreshNewsEnabled)
-            return
-        // Get next unix timestamp in millis.
-        val nextTimeInMillis = getNextRunInUnixTimestamp(
-            timeStart = settings.refreshNewsTimeStart,
-            timeEnd = settings.refreshNewsTimeEnd,
-            intervalInMinute = settings.refreshNewsIntervalInMinute
-        )
-        // Get pending intent.
-        val pendingIntent = getPendingIntent(
-            context = applicationContext
-        )
-        // Schedule next run with set alarm.
-        setAlarm(
-            pendingIntent = pendingIntent,
-            nextUpdateTimeMillis = nextTimeInMillis,
-        )
-    }
-
-    private fun doWorkBackground() {
-        // Get file module.
-        val file = FileModule(this.applicationContext)
-        // Check news global and subject. After that, notify if needed.
-        setNotificationsForeground(
-            "Getting news global...",
-            0,
-            2
-        )
-        checkNewsGlobal(file = file)
-        setNotificationsForeground(
-            "Getting news subject...",
-            1,
-            2
-        )
-        checkNewsSubject(file = file)
-        // Send reload news requested to activity.
-        setNotificationsForeground(
-            "Requesting broadcast to activity...",
-            2,
-            2
-        )
-        sendBroadcastToActivity()
-    }
-
-    private fun checkNewsGlobal(
-        file: FileModule,
-    ) {
-        var shouldNotifyUsers = false
-        val newsCacheGlobal: NewsCache<NewsGlobalItem> = file.getCacheNewsGlobal()
-        val newsFromInternet: ArrayList<NewsGlobalItem> = NewsModule.getNewsGlobal(
-            page = 1
-        )
-        setNotificationsForeground(
-            "Getting news global...",
-            1,
-            8
-        )
-        val newsDiff: ArrayList<NewsGlobalItem> = NewsModule.getNewsGlobalDiff(
-            source = newsCacheGlobal.newsListByDate,
-            target = newsFromInternet
-        )
-        if (newsDiff.size > 0 && newsCacheGlobal.newsListByDate.isNotEmpty())
-            shouldNotifyUsers = true
-        NewsModule.addAndCheckDuplicateNewsGlobal(
-            source = newsCacheGlobal.newsListByDate,
-            target = newsDiff
-        )
-        setNotificationsForeground(
-            "Getting news global...",
-            2,
-            8
-        )
-        if (newsCacheGlobal.pageCurrent <= 1)
-            newsCacheGlobal.pageCurrent += 1
-        file.saveCacheNewsGlobal(
-            newsCacheGlobal = newsCacheGlobal
-        )
-        setNotificationsForeground(
-            "Getting news global...",
-            3,
-            8
-        )
-        // Notify to user and clear to avoid leak memory.
-        if (shouldNotifyUsers) {
-            notifyUsersGlobal(
-                list = newsDiff,
-            )
+    private fun doWorkBackground(intent: Intent) {
+        // Check if notify to user here!
+        val notifyToUser = intent.getBooleanExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+        val newsPageType = when (intent.getStringExtra(ServiceCode.ARGUMENT_NEWS_PAGEOPTION)) {
+            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE -> NewsPageType.NextPage
+            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1 -> NewsPageType.GetFirstPage
+            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_RESETTO1 -> NewsPageType.ResetToPage1
+            else -> NewsPageType.NextPage
         }
 
-        newsFromInternet.clear()
-        newsDiff.clear()
+        when (intent.getStringExtra(ServiceCode.ACTION)) {
+            ServiceCode.ACTION_NEWS_INITIALIZATION -> {
+                sendBroadcastToMainActivity(
+                    action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
+                    data = file.getCacheNewsGlobal().newsListByDate
+                )
+                sendBroadcastToMainActivity(
+                    action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
+                    data = file.getCacheNewsSubject().newsListByDate
+                )
+            }
+            ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+                setNotificationOnForeground("Getting news global...", 0)
+                fetchNewsGlobalAndNotify(notifyToUser, newsPageType)
+            }
+            ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+                setNotificationOnForeground("Getting news subject...", 0)
+                fetchNewsSubjectAndNotify(notifyToUser, newsPageType)
+            }
+            ServiceCode.ACTION_NEWS_FETCHALL -> {
+                setNotificationOnForeground("Getting news global...", 0)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                setNotificationOnForeground("Getting news subject...", 50)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+            }
+            ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND -> {
+                fetchInBackground = true
+                setNotificationOnForeground("Getting news global...", 0)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                setNotificationOnForeground("Getting news subject...", 50)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+            }
+        }
     }
 
-    private fun checkNewsSubject(
-        file: FileModule,
+    private fun fetchNewsGlobalAndNotify(
+        notifyToUser: Boolean = false,
+        newsPageType: NewsPageType = NewsPageType.NextPage,
     ) {
-        var shouldNotifyUsers = false
-        val newsCacheSubject: NewsCache<NewsSubjectItem> = file.getCacheNewsSubject()
-        val newsFromInternet: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubject(
-            page = 1
-        )
-        setNotificationsForeground(
-            "Getting news subject...",
-            5,
-            8
-        )
-        val newsDiff: ArrayList<NewsSubjectItem> = NewsModule.getNewsSubjectDiff(
-            source = newsCacheSubject.newsListByDate,
-            target = newsFromInternet
-        )
-        if (newsDiff.size > 0 && newsCacheSubject.newsListByDate.isNotEmpty())
-            shouldNotifyUsers = true
-        NewsModule.addAndCheckDuplicateNewsSubject(
-            source = newsCacheSubject.newsListByDate,
-            target = newsDiff
-        )
-        setNotificationsForeground(
-            "Getting news subject...",
-            6,
-            8
-        )
-        if (newsCacheSubject.pageCurrent <= 1)
-            newsCacheSubject.pageCurrent += 1
-        file.saveCacheNewsSubject(
-            newsCacheSubject = newsCacheSubject
-        )
-        setNotificationsForeground(
-            "Getting news subject...",
-            7,
-            8
-        )
-        // Notify to user and clear to avoid leak memory.
-        if (shouldNotifyUsers) {
-            notifyUsersSubject(
-                list = newsDiff,
-                fileModule = file,
+        try {
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceCode.STATUS_PROCESSING
+            )
+
+            val newsCacheGlobal = file.getCacheNewsGlobal()
+            val newsFromInternet = NewsModule.getNewsGlobal(
+                page = when (newsPageType) {
+                    NewsPageType.NextPage -> newsCacheGlobal.pageCurrent
+                    NewsPageType.GetFirstPage -> 1
+                    NewsPageType.ResetToPage1 -> 1
+                }
+            )
+
+            if (newsPageType == NewsPageType.ResetToPage1)
+                newsCacheGlobal.newsListByDate.clear()
+
+            val newsDiff = NewsModule.getNewsGlobalDiff(
+                source = newsCacheGlobal.newsListByDate,
+                target = newsFromInternet,
+            )
+            NewsModule.addAndCheckDuplicateNewsGlobal(
+                source = newsCacheGlobal.newsListByDate,
+                target = newsDiff,
+                addItemToTop = newsPageType != NewsPageType.NextPage
+            )
+
+            when (newsPageType) {
+                NewsPageType.NextPage -> {
+                    newsCacheGlobal.pageCurrent += 1
+                }
+                NewsPageType.GetFirstPage -> {
+                    if (newsCacheGlobal.pageCurrent <= 1)
+                        newsCacheGlobal.pageCurrent += 1
+                }
+                NewsPageType.ResetToPage1 -> {
+                    newsCacheGlobal.pageCurrent = 2
+                }
+            }
+            file.saveCacheNewsGlobal(newsCacheGlobal)
+
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceCode.STATUS_SUCCESSFUL,
+                data = newsCacheGlobal.newsListByDate
+            )
+
+            if (newsDiff.size > 0) {
+                if (notifyToUser) notifyUsersGlobal(newsDiff)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceCode.STATUS_FAILED
             )
         }
+    }
 
-        newsFromInternet.clear()
-        newsDiff.clear()
+    private fun fetchNewsSubjectAndNotify(
+        notifyToUser: Boolean = false,
+        newsPageType: NewsPageType = NewsPageType.NextPage,
+    ) {
+        try {
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceCode.STATUS_PROCESSING
+            )
+
+            val newsCacheSubject = file.getCacheNewsSubject()
+            val newsFromInternet = NewsModule.getNewsSubject(
+                page = when (newsPageType) {
+                    NewsPageType.NextPage -> newsCacheSubject.pageCurrent
+                    NewsPageType.GetFirstPage -> 1
+                    NewsPageType.ResetToPage1 -> 1
+                }
+            )
+
+            if (newsPageType == NewsPageType.ResetToPage1)
+                newsCacheSubject.newsListByDate.clear()
+
+            val newsDiff = NewsModule.getNewsSubjectDiff(
+                source = newsCacheSubject.newsListByDate,
+                target = newsFromInternet
+            )
+            NewsModule.addAndCheckDuplicateNewsSubject(
+                source = newsCacheSubject.newsListByDate,
+                target = newsDiff,
+                addItemToTop = newsPageType != NewsPageType.NextPage
+            )
+
+            when (newsPageType) {
+                NewsPageType.NextPage -> {
+                    newsCacheSubject.pageCurrent += 1
+                }
+                NewsPageType.GetFirstPage -> {
+                    if (newsCacheSubject.pageCurrent <= 1)
+                        newsCacheSubject.pageCurrent += 1
+                }
+                NewsPageType.ResetToPage1 -> {
+                    newsCacheSubject.pageCurrent = 2
+                }
+            }
+            file.saveCacheNewsSubject(newsCacheSubject)
+
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceCode.STATUS_SUCCESSFUL,
+                data = newsCacheSubject.newsListByDate
+            )
+
+            if (newsDiff.size > 0) {
+                if (notifyToUser) notifyUsersSubject(newsDiff)
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            sendBroadcastToMainActivity(
+                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceCode.STATUS_FAILED,
+            )
+        }
     }
 
     private fun notifyUsersGlobal(
@@ -230,12 +263,10 @@ class NewsService : Service() {
 
     private fun notifyUsersSubject(
         list: ArrayList<NewsSubjectItem>,
-        fileModule: FileModule,
     ) {
         if (!PermissionRequestActivity.checkPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS))
             return
 
-        val settings = fileModule.getAppSettings()
         list.forEach { newsItem ->
             // Default value is false.
             var notify = false
@@ -315,7 +346,7 @@ class NewsService : Service() {
                 // Date
                 notifyContentList.add(String.format(
                     getString(R.string.notification_newssubject_date),
-                    dateToString(newsItem.affectedDate, "dd/MM/yyyy")
+                    DUTDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
                 ))
                 // Lessons
                 notifyContentList.add(String.format(
@@ -350,10 +381,60 @@ class NewsService : Service() {
         }
     }
 
-    private fun setNotificationsForeground(
+    /**
+     * Send ReloadFromCacheRequested in news cache main activity.
+     */
+    private fun sendBroadcastToMainActivity(
+        action: String,
+        status: String? = null,
+        data: Any? = null,
+        errorMsg: String? = null
+    ) {
+        // TODO: Send broadcast about reload in MainActivity here!
+        Intent(action).apply {
+            if (status != null) putExtra(ServiceCode.STATUS, status)
+            if (data != null) putExtra(ServiceCode.DATA, data as java.io.Serializable)
+            if (errorMsg != null) putExtra(ServiceCode.ERRORMESSAGE, errorMsg)
+        }.also {
+            sendBroadcast(it)
+        }
+    }
+
+    override fun sendBroadcast(intent: Intent) {
+        LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+    }
+
+    /**
+     * Schedule next run when needed.
+     */
+    private fun scheduleNextRunIfNeeded() {
+        // If not enabled, will skip set alarm.
+        if (!settings.refreshNewsEnabled)
+            return
+
+        // Get next unix timestamp in millis.
+        val nextTimeInMillis = getNextRunInUnixTimestamp(
+            timeStart = settings.refreshNewsTimeStart,
+            timeEnd = settings.refreshNewsTimeEnd,
+            intervalInMinute = settings.refreshNewsIntervalInMinute
+        )
+        // Get pending intent.
+        val pendingIntent = getPendingIntentOnBackground(
+            context = applicationContext
+        )
+        // Schedule next run with set alarm.
+        setAlarm(
+            pendingIntent = pendingIntent,
+            nextUpdateTimeMillis = nextTimeInMillis,
+        )
+    }
+
+    /**
+     * Set notification in foreground to keep service running.
+     */
+    private fun setNotificationOnForeground(
         contentText: String,
-        progress: Int? = null,
-        progressMax: Int? = null
+        progress: Int? = null
     ) {
         val builder = NotificationCompat.Builder(this, "dut_service")
             .setSmallIcon(R.drawable.ic_notification)
@@ -361,18 +442,10 @@ class NewsService : Service() {
             .setOnlyAlertOnce(true)
             .setContentTitle("DUT News Service is running in background")
             .setContentText(contentText)
-        if (progress != null && progressMax != null)
-            builder.setProgress(progressMax, progress, false)
+        if (progress != null)
+            builder.setProgress(100, progress, false)
         val notifyBuild = builder.build()
         startForeground(1, notifyBuild)
-    }
-
-    /**
-     * Send broadcast about request reload news cache to MainActivity.
-     */
-    private fun sendBroadcastToActivity() {
-        val intent = Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
     /**
@@ -441,8 +514,9 @@ class NewsService : Service() {
     }
 
     companion object {
-        fun getPendingIntent(context: Context): PendingIntent {
-            val intent = Intent(context, NewsService::class.java)
+        fun getPendingIntentOnBackground(context: Context): PendingIntent {
+            val intent = Intent(context, NewsService2::class.java)
+            intent.putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
             val pendingIntent: PendingIntent
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 pendingIntent = PendingIntent.getForegroundService(
@@ -467,18 +541,21 @@ class NewsService : Service() {
             return pendingIntent
         }
 
-        fun startService(context: Context) {
-            val intentService = Intent(context, NewsService::class.java)
+        fun startService(
+            context: Context,
+            intent: Intent
+        ) {
             // https://stackoverflow.com/a/47654126
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                context.startForegroundService(intentService)
-            else context.startService(intentService)
+                context.startForegroundService(intent)
+            else context.startService(intent)
         }
 
-        fun cancelSchedule(context: Context) {
+        fun cancelSchedule(
+            context: Context
+        ) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            alarmManager.cancel(getPendingIntent(context))
+            alarmManager.cancel(getPendingIntentOnBackground(context))
         }
     }
 }
