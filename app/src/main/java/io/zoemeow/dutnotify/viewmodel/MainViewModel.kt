@@ -1,19 +1,14 @@
 package io.zoemeow.dutnotify.viewmodel
 
-import android.Manifest
 import android.app.Application
-import android.app.WallpaperManager
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,8 +19,7 @@ import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
-import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.news.NewsCache
@@ -192,36 +186,36 @@ class MainViewModel @Inject constructor(
             override fun onStatusReceived(key: String, value: String) {
                 Log.d("AccountService", "AccountBroadcastReceiver - $key: $value")
                 when (key) {
-                    AccountServiceCode.ACTION_LOGIN -> {
+                    ServiceCode.ACTION_ACCOUNT_LOGIN -> {
                         when (value) {
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
                                 Account_HasSaved.value = true
 
                                 requestSaveChanges()
                                 showSnackBarMessage("Successfully login!", true)
                             }
-                            AccountServiceCode.STATUS_FAILED -> {
+                            ServiceCode.STATUS_FAILED -> {
                                 Account_LoginProcess.value = LoginState.NotLoggedIn
                                 Account_HasSaved.value = false
 
                                 requestSaveChanges()
                             }
-                            AccountServiceCode.STATUS_PROCESSING -> {
+                            ServiceCode.STATUS_PROCESSING -> {
                                 Account_LoginProcess.value = LoginState.LoggingIn
                                 Account_HasSaved.value = false
                             }
                         }
                     }
-                    AccountServiceCode.ACTION_LOGINSTARTUP -> {
+                    ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
                         when (value) {
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
                                 requestSaveChanges()
 
                                 showSnackBarMessage("Successfully re-login!", true)
                             }
-                            AccountServiceCode.STATUS_FAILED -> {
+                            ServiceCode.STATUS_FAILED -> {
                                 if (Account_HasSaved.value) {
                                     Account_LoginProcess.value = LoginState.NotLoggedInButRemembered
                                 } else {
@@ -231,49 +225,49 @@ class MainViewModel @Inject constructor(
                             }
                         }
                     }
-                    AccountServiceCode.ACTION_LOGOUT -> {
+                    ServiceCode.ACTION_ACCOUNT_LOGOUT -> {
                         when (value) {
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_HasSaved.value = false
                                 showSnackBarMessage("Successfully logout!", true)
                             }
                         }
                     }
-                    AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {
+                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         when (value) {
-                            AccountServiceCode.STATUS_PROCESSING -> {
+                            ServiceCode.STATUS_PROCESSING -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Running
                             }
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Successful
                             }
-                            AccountServiceCode.STATUS_FAILED -> {
+                            ServiceCode.STATUS_FAILED -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Failed
                             }
                         }
                     }
-                    AccountServiceCode.ACTION_SUBJECTFEE -> {
+                    ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
                         when (value) {
-                            AccountServiceCode.STATUS_PROCESSING -> {
+                            ServiceCode.STATUS_PROCESSING -> {
                                 Account_Process_SubjectFee.value = ProcessState.Running
                             }
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_Process_SubjectFee.value = ProcessState.Successful
                             }
-                            AccountServiceCode.STATUS_FAILED -> {
+                            ServiceCode.STATUS_FAILED -> {
                                 Account_Process_SubjectFee.value = ProcessState.Failed
                             }
                         }
                     }
-                    AccountServiceCode.ACTION_ACCOUNTINFORMATION -> {
+                    ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
                         when (value) {
-                            AccountServiceCode.STATUS_PROCESSING -> {
+                            ServiceCode.STATUS_PROCESSING -> {
                                 Account_Process_AccountInformation.value = ProcessState.Running
                             }
-                            AccountServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceCode.STATUS_SUCCESSFUL -> {
                                 Account_Process_AccountInformation.value = ProcessState.Successful
                             }
-                            AccountServiceCode.STATUS_FAILED -> {
+                            ServiceCode.STATUS_FAILED -> {
                                 Account_Process_AccountInformation.value = ProcessState.Failed
                             }
                         }
@@ -286,10 +280,10 @@ class MainViewModel @Inject constructor(
             override fun onDataReceived(key: String, data: Any) {
                 Log.d("AccountService", "Triggered data")
                 when (key) {
-                    AccountServiceCode.ACTION_ACCOUNTINFORMATION -> {
+                    ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
                         Account_Data_AccountInformation.value = data as AccountInformation
                     }
-                    AccountServiceCode.ACTION_SUBJECTSCHEDULE -> {
+                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         Account_Data_SubjectSchedule.apply {
                             clear()
                             addAll(data as ArrayList<SubjectScheduleItem>)
@@ -299,13 +293,13 @@ class MainViewModel @Inject constructor(
                             dayOfWeek = if (DUTDateUtils.getCurrentDayOfWeek() - 1 == 0) 7 else DUTDateUtils.getCurrentDayOfWeek() - 1
                         )
                     }
-                    AccountServiceCode.ACTION_SUBJECTFEE -> {
+                    ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
                         Account_Data_SubjectFee.apply {
                             clear()
                             addAll(data as ArrayList<SubjectFeeItem>)
                         }
                     }
-                    AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN -> {
+                    ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
                         Account_HasSaved.value = data as Boolean
                     }
                 }
@@ -341,13 +335,13 @@ class MainViewModel @Inject constructor(
             LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
                 getAccountBroadcastReceiver(),
                 IntentFilter().apply {
-                    addAction(AccountServiceCode.ACTION_LOGIN)
-                    addAction(AccountServiceCode.ACTION_LOGINSTARTUP)
-                    addAction(AccountServiceCode.ACTION_LOGOUT)
-                    addAction(AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-                    addAction(AccountServiceCode.ACTION_SUBJECTFEE)
-                    addAction(AccountServiceCode.ACTION_ACCOUNTINFORMATION)
-                    addAction(AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
+                    addAction(ServiceCode.ACTION_ACCOUNT_LOGIN)
+                    addAction(ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
+                    addAction(ServiceCode.ACTION_ACCOUNT_LOGOUT)
+                    addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
+                    addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
+                    addAction(ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
+                    addAction(ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
                 }
             )
 

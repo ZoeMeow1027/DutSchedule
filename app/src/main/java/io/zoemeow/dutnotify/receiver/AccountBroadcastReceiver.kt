@@ -1,31 +1,19 @@
 package io.zoemeow.dutnotify.receiver
 
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 
-abstract class AccountBroadcastReceiver : BroadcastReceiver {
+abstract class AccountBroadcastReceiver : BaseBroadcastReceiver {
     // this.componentName.className
     // 'class'::class.java.name
-    private lateinit var packageFilter: String
 
     constructor() { }
-
-    constructor(packageFilter: String) {
-        this.packageFilter = packageFilter
-    }
+    constructor(packageFilter: String): super(packageFilter)
 
     @Suppress("DEPRECATION")
-    override fun onReceive(context: Context, intent: Intent) {
-        val callFrom = intent.getStringExtra(AccountServiceCode.SOURCE_COMPONENT)
-        if (callFrom == null) {
-            return
-        } else if (callFrom.lowercase() != packageFilter.lowercase()) {
-            return
-        }
-
-        intent.getStringExtra(AccountServiceCode.STATUS).also {
+    override fun onReceiveFilter(context: Context, intent: Intent) {
+        intent.getStringExtra(ServiceCode.STATUS).also {
             if (it != null) {
                 onStatusReceived(
                     key = intent.action ?: "",
@@ -33,7 +21,7 @@ abstract class AccountBroadcastReceiver : BroadcastReceiver {
                 )
             }
         }
-        intent.getSerializableExtra(AccountServiceCode.DATA).also {
+        intent.getSerializableExtra(ServiceCode.DATA).also {
             if (it != null) {
                 onDataReceived(
                     key = intent.action ?: "",
@@ -41,7 +29,7 @@ abstract class AccountBroadcastReceiver : BroadcastReceiver {
                 )
             }
         }
-        intent.getStringExtra(AccountServiceCode.ERRORMESSAGE).also {
+        intent.getStringExtra(ServiceCode.ERRORMESSAGE).also {
             if (it != null) {
                 onErrorReceived(
                     key = intent.action ?: "",

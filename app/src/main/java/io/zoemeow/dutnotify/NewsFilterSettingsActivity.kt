@@ -35,7 +35,7 @@ import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
@@ -106,9 +106,9 @@ class NewsFilterSettingsActivity: ComponentActivity() {
 
                 // Re-login to receive new data from server.
                 Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
-                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(AccountServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
+                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
+                    putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(ServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
                 }.also {
                     this@NewsFilterSettingsActivity.startService(it)
                 }
@@ -456,8 +456,8 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                 },
                                                 onClick = {
                                                     Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                                                        putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_SUBJECTSCHEDULE)
-                                                        putExtra(AccountServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
+                                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
+                                                        putExtra(ServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
                                                     }.also {
                                                         this@NewsFilterSettingsActivity.startService(it)
                                                     }

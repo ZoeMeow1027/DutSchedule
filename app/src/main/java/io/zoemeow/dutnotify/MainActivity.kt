@@ -30,7 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
@@ -93,16 +93,16 @@ class MainActivity : ComponentActivity() {
 
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
-                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN)
-                    putExtra(AccountServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
+                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
+                    putExtra(ServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
-                    putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGINSTARTUP)
-                    putExtra(AccountServiceCode.ARGUMENT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(AccountServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
+                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
+                    putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(ServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }

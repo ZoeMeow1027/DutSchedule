@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
@@ -46,11 +46,11 @@ fun AccountDialogLogin(
         focusManager.clearFocus()
 
         Intent(context, AccountService::class.java).apply {
-            putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGIN)
-            putExtra(AccountServiceCode.ARGUMENT_LOGIN_USERNAME, username.value)
-            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PASSWORD, password.value)
-            putExtra(AccountServiceCode.ARGUMENT_LOGIN_REMEMBERED, rememberLogin.value)
-            putExtra(AccountServiceCode.ARGUMENT_LOGIN_PRELOAD, true)
+            putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGIN)
+            putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME, username.value)
+            putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD, password.value)
+            putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, rememberLogin.value)
+            putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, true)
         }.also {
             context.startService(it)
         }

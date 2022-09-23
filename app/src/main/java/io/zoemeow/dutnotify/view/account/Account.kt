@@ -1,7 +1,6 @@
 package io.zoemeow.dutnotify.view.account
 
 import android.content.Intent
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
@@ -18,8 +17,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.AccountServiceCode
-import io.zoemeow.dutnotify.model.enums.LoginState
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -36,7 +34,7 @@ fun Account(
         enabled = dialogLogoutEnabled,
         logoutRequest = {
             Intent(context, AccountService::class.java).apply {
-                putExtra(AccountServiceCode.ACTION, AccountServiceCode.ACTION_LOGOUT)
+                putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGOUT)
             }.also {
                 context.startService(it)
             }
