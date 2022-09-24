@@ -40,9 +40,9 @@ import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.ProcessState
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
@@ -102,28 +102,52 @@ class AccountDetailsActivity : ComponentActivity() {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectschedule)
                     val intentService = Intent(context, AccountService::class.java)
-                    intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                    intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                    intentService.putExtra(
+                        ServiceCode.ACTION,
+                        ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                    )
+                    intentService.putExtra(
+                        ServiceCode.SOURCE_COMPONENT,
+                        MainActivity::class.java.name
+                    )
                     context.startService(intentService)
                 }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
                     val intentService = Intent(context, AccountService::class.java)
-                    intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                    intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                    intentService.putExtra(
+                        ServiceCode.ACTION,
+                        ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                    )
+                    intentService.putExtra(
+                        ServiceCode.SOURCE_COMPONENT,
+                        MainActivity::class.java.name
+                    )
                     context.startService(intentService)
                     val intentService2 = Intent(context, AccountService::class.java)
-                    intentService2.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
-                    intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                    intentService2.putExtra(
+                        ServiceCode.ACTION,
+                        ServiceCode.ACTION_ACCOUNT_SUBJECTFEE
+                    )
+                    intentService.putExtra(
+                        ServiceCode.SOURCE_COMPONENT,
+                        MainActivity::class.java.name
+                    )
                     context.startService(intentService2)
                 }
                 "account_information" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_accinfo)
                     val intentService = Intent(context, AccountService::class.java)
-                    intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
-                    intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                    intentService.putExtra(
+                        ServiceCode.ACTION,
+                        ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION
+                    )
+                    intentService.putExtra(
+                        ServiceCode.SOURCE_COMPONENT,
+                        MainActivity::class.java.name
+                    )
                     context.startService(intentService)
                 }
                 else -> {
@@ -202,8 +226,14 @@ class AccountDetailsActivity : ComponentActivity() {
                         swipeRefreshState = swipeRefreshStateSubjectSchedule,
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
-                            intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                            intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                            intentService.putExtra(
+                                ServiceCode.ACTION,
+                                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                            )
+                            intentService.putExtra(
+                                ServiceCode.SOURCE_COMPONENT,
+                                MainActivity::class.java.name
+                            )
                             startService(intentService)
                         }
                     )
@@ -215,12 +245,24 @@ class AccountDetailsActivity : ComponentActivity() {
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
-                            intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                            intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                            intentService.putExtra(
+                                ServiceCode.ACTION,
+                                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                            )
+                            intentService.putExtra(
+                                ServiceCode.SOURCE_COMPONENT,
+                                MainActivity::class.java.name
+                            )
                             context.startService(intentService)
                             val intentService2 = Intent(context, AccountService::class.java)
-                            intentService2.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
-                            intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                            intentService2.putExtra(
+                                ServiceCode.ACTION,
+                                ServiceCode.ACTION_ACCOUNT_SUBJECTFEE
+                            )
+                            intentService.putExtra(
+                                ServiceCode.SOURCE_COMPONENT,
+                                MainActivity::class.java.name
+                            )
                             context.startService(intentService2)
                         }
                     )
@@ -232,8 +274,14 @@ class AccountDetailsActivity : ComponentActivity() {
                         swipeRefreshState = swipeRefreshStateAccInfo,
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
-                            intentService.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
-                            intentService.putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                            intentService.putExtra(
+                                ServiceCode.ACTION,
+                                ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION
+                            )
+                            intentService.putExtra(
+                                ServiceCode.SOURCE_COMPONENT,
+                                MainActivity::class.java.name
+                            )
                             startService(intentService)
                         }
                     )
@@ -371,7 +419,11 @@ class AccountDetailsActivity : ComponentActivity() {
                                 ),
                         ) {
                             SubjectPreview.CustomText("Total credit: ${subjectFeeList.sumOf { it.credit }}")
-                            SubjectPreview.CustomText("Total price: ${subjectFeeList.sumOf { it.price }.toLong()} VND")
+                            SubjectPreview.CustomText(
+                                "Total price: ${
+                                    subjectFeeList.sumOf { it.price }.toLong()
+                                } VND"
+                            )
                             SubjectPreview.CustomText(
                                 @Suppress("ReplaceSizeCheckWithIsNotEmpty")
                                 if (subjectFeeList.count { it.debt == true } > 0)
@@ -392,7 +444,11 @@ class AccountDetailsActivity : ComponentActivity() {
                             .background(MaterialTheme.colorScheme.secondaryContainer)
                             .clickable {
                                 subjectScheduleItem.value =
-                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull { it.id.equalsTwoDigits(item.id) }
+                                    mainViewModel.Account_Data_SubjectSchedule.firstOrNull {
+                                        it.id.equalsTwoDigits(
+                                            item.id
+                                        )
+                                    }
                                 dialogEnabled.value = true
                             }
                     ) {
@@ -483,9 +539,9 @@ class AccountDetailsActivity : ComponentActivity() {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
-            override fun onSettingsReloadRequested() { }
-            override fun onNewsScrollToTopRequested() { }
-            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+            override fun onSettingsReloadRequested() {}
+            override fun onNewsScrollToTopRequested() {}
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
 
             override fun onPermissionRequested(
                 permission: String?,
@@ -539,7 +595,7 @@ fun AccountDetailsActivity.onPermissionResult(
                 )
             }
         }
-        else -> { }
+        else -> {}
     }
 }
 

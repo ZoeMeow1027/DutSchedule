@@ -2,9 +2,9 @@
 <resources>
     <string name="account_dashboard_dayandweekview_fetching">Chúng tôi đang tải lịch học của bạn. Vui lòng chờ…</string>
     <string name="account_dashboard_dayandweekview_nosubject">Bạn không có tiết học nào hôm nay.</string>
-    <string formatted="false" name="account_dashboard_dayandweekview_overview">Tổng quan (Tuần %d, %s)</string>
+    <string name="account_dashboard_dayandweekview_overview" formatted="false">Tổng quan (Tuần %d, %s)</string>
     <string name="account_dashboard_dayandweekview_subjectschedule">Lịch học</string>
-    <string formatted="false" name="account_dashboard_dayandweekview_subjectstatus">Tiết: %d-%d, phòng: %s</string>
+    <string name="account_dashboard_dayandweekview_subjectstatus" formatted="false">Tiết: %d-%d, phòng: %s</string>
     <string name="account_dashboard_dayandweekview_today">Hôm nay</string>
     <string name="account_dashboard_dayandweekview_unknowndata">(không rõ dữ liệu)</string>
     <string name="account_dashboard_viewaccinfo">Xem thêm thông tin tài khoản</string>
@@ -36,25 +36,25 @@
     <string name="news_tab_global">Chung</string>
     <string name="news_tab_subject">Lớp HP</string>
 
-    <string formatted="false" name="newsdetails_subject_date">Ngày: %s</string>
-    <string formatted="false" name="newsdetails_subject_lessonleaving">Tiết học sẽ nghỉ: %s</string>
-    <string formatted="false" name="newsdetails_subject_lessonmakeup">Tiết học sẽ học bù: %s</string>
-    <string formatted="false" name="newsdetails_subject_room">Học bù vào phòng: %s</string>
-    <string formatted="false" name="newsdetails_subject_status">Trạng thái: %s</string>
+    <string name="newsdetails_subject_date" formatted="false">Ngày: %s</string>
+    <string name="newsdetails_subject_lessonleaving" formatted="false">Tiết học sẽ nghỉ: %s</string>
+    <string name="newsdetails_subject_lessonmakeup" formatted="false">Tiết học sẽ học bù: %s</string>
+    <string name="newsdetails_subject_room" formatted="false">Học bù vào phòng: %s</string>
+    <string name="newsdetails_subject_status" formatted="false">Trạng thái: %s</string>
     <string name="newsdetails_subject_statusleaving">Nghỉ học</string>
     <string name="newsdetails_subject_statusmakeup">Học bù</string>
-    <string formatted="false" name="newsdetails_subject_title">Tin tức lớp học phần từ %s</string>
+    <string name="newsdetails_subject_title" formatted="false">Tin tức lớp học phần từ %s</string>
     <string name="newsdetails_title">Chi tiết tin tức</string>
 
     <string name="notification_newsglobal_title">Thông báo chung</string>
-    <string formatted="false" name="notification_newssubject_appliedto">Áp dụng với: %s</string>
-    <string formatted="false" name="notification_newssubject_date">Vào lúc: %s</string>
+    <string name="notification_newssubject_appliedto" formatted="false">Áp dụng với: %s</string>
+    <string name="notification_newssubject_date" formatted="false">Vào lúc: %s</string>
     <string name="notification_newssubject_leaving">nghỉ học</string>
-    <string formatted="false" name="notification_newssubject_lesson">Tiết học sẽ %s: %s</string>
+    <string name="notification_newssubject_lesson" formatted="false">Tiết học sẽ %s: %s</string>
     <string name="notification_newssubject_makeup">học bù</string>
-    <string formatted="false" name="notification_newssubject_room">Trong phòng: %s</string>
-    <string formatted="false" name="notification_newssubject_title">Thông báo mới từ %s</string>
-    <string formatted="false" name="notification_newssubject_titlewitharg">Thông báo %s từ %s</string>
+    <string name="notification_newssubject_room" formatted="false">Trong phòng: %s</string>
+    <string name="notification_newssubject_title" formatted="false">Thông báo mới từ %s</string>
+    <string name="notification_newssubject_titlewitharg" formatted="false">Thông báo %s từ %s</string>
     <string name="notification_newssubject_unknown">(không rõ)</string>
 
     <string name="option_add">Thêm</string>
@@ -102,15 +102,15 @@
     <string name="settings_loadnewsinbackground_timeactive_name">Khoảng thời gian hoạt động</string>
     <string name="settings_loadnewsinbackground_timeactive_timeend">Thời gian kết thúc</string>
     <string name="settings_loadnewsinbackground_timeactive_timestart">Thời gian bắt đầu</string>
-    <string formatted="false" name="settings_loadnewsinbackground_timeactive_value">Từ %s đến %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_value" formatted="false">Từ %s đến %s%s</string>
     <string name="settings_loadnewsinbackground_timeactive_valueextended">hôm sau</string>
     <string name="settings_openlinkincustomtab_description">Điều này sẽ mở liên kết bạn đã nhấn trong thẻ tùy chỉnh của trình duyệt mặc định</string>
     <string name="settings_openlinkincustomtab_name">Mở liên kết trong ứng dụng</string>
-    <string formatted="false" name="settings_schoolyear_afterchange">Năm học của bạn sau khi lưu thay đổi:\n - Năm học: 20%d - 20%d\n - Học kỳ: %d</string>
+    <string name="settings_schoolyear_afterchange" formatted="false">Năm học của bạn sau khi lưu thay đổi:\n - Năm học: 20%d - 20%d\n - Học kỳ: %d</string>
     <string name="settings_schoolyear_name">Năm học</string>
     <string name="settings_schoolyear_schoolyearmodifyoption">Năm học</string>
     <string name="settings_schoolyear_semestermodifyoption">Học kỳ</string>
-    <string formatted="false" name="settings_schoolyear_value">Năm học 20%d-20%d, học kỳ %d (sẽ ảnh hưởng đến hiển thị lịch học của bạn)</string>
+    <string name="settings_schoolyear_value" formatted="false">Năm học 20%d-20%d, học kỳ %d (sẽ ảnh hưởng đến hiển thị lịch học của bạn)</string>
     <string name="settings_subjectnewsfilter_description">Chỉ nhận thông báo về lớp học phần mà bạn đã chọn</string>
     <string name="settings_subjectnewsfilter_name">Lọc thông báo lớp học phần</string>
     <string name="settings_version_name">Phiên bản</string>
@@ -138,8 +138,8 @@
     <string name="subjectnewsfilter_currentlist_notempty">Danh sách bộ lọc hiện tại của bạn (nhấn vào một mục để xóa)</string>
     <string name="subjectnewsfilter_savechanges_description">Bạn có thay đổi chưa được lưu. Lưu chúng?</string>
     <string name="subjectnewsfilter_savechanges_title">Lưu thay đổi cài đặt?</string>
-    <string formatted="false" name="subjectnewsfilter_snackbar_added">Đã thêm %s</string>
-    <string formatted="false" name="subjectnewsfilter_snackbar_deleted">Đã xóa %s</string>
+    <string name="subjectnewsfilter_snackbar_added" formatted="false">Đã thêm %s</string>
+    <string name="subjectnewsfilter_snackbar_deleted" formatted="false">Đã xóa %s</string>
     <string name="subjectnewsfilter_snackbar_deletedall">Đã xóa tất cả bộ lọc! Nhớ lưu lại để thay đổi có hiệu lực.</string>
     <string name="subjectnewsfilter_snackbar_successful">Đã lưu thay đổi!</string>
 

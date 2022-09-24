@@ -73,7 +73,7 @@ fun News(
                     }
                 },
 
-            )
+                )
         },
         floatingActionButton = {
 //            if (newsViewModel.newsGlobalItemChose.value == null && newsViewModel.newsSubjectItemChose.value == null) {
@@ -107,7 +107,10 @@ fun News(
                                 NewsService.startService(
                                     context = context,
                                     intent = Intent(context, NewsService::class.java).apply {
-                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHGLOBAL)
+                                        putExtra(
+                                            ServiceCode.ACTION,
+                                            ServiceCode.ACTION_NEWS_FETCHGLOBAL
+                                        )
                                         putExtra(
                                             ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
                                             if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
@@ -132,7 +135,10 @@ fun News(
                                 NewsService.startService(
                                     context = context,
                                     intent = Intent(context, NewsService::class.java).apply {
-                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHSUBJECT)
+                                        putExtra(
+                                            ServiceCode.ACTION,
+                                            ServiceCode.ACTION_NEWS_FETCHSUBJECT
+                                        )
                                         putExtra(
                                             ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
                                             if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1

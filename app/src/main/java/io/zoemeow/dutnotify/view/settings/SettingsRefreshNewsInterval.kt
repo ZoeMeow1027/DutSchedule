@@ -99,14 +99,17 @@ fun SettingsRefreshNewsInterval(
                         .fillMaxWidth()
                         .wrapContentHeight()
                 ) {
-                    Text(String.format(
-                        stringResource(id =
-                            if (newValue.value == 1)
-                                R.string.settings_loadnewsinbackground_interval_valuepartial
-                            else R.string.settings_loadnewsinbackground_interval_value
-                        ),
-                        newValue.value
-                    ))
+                    Text(
+                        String.format(
+                            stringResource(
+                                id =
+                                if (newValue.value == 1)
+                                    R.string.settings_loadnewsinbackground_interval_valuepartial
+                                else R.string.settings_loadnewsinbackground_interval_value
+                            ),
+                            newValue.value
+                        )
+                    )
                     Slider(
                         value = newValue.value.toFloat(),
                         onValueChange = {

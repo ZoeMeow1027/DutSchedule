@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Suppress("SpellCheckingInspection", "DEPRECATION")
-class AccountService: Service() {
+class AccountService : Service() {
     override fun onCreate() {
         initialize()
         loadSettings()
@@ -37,7 +37,10 @@ class AccountService: Service() {
             when (intent.getStringExtra(ServiceCode.ACTION)) {
                 ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
                     Log.d("AccountService", "Triggered relogin")
-                    val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, false)
+                    val preload = intent.getBooleanExtra(
+                        ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD,
+                        false
+                    )
                     // ServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
                     sendToBroadcast(
                         action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
@@ -70,10 +73,14 @@ class AccountService: Service() {
                     )
                 }
                 ServiceCode.ACTION_ACCOUNT_LOGIN -> {
-                    val username = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
-                    val password = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
-                    val remember = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
-                    val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
+                    val username =
+                        intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
+                    val password =
+                        intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
+                    val remember =
+                        intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
+                    val preload =
+                        intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
                     if (username == null || password == null) {
                         sendToBroadcast(
                             action = ServiceCode.ACTION_ACCOUNT_LOGIN,
@@ -91,7 +98,8 @@ class AccountService: Service() {
                 }
                 ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                     try {
-                        val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
+                        val schoolYearItem =
+                            intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
                         fetchSubjectSchedule(
                             schoolYearItem = schoolYearItem,
                             callFrom = callFrom
@@ -103,7 +111,8 @@ class AccountService: Service() {
                 }
                 ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
                     try {
-                        val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
+                        val schoolYearItem =
+                            intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
                         fetchSubjectFee(
                             schoolYearItem = schoolYearItem,
                             callFrom = callFrom
@@ -123,7 +132,7 @@ class AccountService: Service() {
                         callFrom = callFrom
                     )
                 }
-                else -> { }
+                else -> {}
             }
             return super.onStartCommand(intent, flags, startId)
         } catch (ex: Exception) {

@@ -19,20 +19,15 @@ import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.model.news.NewsCache
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.receiver.NewsBroadcastReceiver
 import io.zoemeow.dutnotify.utils.DUTDateUtils
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @Suppress("PropertyName")
@@ -86,7 +81,7 @@ class MainViewModel @Inject constructor(
 
     private fun getNewsBroadcastReceiver(): NewsBroadcastReceiver {
         // MainActivity::class.java.name
-        object: NewsBroadcastReceiver() {
+        object : NewsBroadcastReceiver() {
             override fun onStatusReceived(key: String, value: String) {
                 Log.d("NewsService", "onStatusReceived - $key: $value")
                 when (key) {
@@ -134,19 +129,20 @@ class MainViewModel @Inject constructor(
                 }
             }
 
-            override fun onErrorReceived(key: String, msg: String) { }
+            override fun onErrorReceived(key: String, msg: String) {}
         }.apply { return this }
     }
 
     private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
         object : AppBroadcastReceiver() {
             override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
-            override fun onNewsScrollToTopRequested() { }
+            override fun onNewsScrollToTopRequested() {}
             override fun onPermissionRequested(
                 permission: String?,
                 granted: Boolean,
                 notifyToUser: Boolean
-            ) { }
+            ) {
+            }
 
             override fun onNewsReloadRequested() {
 //                CoroutineScope(Dispatchers.Main).launch {
@@ -177,13 +173,17 @@ class MainViewModel @Inject constructor(
 
     val Account_HasSaved = mutableStateOf(false)
     val Account_LoginProcess = mutableStateOf(LoginState.NotTriggered)
-    val Account_Process_SubjectSchedule: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
-    val Account_Process_SubjectFee: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
-    val Account_Process_AccountInformation: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
+    val Account_Process_SubjectSchedule: MutableState<ProcessState> =
+        mutableStateOf(ProcessState.NotRanYet)
+    val Account_Process_SubjectFee: MutableState<ProcessState> =
+        mutableStateOf(ProcessState.NotRanYet)
+    val Account_Process_AccountInformation: MutableState<ProcessState> =
+        mutableStateOf(ProcessState.NotRanYet)
     val Account_Data_SubjectSchedule: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
     val Account_Data_SubjectFee: SnapshotStateList<SubjectFeeItem> = mutableStateListOf()
     val Account_Data_AccountInformation: MutableState<AccountInformation?> = mutableStateOf(null)
-    val Account_Data_SubjectScheduleByDay: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
+    val Account_Data_SubjectScheduleByDay: SnapshotStateList<SubjectScheduleItem> =
+        mutableStateListOf()
 
     fun filterSubjectScheduleByDay(
         week: Int = DUTDateUtils.getDUTWeek(),
@@ -296,7 +296,7 @@ class MainViewModel @Inject constructor(
                             }
                         }
                     }
-                    else -> { }
+                    else -> {}
                 }
             }
 
@@ -350,6 +350,7 @@ class MainViewModel @Inject constructor(
     }
 
     private var initOnce: Boolean = false
+
     init {
         run {
             if (initOnce)

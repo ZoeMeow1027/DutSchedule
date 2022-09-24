@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import io.zoemeow.dutnotify.model.enums.ServiceCode
 
-abstract class BaseBroadcastReceiver: BroadcastReceiver {
+abstract class BaseBroadcastReceiver : BroadcastReceiver {
     private lateinit var packageFilter: String
 
     constructor()

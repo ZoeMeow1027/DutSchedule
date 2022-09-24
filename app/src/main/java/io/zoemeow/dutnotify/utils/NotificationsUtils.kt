@@ -103,8 +103,10 @@ class NotificationsUtils {
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(news_title)
                 .setContentText(news_description)
-                .setStyle(NotificationCompat.BigTextStyle()
-                    .bigText(news_description))
+                .setStyle(
+                    NotificationCompat.BigTextStyle()
+                        .bigText(news_description)
+                )
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
             with(NotificationManagerCompat.from(context)) {

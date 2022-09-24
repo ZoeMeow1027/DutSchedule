@@ -35,10 +35,10 @@ import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
-import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
@@ -48,10 +48,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class NewsFilterSettingsActivity: ComponentActivity() {
+class NewsFilterSettingsActivity : ComponentActivity() {
     companion object {
         private var isInitialized = false
     }
+
     private lateinit var newsFilterViewModel: NewsFilterSettingsViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var scope: CoroutineScope
@@ -108,7 +109,10 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                 Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
                     putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
                     putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(ServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
+                    putExtra(
+                        ServiceCode.SOURCE_COMPONENT,
+                        NewsFilterSettingsActivity::class.java.name
+                    )
                 }.also {
                     this@NewsFilterSettingsActivity.startService(it)
                 }
@@ -312,8 +316,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
             ) {
                 if (selectedSubjects.isEmpty()) {
                     Text(text = stringResource(id = R.string.subjectnewsfilter_currentlist_empty))
-                }
-                else {
+                } else {
                     Text(
                         text = stringResource(id = R.string.subjectnewsfilter_currentlist_notempty),
                         modifier = Modifier.padding(bottom = 10.dp)
@@ -332,10 +335,12 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                     modifiedSettings.value = true
                                     updateTemporarySettings()
 
-                                    showSnackBarMessage(String.format(
-                                        getString(R.string.subjectnewsfilter_snackbar_deleted),
-                                        it.name
-                                    ))
+                                    showSnackBarMessage(
+                                        String.format(
+                                            getString(R.string.subjectnewsfilter_snackbar_deleted),
+                                            it.name
+                                        )
+                                    )
                                 },
                                 label = { Text(it.toString()) },
                                 modifier = Modifier.padding(end = 5.dp)
@@ -417,7 +422,11 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                 value = selectedAvailableSubjectFromAccountName.value,
                                                 onValueChange = {},
                                                 label = { Text(stringResource(id = R.string.subjectnewsfilter_addbyschedule_adddropdownname)) },
-                                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = dropDownExpanded.value) },
+                                                trailingIcon = {
+                                                    ExposedDropdownMenuDefaults.TrailingIcon(
+                                                        expanded = dropDownExpanded.value
+                                                    )
+                                                },
                                                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                                                 modifier = Modifier
                                                     .fillMaxWidth()
@@ -425,7 +434,9 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                             )
                                             ExposedDropdownMenu(
                                                 expanded = dropDownExpanded.value,
-                                                onDismissRequest = { dropDownExpanded.value = false },
+                                                onDismissRequest = {
+                                                    dropDownExpanded.value = false
+                                                },
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .wrapContentHeight()
@@ -435,7 +446,10 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                     DropdownMenuItem(
                                                         text = { Text(it.name) },
                                                         onClick = {
-                                                            selectedMainBodyIndex.value = availableSubjectFromAccount.indexOf(it)
+                                                            selectedMainBodyIndex.value =
+                                                                availableSubjectFromAccount.indexOf(
+                                                                    it
+                                                                )
                                                             dropDownExpanded.value = false
                                                             updateTemporarySettings()
                                                         }
@@ -455,11 +469,22 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                     Text(stringResource(id = R.string.option_refresh))
                                                 },
                                                 onClick = {
-                                                    Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                                                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                                                        putExtra(ServiceCode.SOURCE_COMPONENT, NewsFilterSettingsActivity::class.java.name)
+                                                    Intent(
+                                                        this@NewsFilterSettingsActivity,
+                                                        AccountService::class.java
+                                                    ).apply {
+                                                        putExtra(
+                                                            ServiceCode.ACTION,
+                                                            ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                                                        )
+                                                        putExtra(
+                                                            ServiceCode.SOURCE_COMPONENT,
+                                                            NewsFilterSettingsActivity::class.java.name
+                                                        )
                                                     }.also {
-                                                        this@NewsFilterSettingsActivity.startService(it)
+                                                        this@NewsFilterSettingsActivity.startService(
+                                                            it
+                                                        )
                                                     }
                                                 },
                                                 modifier = Modifier
@@ -472,7 +497,8 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                 },
                                                 onClick = {
                                                     try {
-                                                        val subjectScheduleItem = availableSubjectFromAccount[selectedAvailableSubjectFromAccountIndex.value]
+                                                        val subjectScheduleItem =
+                                                            availableSubjectFromAccount[selectedAvailableSubjectFromAccountIndex.value]
                                                         val item = SubjectCode(
                                                             studentYearId = subjectScheduleItem.id.studentYearId,
                                                             classId = subjectScheduleItem.id.classId,
@@ -484,10 +510,12 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                                                         modifiedSettings.value = true
                                                         updateTemporarySettings()
 
-                                                        showSnackBarMessage(String.format(
-                                                            getString(R.string.subjectnewsfilter_snackbar_added),
-                                                            item.name
-                                                        ))
+                                                        showSnackBarMessage(
+                                                            String.format(
+                                                                getString(R.string.subjectnewsfilter_snackbar_added),
+                                                                item.name
+                                                            )
+                                                        )
                                                     } catch (ex: Exception) {
                                                         // Can't add to list.
                                                     }
@@ -585,10 +613,12 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                             modifiedSettings.value = true
                             updateTemporarySettings()
 
-                            showSnackBarMessage(String.format(
-                                getString(R.string.subjectnewsfilter_snackbar_added),
-                                item.name
-                            ))
+                            showSnackBarMessage(
+                                String.format(
+                                    getString(R.string.subjectnewsfilter_snackbar_added),
+                                    item.name
+                                )
+                            )
                         },
                     )
                 }
@@ -635,8 +665,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
     private fun isDuplicate(input: SubjectCode): Boolean {
         return try {
             return selectedSubjects.any { input.isEquals(it) }
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             true
         }
     }
@@ -719,9 +748,9 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
-            override fun onSettingsReloadRequested() { }
-            override fun onNewsScrollToTopRequested() { }
-            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+            override fun onSettingsReloadRequested() {}
+            override fun onNewsScrollToTopRequested() {}
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
 
             override fun onPermissionRequested(
                 permission: String?,
@@ -761,13 +790,14 @@ class NewsFilterSettingsActivity: ComponentActivity() {
                         type = newsFilterViewModel.appSettings.value.backgroundImage.option
                     )
                 } else {
-                    newsFilterViewModel.appSettings.value = newsFilterViewModel.appSettings.value.modify(
-                        optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                        value = BackgroundImage(
-                            option = BackgroundImageType.Unset,
-                            path = null
+                    newsFilterViewModel.appSettings.value =
+                        newsFilterViewModel.appSettings.value.modify(
+                            optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                            value = BackgroundImage(
+                                option = BackgroundImageType.Unset,
+                                path = null
+                            )
                         )
-                    )
                     newsFilterViewModel.requestSaveChanges()
 //                    mainViewModel.showSnackBarMessage(
 //                        "Missing permission for background image. " +

@@ -78,7 +78,12 @@ class SubjectPreview {
                                     var schList = ""
                                     for (schStudyItem in item.subjectStudy.scheduleList) {
                                         schList += (if (schList.isNotEmpty()) "; " else "") +
-                                                "${dayOfWeekToString(schStudyItem.dayOfWeek, true)}," +
+                                                "${
+                                                    dayOfWeekToString(
+                                                        schStudyItem.dayOfWeek,
+                                                        true
+                                                    )
+                                                }," +
                                                 "${schStudyItem.lesson.start}-${schStudyItem.lesson.end}," +
                                                 schStudyItem.room
                                     }
@@ -112,8 +117,7 @@ class SubjectPreview {
                                             }"
                                         )
                                         CustomText("Room: ${item.subjectExam.room}")
-                                    }
-                                    else {
+                                    } else {
                                         CustomText("Currently no examination schedule yet for this subject.")
                                     }
                                 },

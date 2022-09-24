@@ -1,21 +1,13 @@
 package io.zoemeow.dutnotify.utils
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.app.WallpaperManager
-import android.content.Context
-import android.graphics.drawable.Drawable
-import android.os.Build
 import io.zoemeow.dutapi.Utils
 import io.zoemeow.dutapi.objects.dutschoolyear.DUTSchoolYearItem
-import io.zoemeow.dutnotify.PermissionRequestActivity
-import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 class DUTDateUtils {
     companion object {
@@ -114,7 +106,8 @@ class DUTDateUtils {
             // Week always minus 1 (as index).
             firstDayOfWeekUnix += ((week - 1).toLong() * 7 * 24 * 60 * 60 * 1000)
             // LocalDate from Unix epoch days
-            val dateTemp = LocalDate.fromEpochDays((firstDayOfWeekUnix / 1000 / 60 / 60 / 24).toInt())
+            val dateTemp =
+                LocalDate.fromEpochDays((firstDayOfWeekUnix / 1000 / 60 / 60 / 24).toInt())
 
             var count = 0
             while (count < 7) {

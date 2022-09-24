@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,8 +52,12 @@ fun Account(
                     containerColor = Color.Transparent
                 ),
                 title = {
-                    Text(stringResource(id = if (mainViewModel.Account_HasSaved.value)
-                        R.string.topbar_account_dashboard else R.string.topbar_account_notloggedin))
+                    Text(
+                        stringResource(
+                            id = if (mainViewModel.Account_HasSaved.value)
+                                R.string.topbar_account_dashboard else R.string.topbar_account_notloggedin
+                        )
+                    )
                 },
                 actions = {
                     if (mainViewModel.Account_HasSaved.value) {

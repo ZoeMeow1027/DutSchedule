@@ -8,8 +8,8 @@ abstract class AccountBroadcastReceiver : BaseBroadcastReceiver {
     // this.componentName.className
     // 'class'::class.java.name
 
-    constructor() { }
-    constructor(packageFilter: String): super(packageFilter)
+    constructor() {}
+    constructor(packageFilter: String) : super(packageFilter)
 
     @Suppress("DEPRECATION")
     override fun onReceiveFilter(context: Context, intent: Intent) {

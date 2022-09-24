@@ -44,7 +44,7 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
                     title = intent.getStringExtra(SNACKBARMESSAGE_TEXT),
                     forceCloseOld = intent.getBooleanExtra(SNACKBARMESSAGE_CLOSEOLDMSG, false),
 
-                )
+                    )
             }
             ACCOUNT_SUBJECTSCHEDULE_RELOADREQUESTED -> {
                 onAccountReloadRequested(ACCOUNT_SUBJECTSCHEDULE_RELOADREQUESTED)
@@ -80,5 +80,9 @@ abstract class AppBroadcastReceiver : BroadcastReceiver() {
 
     abstract fun onSettingsReloadRequested()
 
-    abstract fun onPermissionRequested(permission: String?, granted: Boolean, notifyToUser: Boolean = false)
+    abstract fun onPermissionRequested(
+        permission: String?,
+        granted: Boolean,
+        notifyToUser: Boolean = false
+    )
 }

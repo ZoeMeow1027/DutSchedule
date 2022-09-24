@@ -185,9 +185,9 @@ class NewsDetailsActivity : ComponentActivity() {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
-            override fun onSettingsReloadRequested() { }
-            override fun onNewsScrollToTopRequested() { }
-            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) { }
+            override fun onSettingsReloadRequested() {}
+            override fun onNewsScrollToTopRequested() {}
+            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
 
             override fun onPermissionRequested(
                 permission: String?,
@@ -241,7 +241,7 @@ fun NewsDetailsActivity.onPermissionResult(
                 )
             }
         }
-        else -> { }
+        else -> {}
     }
 }
 

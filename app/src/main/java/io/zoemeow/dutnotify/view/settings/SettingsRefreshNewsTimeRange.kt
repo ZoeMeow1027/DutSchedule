@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel

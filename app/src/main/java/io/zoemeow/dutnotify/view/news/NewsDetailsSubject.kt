@@ -77,8 +77,7 @@ fun NewsDetailsSubject(
                 news.affectedClass.forEach { className ->
                     if (affectedClassrooms.isEmpty()) {
                         affectedClassrooms = "\n- ${className.subjectName}"
-                    }
-                    else {
+                    } else {
                         affectedClassrooms += "\n- ${className.subjectName}"
                     }
                     var first = true
@@ -86,8 +85,7 @@ fun NewsDetailsSubject(
                         if (first) {
                             affectedClassrooms += " ["
                             first = false
-                        }
-                        else {
+                        } else {
                             affectedClassrooms += ", "
                         }
                         affectedClassrooms += "${item.studentYearId.lowercase()}.${item.classId.uppercase()}"
@@ -103,27 +101,35 @@ fun NewsDetailsSubject(
                 )
                 CustomDivider()
                 // Affecting lessons, hour, room.
-                if (arrayListOf(LessonStatus.Leaving, LessonStatus.MakeUp).contains(news.lessonStatus)) {
+                if (arrayListOf(
+                        LessonStatus.Leaving,
+                        LessonStatus.MakeUp
+                    ).contains(news.lessonStatus)
+                ) {
                     Text(
                         text =
                         String.format(
                             stringResource(id = R.string.newsdetails_subject_status),
-                            stringResource(id = when (news.lessonStatus) {
-                                LessonStatus.Leaving -> R.string.newsdetails_subject_statusleaving
-                                LessonStatus.MakeUp -> R.string.newsdetails_subject_statusmakeup
-                                else -> R.string.newsdetails_subject_statusleaving
-                            })
+                            stringResource(
+                                id = when (news.lessonStatus) {
+                                    LessonStatus.Leaving -> R.string.newsdetails_subject_statusleaving
+                                    LessonStatus.MakeUp -> R.string.newsdetails_subject_statusmakeup
+                                    else -> R.string.newsdetails_subject_statusleaving
+                                }
+                            )
                         ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
                         text = String.format(
-                            stringResource(when (news.lessonStatus) {
-                                LessonStatus.Leaving -> R.string.newsdetails_subject_lessonleaving
-                                LessonStatus.MakeUp -> R.string.newsdetails_subject_lessonmakeup
-                                else -> R.string.newsdetails_subject_lessonleaving
-                            }),
+                            stringResource(
+                                when (news.lessonStatus) {
+                                    LessonStatus.Leaving -> R.string.newsdetails_subject_lessonleaving
+                                    LessonStatus.MakeUp -> R.string.newsdetails_subject_lessonmakeup
+                                    else -> R.string.newsdetails_subject_lessonleaving
+                                }
+                            ),
                             news.affectedLesson
                         ),
                         style = MaterialTheme.typography.bodyLarge,
@@ -182,7 +188,11 @@ fun NewsDetailsSubject(
                                 try {
                                     news.links?.forEach { item ->
                                         annotatedString
-                                            .getStringAnnotations(item.position!!.toString(), it, it)
+                                            .getStringAnnotations(
+                                                item.position!!.toString(),
+                                                it,
+                                                it
+                                            )
                                             .firstOrNull()
                                             ?.let { url ->
                                                 var urlTemp = url.toString()

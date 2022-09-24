@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class NewsService: Service() {
+class NewsService : Service() {
     private lateinit var file: FileModule
     private lateinit var settings: AppSettings
     private var fetchInBackground = false
@@ -253,7 +253,11 @@ class NewsService: Service() {
     private fun notifyUsersGlobal(
         list: ArrayList<NewsGlobalItem>,
     ) {
-        if (!PermissionRequestActivity.checkPermission(this, Manifest.permission.POST_NOTIFICATIONS))
+        if (!PermissionRequestActivity.checkPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        )
             return
 
         list.forEach { newsItem ->
@@ -271,7 +275,11 @@ class NewsService: Service() {
     private fun notifyUsersSubject(
         list: ArrayList<NewsSubjectItem>,
     ) {
-        if (!PermissionRequestActivity.checkPermission(this, Manifest.permission.POST_NOTIFICATIONS))
+        if (!PermissionRequestActivity.checkPermission(
+                this,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        )
             return
 
         list.forEach { newsItem ->
@@ -286,7 +294,13 @@ class NewsService: Service() {
             else if (settings.newsFilterList.any { source ->
                     newsItem.affectedClass.any { targetGroup ->
                         targetGroup.codeList.any { target ->
-                            source.isEquals(SubjectCode(target.studentYearId, target.classId, targetGroup.subjectName))
+                            source.isEquals(
+                                SubjectCode(
+                                    target.studentYearId,
+                                    target.classId,
+                                    targetGroup.subjectName
+                                )
+                            )
                         }
                     }
                 }
@@ -324,8 +338,7 @@ class NewsService: Service() {
             newsItem.affectedClass.forEach { className ->
                 if (affectedClassrooms.isEmpty()) {
                     affectedClassrooms = className.subjectName
-                }
-                else {
+                } else {
                     affectedClassrooms += ", ${className.subjectName}"
                 }
                 var first = true
@@ -333,8 +346,7 @@ class NewsService: Service() {
                     if (first) {
                         affectedClassrooms += " ("
                         first = false
-                    }
-                    else {
+                    } else {
                         affectedClassrooms += ", "
                     }
                     affectedClassrooms += "${item.studentYearId}.${item.classId}"
@@ -344,34 +356,49 @@ class NewsService: Service() {
 
             val notifyContentList = arrayListOf<String>()
             // Affected classrooms
-            notifyContentList.add("${String.format(getString(R.string.notification_newssubject_appliedto), affectedClassrooms)}\n")
+            notifyContentList.add(
+                "${
+                    String.format(
+                        getString(R.string.notification_newssubject_appliedto),
+                        affectedClassrooms
+                    )
+                }\n"
+            )
             // Date and lessons
             if (
                 newsItem.lessonStatus == LessonStatus.Leaving ||
                 newsItem.lessonStatus == LessonStatus.MakeUp
             ) {
                 // Date
-                notifyContentList.add(String.format(
-                    getString(R.string.notification_newssubject_date),
-                    DUTDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
-                ))
+                notifyContentList.add(
+                    String.format(
+                        getString(R.string.notification_newssubject_date),
+                        DUTDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
+                    )
+                )
                 // Lessons
-                notifyContentList.add(String.format(
-                    getString(R.string.notification_newssubject_lesson),
-                    when (newsItem.lessonStatus) {
-                        LessonStatus.Leaving -> getString(R.string.notification_newssubject_leaving)
-                        LessonStatus.MakeUp -> getString(R.string.notification_newssubject_makeup)
-                        else -> ""
-                    },
-                    if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else getString(R.string.notification_newssubject_unknown),
-                ))
+                notifyContentList.add(
+                    String.format(
+                        getString(R.string.notification_newssubject_lesson),
+                        when (newsItem.lessonStatus) {
+                            LessonStatus.Leaving -> getString(R.string.notification_newssubject_leaving)
+                            LessonStatus.MakeUp -> getString(R.string.notification_newssubject_makeup)
+                            else -> ""
+                        },
+                        if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else getString(
+                            R.string.notification_newssubject_unknown
+                        ),
+                    )
+                )
                 // Make-up room
                 if (newsItem.lessonStatus == LessonStatus.MakeUp) {
                     // Make up in room
-                    notifyContentList.add(String.format(
-                        getString(R.string.notification_newssubject_room),
-                        newsItem.affectedRoom
-                    ))
+                    notifyContentList.add(
+                        String.format(
+                            getString(R.string.notification_newssubject_room),
+                            newsItem.affectedRoom
+                        )
+                    )
                 }
             } else {
                 notifyContentList.add(newsItem.contentString)

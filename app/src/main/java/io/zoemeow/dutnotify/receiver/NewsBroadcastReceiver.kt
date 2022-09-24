@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.Intent
 import io.zoemeow.dutnotify.model.enums.ServiceCode
 
-abstract class NewsBroadcastReceiver: BaseBroadcastReceiver {
+abstract class NewsBroadcastReceiver : BaseBroadcastReceiver {
     constructor()
-    constructor(packageFilter: String): super(packageFilter)
+    constructor(packageFilter: String) : super(packageFilter)
 
     @Suppress("DEPRECATION")
     override fun onReceiveFilter(context: Context, intent: Intent) {

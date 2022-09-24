@@ -29,7 +29,8 @@ class AppUtils {
                 derivedStateOf {
                     val layoutInfo = listState.layoutInfo
                     val totalItemsNumber = layoutInfo.totalItemsCount
-                    val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+                    val lastVisibleItemIndex =
+                        (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
 
                     lastVisibleItemIndex > (totalItemsNumber - buffer)
                 }

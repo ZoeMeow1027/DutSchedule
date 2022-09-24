@@ -41,16 +41,19 @@
             android:name=".receiver.AccountBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
+
         <service
             android:name=".service.NewsService"
             android:enabled="true"
             android:exported="true"
             android:label="News Service"
             android:permission="android.permission.FOREGROUND_SERVICE" />
-        <service android:name=".service.AccountService"
+        <service
+            android:name=".service.AccountService"
             android:enabled="true"
             android:exported="true"
             android:label="Account Service" />
+
         <activity
             android:name=".PermissionRequestActivity"
             android:exported="false" />

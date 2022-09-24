@@ -5,12 +5,14 @@ class ServiceCode {
     companion object {
         // Send to broadcast a action
         const val ACTION = "action"
+
         // News Service
         const val ACTION_NEWS_INITIALIZATION = "action.news.initialization"
         const val ACTION_NEWS_FETCHGLOBAL = "action.news.fetchglobal"
         const val ACTION_NEWS_FETCHSUBJECT = "action.news.fetchsubject"
         const val ACTION_NEWS_FETCHALL = "action.news.fetchall"
         const val ACTION_NEWS_FETCHALLBACKGROUND = "action.news.fetchallbackground"
+
         // Account Service
         const val ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN = "action.account.getstatus.hassavedlogin"
         const val ACTION_ACCOUNT_LOGIN = "action.account.login"
@@ -31,7 +33,8 @@ class ServiceCode {
         const val ARGUMENT_ACCOUNT_LOGIN_REMEMBERED = "argument.account.login.remembered"
         const val ARGUMENT_ACCOUNT_LOGIN_PRELOAD = "argument.account.login.preload"
         const val ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD = "argument.account.loginstartup.preload"
-        const val ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR = "argument.account.subjectschedule.schoolyear"
+        const val ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR =
+            "argument.account.subjectschedule.schoolyear"
         const val ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR = "argument.account.subjectfee.schoolyear"
 
         // Send to broadcast status.

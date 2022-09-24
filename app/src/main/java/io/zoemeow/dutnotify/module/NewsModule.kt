@@ -40,7 +40,8 @@ class NewsModule {
             // - If news group with date exist but no news found with targetItem.
             // - If news group with date exist, news exist but different.
             target.forEach { targetItem ->
-                val newsGroupFound = source.firstOrNull { newsGroupItem -> newsGroupItem.date == targetItem.date }
+                val newsGroupFound =
+                    source.firstOrNull { newsGroupItem -> newsGroupItem.date == targetItem.date }
                 if (newsGroupFound == null)
                     result.add(targetItem)
                 else if (newsGroupFound.itemList.firstOrNull { newsItem ->
@@ -66,7 +67,8 @@ class NewsModule {
             // - If news group with date exist but no news found with targetItem.
             // - If news group with date exist, news exist but different.
             target.forEach { targetItem ->
-                val newsGroupFound = source.firstOrNull { newsGroupItem -> newsGroupItem.date == targetItem.date }
+                val newsGroupFound =
+                    source.firstOrNull { newsGroupItem -> newsGroupItem.date == targetItem.date }
                 if (newsGroupFound == null)
                     result.add(targetItem)
                 else if (newsGroupFound.itemList.firstOrNull { newsItem ->

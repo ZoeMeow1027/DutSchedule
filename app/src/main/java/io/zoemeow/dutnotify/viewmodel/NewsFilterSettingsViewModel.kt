@@ -19,10 +19,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutnotify.NewsFilterSettingsActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import javax.inject.Inject
@@ -32,7 +32,7 @@ import javax.inject.Inject
 class NewsFilterSettingsViewModel @Inject constructor(
     private val file: FileModule,
     private val application: Application,
-): ViewModel() {
+) : ViewModel() {
     // Drawable and painter for background image
     val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
 
@@ -74,7 +74,8 @@ class NewsFilterSettingsViewModel @Inject constructor(
 
     val Account_HasSaved = mutableStateOf(false)
     val Account_LoginProcess = mutableStateOf(LoginState.NotTriggered)
-    val Account_Process_SubjectSchedule: MutableState<ProcessState> = mutableStateOf(ProcessState.NotRanYet)
+    val Account_Process_SubjectSchedule: MutableState<ProcessState> =
+        mutableStateOf(ProcessState.NotRanYet)
     val Account_Data_SubjectSchedule: SnapshotStateList<SubjectScheduleItem> = mutableStateListOf()
 
     fun requestSaveChanges() {
@@ -120,7 +121,7 @@ class NewsFilterSettingsViewModel @Inject constructor(
                             }
                         }
                     }
-                    else -> { }
+                    else -> {}
                 }
             }
 
@@ -159,6 +160,7 @@ class NewsFilterSettingsViewModel @Inject constructor(
     }
 
     private var initOnce: Boolean = false
+
     init {
         run {
             if (initOnce)

@@ -30,8 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
-import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.service.NewsService
@@ -218,8 +218,7 @@ class MainActivity : ComponentActivity() {
                             putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
                         }
                     )
-            }
-            else {
+            } else {
                 NewsService.cancelSchedule(this)
             }
         } catch (ex: Exception) {
@@ -231,7 +230,7 @@ class MainActivity : ComponentActivity() {
         object : AppBroadcastReceiver() {
             override fun onNewsReloadRequested() {}
             override fun onAccountReloadRequested(newsType: String) {}
-            override fun onSettingsReloadRequested() { }
+            override fun onSettingsReloadRequested() {}
 
             override fun onNewsScrollToTopRequested() {
                 if (!lazyListStateGlobal.isScrollInProgress)
@@ -349,12 +348,12 @@ fun MainActivity.onPermissionResult(
                     mainViewModel.showSnackBarMessage(
                         if (valueBefore) getString(R.string.snackbar_newsinbackground_failedenabled)
                         else getString(R.string.snackbar_newsinbackground_faileddisabled) + " " +
-                        getString(R.string.snackbar_newsinbackground_failedextended),
+                                getString(R.string.snackbar_newsinbackground_failedextended),
                     )
                 }
             }
         }
-        else -> { }
+        else -> {}
     }
 }
 

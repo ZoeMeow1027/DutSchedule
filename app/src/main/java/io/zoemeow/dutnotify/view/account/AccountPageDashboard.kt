@@ -21,9 +21,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.Utils
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
+import io.zoemeow.dutnotify.AccountDetailsActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.AccountDetailsActivity
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getCurrentDayOfWeek
 import io.zoemeow.dutnotify.utils.DUTDateUtils.Companion.getDUTWeek
@@ -104,11 +104,14 @@ fun AccountPageDashboard(
         )
     }
 
-    val dayOfWeek = remember { mutableStateOf(if (getCurrentDayOfWeek() - 1 == 0) 7 else getCurrentDayOfWeek() - 1) }
+    val dayOfWeek =
+        remember { mutableStateOf(if (getCurrentDayOfWeek() - 1 == 0) 7 else getCurrentDayOfWeek() - 1) }
     val week = remember { mutableStateOf(getDUTWeek()) }
-    val weekList = remember { mutableStateListOf<LocalDate>().apply {
-        addAll(getDateListFromWeek(week = week.value))
-    } }
+    val weekList = remember {
+        mutableStateListOf<LocalDate>().apply {
+            addAll(getDateListFromWeek(week = week.value))
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -179,7 +182,8 @@ fun AccountPageDashboard(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 BasicInformation(
-                    username = mainViewModel.Account_Data_AccountInformation.value?.studentId ?: "(unknown)",
+                    username = mainViewModel.Account_Data_AccountInformation.value?.studentId
+                        ?: "(unknown)",
 //                    username = mainViewModel.accountDataStore.username.value,
                     accountInformation = mainViewModel.Account_Data_AccountInformation.value,
 //                    accountInformation = mainViewModel.accountDataStore.accountInformation.value,

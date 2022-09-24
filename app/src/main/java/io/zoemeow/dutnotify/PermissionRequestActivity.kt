@@ -18,7 +18,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.ui.theme.DefaultActivityTheme
 
-class PermissionRequestActivity: ComponentActivity() {
+class PermissionRequestActivity : ComponentActivity() {
     private val permissionRequestList = arrayListOf<String>()
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +73,8 @@ class PermissionRequestActivity: ComponentActivity() {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .wrapContentHeight()
                     .padding(top = 15.dp)
             ) {
@@ -127,7 +128,8 @@ class PermissionRequestActivity: ComponentActivity() {
 
     private fun filterDeniedPermissionsAndFinish(permissionList: ArrayList<Pair<String, Boolean>>) {
         permissionList.forEach { permissionItem ->
-            val getPermissionString = permissionRequestList.firstOrNull { item -> item == permissionItem.first }
+            val getPermissionString =
+                permissionRequestList.firstOrNull { item -> item == permissionItem.first }
             if (getPermissionString != null)
                 permissionRequestList.remove(getPermissionString)
         }

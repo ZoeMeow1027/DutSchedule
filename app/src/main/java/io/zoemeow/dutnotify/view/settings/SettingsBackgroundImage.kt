@@ -19,8 +19,8 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
+import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.onPermissionResult
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
@@ -54,7 +54,11 @@ fun SettingsBackgroundImage(
         )
         mainViewModel.requestSaveChanges()
 
-        if (PermissionRequestActivity.checkPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+        if (PermissionRequestActivity.checkPermission(
+                activity,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+        ) {
             activity.onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
         } else {
             Intent(activity, PermissionRequestActivity::class.java)

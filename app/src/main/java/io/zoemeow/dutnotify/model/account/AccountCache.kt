@@ -9,4 +9,4 @@ data class AccountCache(
     val subjectScheduleList: ArrayList<SubjectScheduleItem> = arrayListOf(),
     val subjectFeeList: ArrayList<SubjectFeeItem> = arrayListOf(),
     var accountInformation: AccountInformation? = null,
-): Serializable
+) : Serializable

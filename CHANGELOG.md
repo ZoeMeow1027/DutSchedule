@@ -1,7 +1,10 @@
 # DUTNotify ChangeLog
 
-- This will save add developer log for this application. Feel free to report issues, fork or contribute this project :))
-- You can also view file changed at [https://github.com/ZoeMeow5466/DUTNotify/commits](https://github.com/ZoeMeow5466/DUTNotify/commits).
+- This will save add developer log for this application. Feel free to report issues, fork or
+  contribute this project :))
+- You can also view file changed
+  at [https://github.com/ZoeMeow5466/DUTNotify/commits](https://github.com/ZoeMeow5466/DUTNotify/commits)
+  .
 
 ## 1.0-beta9 (518)
 
@@ -40,7 +43,7 @@
 
 - Implements with Vietnamese strings.
 
-- 
+-
 
 - Included a fix for [#8](https://github.com/ZoeMeow5466/DUTNotify/issues/8)
 
@@ -71,7 +74,8 @@
 
 ### Fixes
 
-- A issue cause stopped working app when enable NewsService in App Settings. This has been fixed in 1.0-beta6.
+- A issue cause stopped working app when enable NewsService in App Settings. This has been fixed in
+  1.0-beta6.
 
 ### Known issues
 
@@ -79,27 +83,32 @@
 
 ## 1.0-beta5 (472)
 
-- ~~This build will still mark as 'beta', but you can use this version as daily for now.~~ We are aware a issue cause stopped working app when enable NewsService. This will be fixed in 1.0-beta6.
+- ~~This build will still mark as 'beta', but you can use this version as daily for now.~~ We are
+  aware a issue cause stopped working app when enable NewsService. This will be fixed in 1.0-beta6.
 
 ### What's new
 
 - Simple small notification icon. App notification will now use this instead of app launcher icon.
 - Getting news in background will show current status. However, this's still in beta.
-- News subject details have a new design now, replacing old design due to have an issue with very looooong title.
+- News subject details have a new design now, replacing old design due to have an issue with very
+  looooong title.
 
 ### What's changed
 
 - Updated implementations used in project.
 - Optimized codes about requiring permissions.
-- Enable news in background will now requiring POST_NOTIFICATIONS permission (required by Android 13).
+- Enable news in background will now requiring POST_NOTIFICATIONS permission (required by Android
+  13).
 - Moved all functions from DateUtils.kt to DUTDateUtils.kt.
-- AccountSubWeekList will now show current date and current school year. You can adjust by arrow to view another week. However, this's still in beta due to not filtered subject by week yet.
+- AccountSubWeekList will now show current date and current school year. You can adjust by arrow to
+  view another week. However, this's still in beta due to not filtered subject by week yet.
 - Optimized codes about AccountSubWeekList.kt.
 - Re-login account will now use SchoolYear settings as you set in App Settings.
 
 ### Fixes
 
-- Revert back androidx.compose.material3:material3 to 1.0.0-beta1 due to issue about transparent. [You can track issue here](https://issuetracker.google.com/issues/245626686).
+- Revert back androidx.compose.material3:material3 to 1.0.0-beta1 due to issue about
+  transparent. [You can track issue here](https://issuetracker.google.com/issues/245626686).
 - Fixed issue cause wrong date list in account dashboard.
 
 ### Known issues
@@ -130,7 +139,8 @@
 
 ### Fixes
 
-- Wrong notification in news subject about in room showing affected lessons instead. Now solved this issue.
+- Wrong notification in news subject about in room showing affected lessons instead. Now solved this
+  issue.
 
 ## 1.0-beta3 (402) - Hotfix 1
 
@@ -145,7 +155,8 @@
 ### What's new
 
 - Load news in background can be controlled to enable or disable them (default is now disabled).
-- News subject notifications is now notify you to make up or leaving (with affected class, date, room).
+- News subject notifications is now notify you to make up or leaving (with affected class, date,
+  room).
 - Clicked a subject in account dashboard will now displaying subject inforomation.
 
 ### What's changed
@@ -184,7 +195,8 @@
 
 - External activity for clicking a notification.
 - CustomClock for adjust refresh news time range.
-- Refresh news settings will be applied when next trigger refresh ran (this can edit in Settings panel).
+- Refresh news settings will be applied when next trigger refresh ran (this can edit in Settings
+  panel).
 - Sorted strings.xml and adjsuted some issues.
 
 ### What's changed
@@ -197,7 +209,8 @@
 
 ### Fixes
 
-- Fixed a issue cause date selector in datetime showing unsorted date (you will see when you logged in).
+- Fixed a issue cause date selector in datetime showing unsorted date (you will see when you logged
+  in).
 - Notifications details is now showing correctly news details when you click to open them.
 
 ## 0.10-alpha1 (243)
@@ -218,7 +231,8 @@
 
 ### What's new:
 
-- PermissionRequestActivity for replacement (replace from onRequestPermissionsResult, which deprecated on java).
+- PermissionRequestActivity for replacement (replace from onRequestPermissionsResult, which
+  deprecated on java).
 - dut_week.json, however, not being used yet.
 
 ### What's changed:
@@ -255,7 +269,8 @@ SDK was updated to 33
 
 ### What's new
 
-- New service: RefreshNewsService. This will check latest news in 15 minutes or time you specificed. However, this isn't completed yet.
+- New service: RefreshNewsService. This will check latest news in 15 minutes or time you specificed.
+  However, this isn't completed yet.
 - Introduced news cache for offline reading and notifications.
 - Added app cache viewmodel for news.
 - Add new page: Account Information. However, this isn't done yet.
@@ -263,21 +278,25 @@ SDK was updated to 33
 ### What's changed
 
 - Deleted account query screen (not need).
-- Main bottom navigation bar will use title by string id in values.xml instead of provided strings (to easier translation).
+- Main bottom navigation bar will use title by string id in values.xml instead of provided strings (
+  to easier translation).
 
 ### Fixes
 
-- Fixed fatal error in account view model when relogin (you can checkout this issue in previous version by close and re-open app).
+- Fixed fatal error in account view model when relogin (you can checkout this issue in previous
+  version by close and re-open app).
 
 ### Known issues
 
-- Notification Channel creation is still exist in MainActivity.kt. This will replaced with another notification id for register.
+- Notification Channel creation is still exist in MainActivity.kt. This will replaced with another
+  notification id for register.
 
 ## 0.8-alpha3 (77)
 
 ### What's changed
 
-- Optimize code in account view model and account file repository to avoid UI hang when starting app.
+- Optimize code in account view model and account file repository to avoid UI hang when starting
+  app.
 - Optimize code in dark/light theme.
 - Fully ran optimize code in Android Studio.
 
@@ -311,7 +330,8 @@ Note: You need to uninstall or delete old app data before continue using applica
 
 ### Known issues
 
-- My laptop is low-end, so in gradle.properties I will temporary config for optimize it. You can delete 5 bottom lines in that file to speed up building.
+- My laptop is low-end, so in gradle.properties I will temporary config for optimize it. You can
+  delete 5 bottom lines in that file to speed up building.
 
 ## 0.7-alpha (37)
 
@@ -321,7 +341,8 @@ Note: You need to uninstall or delete old app data before continue using applica
 
 ### Fixes
 
-- Background Image, dark/light mode and dynamic color will be updated immediately after settings changed.
+- Background Image, dark/light mode and dynamic color will be updated immediately after settings
+  changed.
 - Fixed unreadable in News Details.
 
 ### Known issues

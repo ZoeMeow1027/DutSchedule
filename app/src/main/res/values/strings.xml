@@ -2,9 +2,9 @@
 <resources>
     <string name="account_dashboard_dayandweekview_fetching">We are fetching your subject schedule list. Please wait…</string>
     <string name="account_dashboard_dayandweekview_nosubject">You don\'t have any subjects on today.</string>
-    <string formatted="false" name="account_dashboard_dayandweekview_overview">Overview (Week %d, %s)</string>
+    <string name="account_dashboard_dayandweekview_overview" formatted="false">Overview (Week %d, %s)</string>
     <string name="account_dashboard_dayandweekview_subjectschedule">Subject Study Schedule</string>
-    <string formatted="false" name="account_dashboard_dayandweekview_subjectstatus">Lesson: %d-%d, Room: %s</string>
+    <string name="account_dashboard_dayandweekview_subjectstatus" formatted="false">Lesson: %d-%d, Room: %s</string>
     <string name="account_dashboard_dayandweekview_today">Today</string>
     <string name="account_dashboard_dayandweekview_unknowndata">(unknown data)</string>
     <string name="account_dashboard_viewaccinfo">View more account Information</string>
@@ -36,25 +36,25 @@
     <string name="news_tab_global">Global</string>
     <string name="news_tab_subject">Subject</string>
 
-    <string formatted="false" name="newsdetails_subject_date">Date: %s</string>
-    <string formatted="false" name="newsdetails_subject_lessonleaving">Lesson will leave: %s</string>
-    <string formatted="false" name="newsdetails_subject_lessonmakeup">Lesson will make up: %s</string>
-    <string formatted="false" name="newsdetails_subject_room">Make up in room: %s</string>
-    <string formatted="false" name="newsdetails_subject_status">Status: %s</string>
+    <string name="newsdetails_subject_date" formatted="false">Date: %s</string>
+    <string name="newsdetails_subject_lessonleaving" formatted="false">Lesson will leave: %s</string>
+    <string name="newsdetails_subject_lessonmakeup" formatted="false">Lesson will make up: %s</string>
+    <string name="newsdetails_subject_room" formatted="false">Make up in room: %s</string>
+    <string name="newsdetails_subject_status" formatted="false">Status: %s</string>
     <string name="newsdetails_subject_statusleaving">Leaving</string>
     <string name="newsdetails_subject_statusmakeup">Make up</string>
-    <string formatted="false" name="newsdetails_subject_title">Subject news from %s</string>
+    <string name="newsdetails_subject_title" formatted="false">Subject news from %s</string>
     <string name="newsdetails_title">News Details</string>
 
     <string name="notification_newsglobal_title">Global News</string>
-    <string formatted="false" name="notification_newssubject_appliedto">Applied to: %s</string>
-    <string formatted="false" name="notification_newssubject_date">On date: %s</string>
+    <string name="notification_newssubject_appliedto" formatted="false">Applied to: %s</string>
+    <string name="notification_newssubject_date" formatted="false">On date: %s</string>
     <string name="notification_newssubject_leaving">Leaving</string>
-    <string formatted="false" name="notification_newssubject_lesson">Lesson that will %s: %s</string>
+    <string name="notification_newssubject_lesson" formatted="false">Lesson that will %s: %s</string>
     <string name="notification_newssubject_makeup">Make up</string>
-    <string formatted="false" name="notification_newssubject_room">In Room: %s</string>
-    <string formatted="false" name="notification_newssubject_title">New notification from %s</string>
-    <string formatted="false" name="notification_newssubject_titlewitharg">%s notification from %s</string>
+    <string name="notification_newssubject_room" formatted="false">In Room: %s</string>
+    <string name="notification_newssubject_title" formatted="false">New notification from %s</string>
+    <string name="notification_newssubject_titlewitharg" formatted="false">%s notification from %s</string>
     <string name="notification_newssubject_unknown">(unknown)</string>
 
     <string name="option_add">Add</string>
@@ -102,15 +102,15 @@
     <string name="settings_loadnewsinbackground_timeactive_name">Time active</string>
     <string name="settings_loadnewsinbackground_timeactive_timeend">Time end</string>
     <string name="settings_loadnewsinbackground_timeactive_timestart">Time start</string>
-    <string formatted="false" name="settings_loadnewsinbackground_timeactive_value">From %s to %s%s</string>
+    <string name="settings_loadnewsinbackground_timeactive_value" formatted="false">From %s to %s%s</string>
     <string name="settings_loadnewsinbackground_timeactive_valueextended">the next day</string>
     <string name="settings_openlinkincustomtab_description">This will open link you clicked in application to browser you will choose above</string>
     <string name="settings_openlinkincustomtab_name">Open link in custom tabs</string>
-    <string formatted="false" name="settings_schoolyear_afterchange">Your current school year after commit:\n - School year: 20%d - 20%d\n - Semester: %d</string>
+    <string name="settings_schoolyear_afterchange" formatted="false">Your current school year after commit:\n - School year: 20%d - 20%d\n - Semester: %d</string>
     <string name="settings_schoolyear_name">School year</string>
     <string name="settings_schoolyear_schoolyearmodifyoption">School Year</string>
     <string name="settings_schoolyear_semestermodifyoption">School Semester</string>
-    <string formatted="false" name="settings_schoolyear_value">School Year 20%d-20%d, semester %d (will affect to your subjects schedule display)</string>
+    <string name="settings_schoolyear_value" formatted="false">School Year 20%d-20%d, semester %d (will affect to your subjects schedule display)</string>
     <string name="settings_subjectnewsfilter_description">Receive notification related with your subject news only</string>
     <string name="settings_subjectnewsfilter_name">Subject News notification filter</string>
     <string name="settings_version_name">Version</string>
@@ -138,8 +138,8 @@
     <string name="subjectnewsfilter_currentlist_notempty">Your current filter list (click a item to remove)</string>
     <string name="subjectnewsfilter_savechanges_description">You have unsaved changes. Save them?</string>
     <string name="subjectnewsfilter_savechanges_title">Save modified settings?</string>
-    <string formatted="false" name="subjectnewsfilter_snackbar_added">Added %s</string>
-    <string formatted="false" name="subjectnewsfilter_snackbar_deleted">Deleted %s</string>
+    <string name="subjectnewsfilter_snackbar_added" formatted="false">Added %s</string>
+    <string name="subjectnewsfilter_snackbar_deleted" formatted="false">Deleted %s</string>
     <string name="subjectnewsfilter_snackbar_deletedall">Cleared all filters! Remember save changes to take effect.</string>
     <string name="subjectnewsfilter_snackbar_successful">Saved changes!</string>
 
