@@ -36,7 +36,7 @@ class PermissionRequestActivity: ComponentActivity() {
             DefaultActivityTheme {
                 Scaffold(
                     topBar = {
-                        SmallTopAppBar(
+                        TopAppBar(
                             title = { Text("Requested permission") }
                         )
                     },

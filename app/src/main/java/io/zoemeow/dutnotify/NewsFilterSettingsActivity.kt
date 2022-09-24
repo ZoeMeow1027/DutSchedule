@@ -144,7 +144,7 @@ class NewsFilterSettingsActivity: ComponentActivity() {
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackBarState) },
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     title = {
                         Text(stringResource(id = R.string.settings_subjectnewsfilter_name))
                     },

@@ -77,7 +77,7 @@ fun Settings(
         containerColor = Color.Transparent,
         contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),

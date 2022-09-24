@@ -109,16 +109,9 @@ class MainActivity : ComponentActivity() {
                 )
 
                 Intent(this@MainActivity, AccountService::class.java).apply {
-                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
-                    putExtra(ServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
-                }.also {
-                    this@MainActivity.startService(it)
-                }
-
-                Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
                     putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(ServiceCode.SOURCE_COMPONENT, this@MainActivity::class.java.name)
+                    putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }

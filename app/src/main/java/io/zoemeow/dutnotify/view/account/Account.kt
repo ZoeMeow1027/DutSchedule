@@ -35,6 +35,7 @@ fun Account(
         logoutRequest = {
             Intent(context, AccountService::class.java).apply {
                 putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGOUT)
+                putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
             }.also {
                 context.startService(it)
             }
@@ -44,7 +45,7 @@ fun Account(
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
                     containerColor = Color.Transparent
                 ),

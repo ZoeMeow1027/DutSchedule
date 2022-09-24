@@ -102,7 +102,7 @@ class NewsDetailsActivity : ComponentActivity() {
 
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(
                         containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0f)
                     ),

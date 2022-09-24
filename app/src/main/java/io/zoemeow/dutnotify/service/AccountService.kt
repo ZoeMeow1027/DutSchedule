@@ -145,11 +145,11 @@ class AccountService: Service() {
         if (!this::file.isInitialized) {
             file = FileModule(this)
             accModule = AccountModule()
-            accModule.loadSettings(file.getAccountSettings())
         }
     }
 
     private fun loadSettings() {
+        accModule.loadSettings(file.getAccountSettings())
         appSettings = file.getAppSettings()
         appCache = file.getAccountCache()
     }

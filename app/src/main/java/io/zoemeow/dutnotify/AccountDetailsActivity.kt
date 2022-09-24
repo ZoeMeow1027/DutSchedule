@@ -148,7 +148,7 @@ class AccountDetailsActivity : ComponentActivity() {
 
         Scaffold(
             topBar = {
-                SmallTopAppBar(
+                TopAppBar(
                     colors = TopAppBarDefaults.smallTopAppBarColors(
                         containerColor = Color.Transparent
                     ),

@@ -51,6 +51,7 @@ fun AccountDialogLogin(
             putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD, password.value)
             putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, rememberLogin.value)
             putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, true)
+            putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
         }.also {
             context.startService(it)
         }
