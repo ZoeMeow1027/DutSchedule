@@ -34,7 +34,7 @@ import io.zoemeow.dutnotify.model.enums.ServiceCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
-import io.zoemeow.dutnotify.service.NewsService2
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
@@ -93,21 +93,13 @@ class MainActivity : ComponentActivity() {
                 // NewsService.startService(context = this@MainActivity)
                 controlNewsServiceInBackground(false)
 
-                NewsService2.startService(
+                NewsService.startService(
                     context = this@MainActivity,
-                    intent = Intent(this@MainActivity, NewsService2::class.java).apply {
+                    intent = Intent(this@MainActivity, NewsService::class.java).apply {
                         putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_INITIALIZATION)
                         putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                     }
                 )
-                NewsService2.startService(
-                    context = this@MainActivity,
-                    intent = Intent(this@MainActivity, NewsService2::class.java).apply {
-                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALL)
-                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
-                    }
-                )
-
                 Intent(this@MainActivity, AccountService::class.java).apply {
                     putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
                     putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
@@ -219,16 +211,16 @@ class MainActivity : ComponentActivity() {
         try {
             if (enabled) {
                 if (mainViewModel.appSettings.value.refreshNewsEnabled)
-                    NewsService2.startService(
+                    NewsService.startService(
                         context = this@MainActivity,
-                        intent = Intent(this@MainActivity, NewsService2::class.java).apply {
+                        intent = Intent(this@MainActivity, NewsService::class.java).apply {
                             putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND)
                             putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
                         }
                     )
             }
             else {
-                NewsService2.cancelSchedule(this)
+                NewsService.cancelSchedule(this)
             }
         } catch (ex: Exception) {
             ex.printStackTrace()

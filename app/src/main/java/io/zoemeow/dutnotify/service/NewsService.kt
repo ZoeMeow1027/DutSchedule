@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.*
 
-class NewsService2: Service() {
+class NewsService: Service() {
     private lateinit var file: FileModule
     private lateinit var settings: AppSettings
     private var fetchInBackground = false
@@ -44,8 +44,8 @@ class NewsService2: Service() {
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        Log.d("NewsService", "Triggered NewsService2 start")
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d("NewsService", "Triggered NewsService start")
 
         CoroutineScope(Dispatchers.Main).launch {
             withContext(Dispatchers.IO) {
@@ -70,7 +70,10 @@ class NewsService2: Service() {
         super.onDestroy()
     }
 
-    private fun doWorkBackground(intent: Intent) {
+    private fun doWorkBackground(intent: Intent?) {
+        if (intent == null)
+            return
+
         // Check if notify to user here!
         val notifyToUser = intent.getBooleanExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
         val newsPageType = when (intent.getStringExtra(ServiceCode.ARGUMENT_NEWS_PAGEOPTION)) {
@@ -90,6 +93,10 @@ class NewsService2: Service() {
                     action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
                     data = file.getCacheNewsSubject().newsListByDate
                 )
+                setNotificationOnForeground("Getting news global...", 0)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                setNotificationOnForeground("Getting news subject...", 50)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
             }
             ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
                 setNotificationOnForeground("Getting news global...", 0)
@@ -246,7 +253,7 @@ class NewsService2: Service() {
     private fun notifyUsersGlobal(
         list: ArrayList<NewsGlobalItem>,
     ) {
-        if (!PermissionRequestActivity.checkPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS))
+        if (!PermissionRequestActivity.checkPermission(this, Manifest.permission.POST_NOTIFICATIONS))
             return
 
         list.forEach { newsItem ->
@@ -264,7 +271,7 @@ class NewsService2: Service() {
     private fun notifyUsersSubject(
         list: ArrayList<NewsSubjectItem>,
     ) {
-        if (!PermissionRequestActivity.checkPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS))
+        if (!PermissionRequestActivity.checkPermission(this, Manifest.permission.POST_NOTIFICATIONS))
             return
 
         list.forEach { newsItem ->
@@ -390,7 +397,6 @@ class NewsService2: Service() {
         data: Any? = null,
         errorMsg: String? = null
     ) {
-        // TODO: Send broadcast about reload in MainActivity here!
         Intent(action).apply {
             if (status != null) putExtra(ServiceCode.STATUS, status)
             if (data != null) putExtra(ServiceCode.DATA, data as java.io.Serializable)
@@ -401,7 +407,7 @@ class NewsService2: Service() {
     }
 
     override fun sendBroadcast(intent: Intent) {
-        LocalBroadcastManager.getInstance(application.applicationContext).sendBroadcast(intent)
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
     /**
@@ -420,13 +426,14 @@ class NewsService2: Service() {
         )
         // Get pending intent.
         val pendingIntent = getPendingIntentOnBackground(
-            context = applicationContext
+            context = this
         )
         // Schedule next run with set alarm.
         setAlarm(
             pendingIntent = pendingIntent,
             nextUpdateTimeMillis = nextTimeInMillis,
         )
+        Log.d("NewsService", "Scheduled a new run")
     }
 
     /**
@@ -515,7 +522,8 @@ class NewsService2: Service() {
 
     companion object {
         fun getPendingIntentOnBackground(context: Context): PendingIntent {
-            val intent = Intent(context, NewsService2::class.java)
+            val intent = Intent(context, NewsService::class.java)
+            intent.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND)
             intent.putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
             val pendingIntent: PendingIntent
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -17,7 +17,7 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.ServiceCode
-import io.zoemeow.dutnotify.service.NewsService2
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -41,10 +41,10 @@ fun SettingsRefreshNewsInterval(
         enabled.value = false
         try {
             if (mainViewModel.appSettings.value.refreshNewsEnabled) {
-                NewsService2.cancelSchedule(context)
-                NewsService2.startService(
+                NewsService.cancelSchedule(context)
+                NewsService.startService(
                     context = context,
-                    intent = Intent(context, NewsService2::class.java).apply {
+                    intent = Intent(context, NewsService::class.java).apply {
                         putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALL)
                         putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                     }

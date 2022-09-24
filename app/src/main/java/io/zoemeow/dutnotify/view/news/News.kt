@@ -16,13 +16,10 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.NewsPageType
-import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.enums.ServiceCode
-import io.zoemeow.dutnotify.service.NewsService2
+import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -107,9 +104,9 @@ fun News(
                             isLoading = mainViewModel.News_Process_Global.value,
                             lazyListState = lazyListTabGlobal,
                             reloadRequested = {
-                                NewsService2.startService(
+                                NewsService.startService(
                                     context = context,
-                                    intent = Intent(context, NewsService2::class.java).apply {
+                                    intent = Intent(context, NewsService::class.java).apply {
                                         putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHGLOBAL)
                                         putExtra(
                                             ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
@@ -132,9 +129,9 @@ fun News(
                             isLoading = mainViewModel.News_Process_Subject.value,
                             lazyListState = lazyListTabSubject,
                             reloadRequested = {
-                                NewsService2.startService(
+                                NewsService.startService(
                                     context = context,
-                                    intent = Intent(context, NewsService2::class.java).apply {
+                                    intent = Intent(context, NewsService::class.java).apply {
                                         putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHSUBJECT)
                                         putExtra(
                                             ServiceCode.ARGUMENT_NEWS_PAGEOPTION,

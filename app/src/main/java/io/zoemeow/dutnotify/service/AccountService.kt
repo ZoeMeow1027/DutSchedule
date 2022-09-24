@@ -24,105 +24,112 @@ class AccountService: Service() {
         super.onCreate()
     }
 
-    override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val callFrom = intent.getStringExtra(ServiceCode.SOURCE_COMPONENT)
-            ?: return super.onStartCommand(intent, flags, startId)
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        try {
+            if (intent == null)
+                throw Exception("Intent is null here!")
 
-        Log.d("AccountService", "Triggered from: $callFrom")
+            val callFrom = intent.getStringExtra(ServiceCode.SOURCE_COMPONENT)
+                ?: throw Exception("ServiceCode.SOURCE_COMPONENT is missing!")
 
-        when (intent.getStringExtra(ServiceCode.ACTION)) {
-            ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
-                Log.d("AccountService", "Triggered relogin")
-                val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, false)
-                // ServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
-                sendToBroadcast(
-                    action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
-                    data = accModule.hasSavedLogin(),
-                    callFrom = callFrom
-                )
-                // Preload cache of Subject schedule, subject fee and account information
-                // subject schedule
-                sendToBroadcast(
-                    action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
-                    data = appCache.subjectScheduleList,
-                    callFrom = callFrom
-                )
-                // Subject fee
-                sendToBroadcast(
-                    action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
-                    data = appCache.subjectFeeList,
-                    callFrom = callFrom
-                )
-                // Account information
-                sendToBroadcast(
-                    action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
-                    data = appCache.accountInformation,
-                    callFrom = callFrom
-                )
-                // Re-login account
-                reLogin(
-                    preload = preload,
-                    callFrom = callFrom
-                )
-            }
-            ServiceCode.ACTION_ACCOUNT_LOGIN -> {
-                val username = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
-                val password = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
-                val remember = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
-                val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
-                if (username == null || password == null) {
+            Log.d("AccountService", "Triggered from: $callFrom")
+
+            when (intent.getStringExtra(ServiceCode.ACTION)) {
+                ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
+                    Log.d("AccountService", "Triggered relogin")
+                    val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, false)
+                    // ServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_LOGIN,
-                        status = ServiceCode.STATUS_FAILED,
+                        action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
+                        data = accModule.hasSavedLogin(),
                         callFrom = callFrom
                     )
-                } else login(username, password, remember, preload, callFrom = callFrom)
-            }
-            ServiceCode.ACTION_ACCOUNT_LOGOUT -> {
-                Log.d("AccountService", "Triggered logout")
-                appCache.subjectScheduleList.clear()
-                appCache.subjectFeeList.clear()
-                appCache.accountInformation = null
-                logout(callFrom = callFrom)
-            }
-            ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
-                try {
-                    val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
-                    fetchSubjectSchedule(
-                        schoolYearItem = schoolYearItem,
+                    // Preload cache of Subject schedule, subject fee and account information
+                    // subject schedule
+                    sendToBroadcast(
+                        action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
+                        data = appCache.subjectScheduleList,
                         callFrom = callFrom
                     )
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    fetchSubjectSchedule(callFrom = callFrom)
+                    // Subject fee
+                    sendToBroadcast(
+                        action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
+                        data = appCache.subjectFeeList,
+                        callFrom = callFrom
+                    )
+                    // Account information
+                    sendToBroadcast(
+                        action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
+                        data = appCache.accountInformation,
+                        callFrom = callFrom
+                    )
+                    // Re-login account
+                    reLogin(
+                        preload = preload,
+                        callFrom = callFrom
+                    )
                 }
-            }
-            ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
-                try {
-                    val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
-                    fetchSubjectFee(
-                        schoolYearItem = schoolYearItem,
+                ServiceCode.ACTION_ACCOUNT_LOGIN -> {
+                    val username = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
+                    val password = intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
+                    val remember = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
+                    val preload = intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
+                    if (username == null || password == null) {
+                        sendToBroadcast(
+                            action = ServiceCode.ACTION_ACCOUNT_LOGIN,
+                            status = ServiceCode.STATUS_FAILED,
+                            callFrom = callFrom
+                        )
+                    } else login(username, password, remember, preload, callFrom = callFrom)
+                }
+                ServiceCode.ACTION_ACCOUNT_LOGOUT -> {
+                    Log.d("AccountService", "Triggered logout")
+                    appCache.subjectScheduleList.clear()
+                    appCache.subjectFeeList.clear()
+                    appCache.accountInformation = null
+                    logout(callFrom = callFrom)
+                }
+                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                    try {
+                        val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
+                        fetchSubjectSchedule(
+                            schoolYearItem = schoolYearItem,
+                            callFrom = callFrom
+                        )
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                        fetchSubjectSchedule(callFrom = callFrom)
+                    }
+                }
+                ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
+                    try {
+                        val schoolYearItem = intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
+                        fetchSubjectFee(
+                            schoolYearItem = schoolYearItem,
+                            callFrom = callFrom
+                        )
+                    } catch (ex: Exception) {
+                        ex.printStackTrace()
+                        fetchSubjectFee(callFrom = callFrom)
+                    }
+                }
+                ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
+                    fetchAccountInformation(callFrom = callFrom)
+                }
+                ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
+                    sendToBroadcast(
+                        action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
+                        data = accModule.hasSavedLogin(),
                         callFrom = callFrom
                     )
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                    fetchSubjectFee(callFrom = callFrom)
                 }
+                else -> { }
             }
-            ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
-                fetchAccountInformation(callFrom = callFrom)
-            }
-            ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
-                sendToBroadcast(
-                    action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
-                    data = accModule.hasSavedLogin(),
-                    callFrom = callFrom
-                )
-            }
-            else -> { }
+            return super.onStartCommand(intent, flags, startId)
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return super.onStartCommand(intent, flags, startId)
         }
-
-        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent?): IBinder? {

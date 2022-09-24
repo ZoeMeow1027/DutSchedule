@@ -75,6 +75,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun requestSaveChanges() {
+        Log.d("AppSettings", "Saved changes!")
         file.saveAppSettings(appSettings = appSettings.value)
     }
 
