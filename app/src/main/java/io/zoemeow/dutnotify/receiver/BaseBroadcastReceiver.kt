@@ -3,7 +3,7 @@ package io.zoemeow.dutnotify.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 
 abstract class BaseBroadcastReceiver : BroadcastReceiver {
     private lateinit var packageFilter: String
@@ -24,7 +24,7 @@ abstract class BaseBroadcastReceiver : BroadcastReceiver {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (shouldFireOnReceive(intent.getStringExtra(ServiceCode.SOURCE_COMPONENT)))
+        if (shouldFireOnReceive(intent.getStringExtra(ServiceBroadcastOptions.SOURCE_COMPONENT)))
             onReceiveFilter(context, intent)
     }
 

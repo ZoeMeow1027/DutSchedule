@@ -8,7 +8,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutnotify.model.account.AccountCache
 import io.zoemeow.dutnotify.model.account.SchoolYearItem
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.module.AccountModule
 import io.zoemeow.dutnotify.module.FileModule
 import kotlinx.coroutines.CoroutineScope
@@ -29,40 +29,40 @@ class AccountService : Service() {
             if (intent == null)
                 throw Exception("Intent is null here!")
 
-            val callFrom = intent.getStringExtra(ServiceCode.SOURCE_COMPONENT)
-                ?: throw Exception("ServiceCode.SOURCE_COMPONENT is missing!")
+            val callFrom = intent.getStringExtra(ServiceBroadcastOptions.SOURCE_COMPONENT)
+                ?: throw Exception("ServiceBroadcastOptions.SOURCE_COMPONENT is missing!")
 
             Log.d("AccountService", "Triggered from: $callFrom")
 
-            when (intent.getStringExtra(ServiceCode.ACTION)) {
-                ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
+            when (intent.getStringExtra(ServiceBroadcastOptions.ACTION)) {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP -> {
                     Log.d("AccountService", "Triggered relogin")
                     val preload = intent.getBooleanExtra(
-                        ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD,
+                        ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD,
                         false
                     )
-                    // ServiceCode.ACTION_GETSTATUS_HASSAVEDLOGIN
+                    // ServiceBroadcastOptions.ACTION_GETSTATUS_HASSAVEDLOGIN
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
                         data = accModule.hasSavedLogin(),
                         callFrom = callFrom
                     )
                     // Preload cache of Subject schedule, subject fee and account information
                     // subject schedule
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE,
                         data = appCache.subjectScheduleList,
                         callFrom = callFrom
                     )
                     // Subject fee
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE,
                         data = appCache.subjectFeeList,
                         callFrom = callFrom
                     )
                     // Account information
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION,
                         data = appCache.accountInformation,
                         callFrom = callFrom
                     )
@@ -72,34 +72,34 @@ class AccountService : Service() {
                         callFrom = callFrom
                     )
                 }
-                ServiceCode.ACTION_ACCOUNT_LOGIN -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN -> {
                     val username =
-                        intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
+                        intent.getStringExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGIN_USERNAME)
                     val password =
-                        intent.getStringExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
+                        intent.getStringExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGIN_PASSWORD)
                     val remember =
-                        intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
+                        intent.getBooleanExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGIN_REMEMBERED, false)
                     val preload =
-                        intent.getBooleanExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
+                        intent.getBooleanExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGIN_PRELOAD, false)
                     if (username == null || password == null) {
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_LOGIN,
-                            status = ServiceCode.STATUS_FAILED,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN,
+                            status = ServiceBroadcastOptions.STATUS_FAILED,
                             callFrom = callFrom
                         )
                     } else login(username, password, remember, preload, callFrom = callFrom)
                 }
-                ServiceCode.ACTION_ACCOUNT_LOGOUT -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT -> {
                     Log.d("AccountService", "Triggered logout")
                     appCache.subjectScheduleList.clear()
                     appCache.subjectFeeList.clear()
                     appCache.accountInformation = null
                     logout(callFrom = callFrom)
                 }
-                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                     try {
                         val schoolYearItem =
-                            intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
+                            intent.getSerializableExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_SUBJECTSCHEDULE_SCHOOLYEAR) as SchoolYearItem
                         fetchSubjectSchedule(
                             schoolYearItem = schoolYearItem,
                             callFrom = callFrom
@@ -109,10 +109,10 @@ class AccountService : Service() {
                         fetchSubjectSchedule(callFrom = callFrom)
                     }
                 }
-                ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE -> {
                     try {
                         val schoolYearItem =
-                            intent.getSerializableExtra(ServiceCode.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
+                            intent.getSerializableExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_SUBJECTFEE_SCHOOLYEAR) as SchoolYearItem
                         fetchSubjectFee(
                             schoolYearItem = schoolYearItem,
                             callFrom = callFrom
@@ -122,12 +122,12 @@ class AccountService : Service() {
                         fetchSubjectFee(callFrom = callFrom)
                     }
                 }
-                ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
                     fetchAccountInformation(callFrom = callFrom)
                 }
-                ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
+                ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN,
                         data = accModule.hasSavedLogin(),
                         callFrom = callFrom
                     )
@@ -189,8 +189,8 @@ class AccountService : Service() {
         if (isProcessingLogin) {
             // Send broadcast with TYPE_LOGIN = STATUS_ALREADYPROCESSING
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_LOGIN,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom
             )
             return
@@ -199,8 +199,8 @@ class AccountService : Service() {
         // Send broadcast with TYPE_LOGIN = STATUS_PROCESSING
         isProcessingLogin = true
         sendToBroadcast(
-            ServiceCode.ACTION_ACCOUNT_LOGIN,
-            ServiceCode.STATUS_PROCESSING,
+            ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN,
+            ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -215,8 +215,8 @@ class AccountService : Service() {
                         isProcessingLogin = false
                         saveSettings()
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_LOGIN,
-                            status = if (result) ServiceCode.STATUS_SUCCESSFUL else ServiceCode.STATUS_FAILED,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN,
+                            status = if (result) ServiceBroadcastOptions.STATUS_SUCCESSFUL else ServiceBroadcastOptions.STATUS_FAILED,
                             callFrom = callFrom
                         )
 
@@ -238,8 +238,8 @@ class AccountService : Service() {
 
         if (isProcessingLogin) {
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_LOGOUT,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom
             )
             return
@@ -247,8 +247,8 @@ class AccountService : Service() {
 
         isProcessingLogin = true
         sendToBroadcast(
-            action = ServiceCode.ACTION_ACCOUNT_LOGOUT,
-            status = ServiceCode.STATUS_PROCESSING,
+            action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT,
+            status = ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -260,8 +260,8 @@ class AccountService : Service() {
                         saveSettings()
 
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_LOGOUT,
-                            status = ServiceCode.STATUS_SUCCESSFUL,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT,
+                            status = ServiceBroadcastOptions.STATUS_SUCCESSFUL,
                             callFrom = callFrom
                         )
                         stopSelf()
@@ -279,8 +279,8 @@ class AccountService : Service() {
 
         if (isProcessingSubjectSchedule) {
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom
             )
             return
@@ -288,8 +288,8 @@ class AccountService : Service() {
 
         isProcessingSubjectSchedule = true
         sendToBroadcast(
-            action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
-            status = ServiceCode.STATUS_PROCESSING,
+            action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE,
+            status = ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -306,8 +306,8 @@ class AccountService : Service() {
                         saveSettings()
 
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE,
-                            status = if (arrayList != null) ServiceCode.STATUS_SUCCESSFUL else ServiceCode.STATUS_FAILED,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE,
+                            status = if (arrayList != null) ServiceBroadcastOptions.STATUS_SUCCESSFUL else ServiceBroadcastOptions.STATUS_FAILED,
                             data = appCache.subjectScheduleList,
                             callFrom = callFrom
                         )
@@ -325,8 +325,8 @@ class AccountService : Service() {
 
         if (isProcessingSubjectFee) {
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom
             )
             return
@@ -334,8 +334,8 @@ class AccountService : Service() {
 
         isProcessingSubjectFee = true
         sendToBroadcast(
-            action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
-            status = ServiceCode.STATUS_PROCESSING,
+            action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE,
+            status = ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -353,8 +353,8 @@ class AccountService : Service() {
                         saveSettings()
 
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_SUBJECTFEE,
-                            status = if (arrayList != null) ServiceCode.STATUS_SUCCESSFUL else ServiceCode.STATUS_FAILED,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE,
+                            status = if (arrayList != null) ServiceBroadcastOptions.STATUS_SUCCESSFUL else ServiceBroadcastOptions.STATUS_FAILED,
                             data = arrayList,
                             callFrom = callFrom
                         )
@@ -371,8 +371,8 @@ class AccountService : Service() {
 
         if (isProcessingAccountInformation) {
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom
             )
             return
@@ -380,8 +380,8 @@ class AccountService : Service() {
 
         isProcessingAccountInformation = true
         sendToBroadcast(
-            action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
-            status = ServiceCode.STATUS_PROCESSING,
+            action = ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION,
+            status = ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -396,8 +396,8 @@ class AccountService : Service() {
                         saveSettings()
 
                         sendToBroadcast(
-                            action = ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION,
-                            status = if (item != null) ServiceCode.STATUS_SUCCESSFUL else ServiceCode.STATUS_FAILED,
+                            action = ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION,
+                            status = if (item != null) ServiceBroadcastOptions.STATUS_SUCCESSFUL else ServiceBroadcastOptions.STATUS_FAILED,
                             data = item,
                             callFrom = callFrom
                         )
@@ -415,8 +415,8 @@ class AccountService : Service() {
 
         if (isProcessingLogin) {
             sendToBroadcast(
-                action = ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP,
-                status = ServiceCode.STATUS_ALREADYPROCESSING,
+                action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP,
+                status = ServiceBroadcastOptions.STATUS_ALREADYPROCESSING,
                 callFrom = callFrom,
             )
             return
@@ -424,8 +424,8 @@ class AccountService : Service() {
 
         isProcessingLogin = true
         sendToBroadcast(
-            action = ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP,
-            status = ServiceCode.STATUS_PROCESSING,
+            action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP,
+            status = ServiceBroadcastOptions.STATUS_PROCESSING,
             callFrom = callFrom
         )
 
@@ -436,8 +436,8 @@ class AccountService : Service() {
                     saveSettings()
 
                     sendToBroadcast(
-                        action = ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP,
-                        status = if (result) ServiceCode.STATUS_SUCCESSFUL else ServiceCode.STATUS_FAILED,
+                        action = ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP,
+                        status = if (result) ServiceBroadcastOptions.STATUS_SUCCESSFUL else ServiceBroadcastOptions.STATUS_FAILED,
                         callFrom = callFrom,
                     )
 
@@ -463,10 +463,10 @@ class AccountService : Service() {
         callFrom: String,
     ) {
         Intent(action).apply {
-            if (status != null) putExtra(ServiceCode.STATUS, status)
-            if (data != null) putExtra(ServiceCode.DATA, data as java.io.Serializable)
-            if (errorMsg != null) putExtra(ServiceCode.ERRORMESSAGE, errorMsg)
-            putExtra(ServiceCode.SOURCE_COMPONENT, callFrom)
+            if (status != null) putExtra(ServiceBroadcastOptions.STATUS, status)
+            if (data != null) putExtra(ServiceBroadcastOptions.DATA, data as java.io.Serializable)
+            if (errorMsg != null) putExtra(ServiceBroadcastOptions.ERRORMESSAGE, errorMsg)
+            putExtra(ServiceBroadcastOptions.SOURCE_COMPONENT, callFrom)
         }.also {
             sendBroadcast(it)
         }

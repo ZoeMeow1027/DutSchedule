@@ -75,7 +75,7 @@ fun Settings(
     )
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+        contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(

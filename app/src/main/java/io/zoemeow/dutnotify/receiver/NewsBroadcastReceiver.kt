@@ -2,7 +2,7 @@ package io.zoemeow.dutnotify.receiver
 
 import android.content.Context
 import android.content.Intent
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 
 abstract class NewsBroadcastReceiver : BaseBroadcastReceiver {
     constructor()
@@ -10,7 +10,7 @@ abstract class NewsBroadcastReceiver : BaseBroadcastReceiver {
 
     @Suppress("DEPRECATION")
     override fun onReceiveFilter(context: Context, intent: Intent) {
-        intent.getStringExtra(ServiceCode.STATUS).also {
+        intent.getStringExtra(ServiceBroadcastOptions.STATUS).also {
             if (it != null) {
                 onStatusReceived(
                     key = intent.action ?: "",
@@ -18,7 +18,7 @@ abstract class NewsBroadcastReceiver : BaseBroadcastReceiver {
                 )
             }
         }
-        intent.getSerializableExtra(ServiceCode.DATA).also {
+        intent.getSerializableExtra(ServiceBroadcastOptions.DATA).also {
             if (it != null) {
                 onDataReceived(
                     key = intent.action ?: "",
@@ -26,7 +26,7 @@ abstract class NewsBroadcastReceiver : BaseBroadcastReceiver {
                 )
             }
         }
-        intent.getStringExtra(ServiceCode.ERRORMESSAGE).also {
+        intent.getStringExtra(ServiceBroadcastOptions.ERRORMESSAGE).also {
             if (it != null) {
                 onErrorReceived(
                     key = intent.action ?: "",

@@ -12,6 +12,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
 import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.math.BigInteger
@@ -89,11 +90,10 @@ class AppUtils {
          */
         fun getCurrentWallpaperBackground(
             context: Context,
-            type: BackgroundImageType,
-            path: String? = null,
+            backgroundImageOption: BackgroundImage,
         ): Drawable? {
             try {
-                when (type) {
+                when (backgroundImageOption.option) {
                     BackgroundImageType.Unset -> {
                         return null
                     }

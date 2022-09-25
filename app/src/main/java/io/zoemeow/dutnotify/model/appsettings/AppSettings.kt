@@ -51,7 +51,7 @@ data class AppSettings(
         const val SCREEN_WELCOME_VIEWED = "screen.welcome.viewed"
     }
 
-    private fun clone(): AppSettings {
+    fun clone(): AppSettings {
         return AppSettings(
             appTheme,
             backgroundImage,

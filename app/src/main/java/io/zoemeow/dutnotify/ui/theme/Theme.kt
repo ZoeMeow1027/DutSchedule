@@ -1,8 +1,6 @@
 package io.zoemeow.dutnotify.ui.theme
 
 import android.app.Activity
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
@@ -16,6 +14,7 @@ import androidx.core.view.ViewCompat
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.AppTheme
 import io.zoemeow.dutnotify.ui.custom.BackgroundDrawableImage
+import io.zoemeow.dutnotify.utils.AppUtils
 
 val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -45,7 +44,6 @@ fun MainActivityTheme(
     // App settings handle all settings
     appSettings: AppSettings,
     content: @Composable () -> Unit,
-    backgroundDrawable: Drawable? = null,
     appModeChanged: ((Boolean) -> Unit)? = null,
 ) {
     val darkTheme: Boolean = when (appSettings.appTheme) {
@@ -64,11 +62,12 @@ fun MainActivityTheme(
         else -> LightColorScheme
     }
     // Set black background for AMOLED.
-    if (darkTheme && appSettings.blackThemeEnabled) {
+    if (darkTheme && appSettings.blackThemeEnabled)
         colorScheme = colorScheme.copy(background = Color.Black)
-    }
 
     val view = LocalView.current
+    val context = LocalContext.current
+
     if (!view.isInEditMode) {
         SideEffect {
             (view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
@@ -81,7 +80,10 @@ fun MainActivityTheme(
 
     // Load background image if needed
     BackgroundDrawableImage(
-        drawable = backgroundDrawable ?: ColorDrawable(colorScheme.background.hashCode())
+        drawable = AppUtils.getCurrentWallpaperBackground(
+            context = context,
+            backgroundImageOption = appSettings.backgroundImage
+        )
     )
 
     // Start compose UI

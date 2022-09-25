@@ -42,12 +42,11 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @AndroidEntryPoint
@@ -74,10 +73,9 @@ class AccountDetailsActivity : ComponentActivity() {
                         intent = intent,
                     )
                 },
-                backgroundDrawable = mainViewModel.mainActivityBackgroundDrawable.value,
                 appModeChanged = {
                     // Trigger for dark mode detection.
-                    mainViewModel.mainActivityIsDarkTheme.value = it
+                    mainViewModel.isDarkTheme.value = it
                 },
             )
         }
@@ -103,11 +101,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         applicationContext.getString(R.string.account_page_subjectschedule)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(
-                        ServiceCode.ACTION,
-                        ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                        ServiceBroadcastOptions.ACTION,
+                        ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
                     )
                     intentService.putExtra(
-                        ServiceCode.SOURCE_COMPONENT,
+                        ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
                     context.startService(intentService)
@@ -117,21 +115,21 @@ class AccountDetailsActivity : ComponentActivity() {
                         applicationContext.getString(R.string.account_page_subjectfee)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(
-                        ServiceCode.ACTION,
-                        ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                        ServiceBroadcastOptions.ACTION,
+                        ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
                     )
                     intentService.putExtra(
-                        ServiceCode.SOURCE_COMPONENT,
+                        ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
                     context.startService(intentService)
                     val intentService2 = Intent(context, AccountService::class.java)
                     intentService2.putExtra(
-                        ServiceCode.ACTION,
-                        ServiceCode.ACTION_ACCOUNT_SUBJECTFEE
+                        ServiceBroadcastOptions.ACTION,
+                        ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE
                     )
                     intentService.putExtra(
-                        ServiceCode.SOURCE_COMPONENT,
+                        ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
                     context.startService(intentService2)
@@ -141,11 +139,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         applicationContext.getString(R.string.account_page_accinfo)
                     val intentService = Intent(context, AccountService::class.java)
                     intentService.putExtra(
-                        ServiceCode.ACTION,
-                        ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION
+                        ServiceBroadcastOptions.ACTION,
+                        ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION
                     )
                     intentService.putExtra(
-                        ServiceCode.SOURCE_COMPONENT,
+                        ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
                     context.startService(intentService)
@@ -193,7 +191,7 @@ class AccountDetailsActivity : ComponentActivity() {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -205,14 +203,14 @@ class AccountDetailsActivity : ComponentActivity() {
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
                 alpha = 0.8f
             ),
-            contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
             if (subjectScheduleItem.value != null) {
                 SubjectPreview.SubjectScheduleDetails(
                     dialogEnabled = dialogEnabled.value,
                     item = subjectScheduleItem.value,
-                    darkTheme = mainViewModel.mainActivityIsDarkTheme.value,
+                    darkTheme = mainViewModel.isDarkTheme.value,
                     onClose = {
                         dialogEnabled.value = false
                     }
@@ -227,11 +225,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(
-                                ServiceCode.ACTION,
-                                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                                ServiceBroadcastOptions.ACTION,
+                                ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
                             )
                             intentService.putExtra(
-                                ServiceCode.SOURCE_COMPONENT,
+                                ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
                             startService(intentService)
@@ -246,21 +244,21 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(
-                                ServiceCode.ACTION,
-                                ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                                ServiceBroadcastOptions.ACTION,
+                                ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
                             )
                             intentService.putExtra(
-                                ServiceCode.SOURCE_COMPONENT,
+                                ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
                             context.startService(intentService)
                             val intentService2 = Intent(context, AccountService::class.java)
                             intentService2.putExtra(
-                                ServiceCode.ACTION,
-                                ServiceCode.ACTION_ACCOUNT_SUBJECTFEE
+                                ServiceBroadcastOptions.ACTION,
+                                ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE
                             )
                             intentService.putExtra(
-                                ServiceCode.SOURCE_COMPONENT,
+                                ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
                             context.startService(intentService2)
@@ -275,11 +273,11 @@ class AccountDetailsActivity : ComponentActivity() {
                         reloadRequested = {
                             val intentService = Intent(context, AccountService::class.java)
                             intentService.putExtra(
-                                ServiceCode.ACTION,
-                                ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION
+                                ServiceBroadcastOptions.ACTION,
+                                ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION
                             )
                             intentService.putExtra(
-                                ServiceCode.SOURCE_COMPONENT,
+                                ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
                             startService(intentService)
@@ -575,11 +573,8 @@ fun AccountDetailsActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.mainActivityBackgroundDrawable.value =
-                    AppUtils.getCurrentWallpaperBackground(
-                        context = this,
-                        type = mainViewModel.appSettings.value.backgroundImage.option
-                    )
+                // Reload settings
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,

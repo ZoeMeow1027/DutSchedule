@@ -1,6 +1,8 @@
 package io.zoemeow.dutnotify.model.enums
 
-enum class LoginState(value: Int) {
+enum class LoginState(
+    @Suppress("UNUSED_PARAMETER") value: Int
+) {
     NotTriggered(-2),
     AccountLocked(-1),
     NotLoggedIn(0),

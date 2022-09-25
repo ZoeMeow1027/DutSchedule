@@ -23,7 +23,7 @@ import androidx.compose.ui.window.DialogProperties
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -101,8 +101,8 @@ fun SettingsRefreshNewsTimeRange(
                 NewsService.startService(
                     context = context,
                     intent = Intent(context, NewsService::class.java).apply {
-                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALL)
-                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                        putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_NEWS_FETCHALL)
+                        putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                     }
                 )
             }
@@ -188,7 +188,7 @@ fun SettingsRefreshNewsTimeRange(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                            tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black
                         )
                         Text(stringResource(id = R.string.settings_loadnewsinbackground_timeactive_description))
                     }

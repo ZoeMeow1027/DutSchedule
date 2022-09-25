@@ -63,10 +63,9 @@ class NewsDetailsActivity : ComponentActivity() {
                         intent = intent,
                     )
                 },
-                backgroundDrawable = mainViewModel.mainActivityBackgroundDrawable.value,
                 appModeChanged = {
                     // Trigger for dark mode detection.
-                    mainViewModel.mainActivityIsDarkTheme.value = it
+                    mainViewModel.isDarkTheme.value = it
                 },
             )
         }
@@ -123,7 +122,7 @@ class NewsDetailsActivity : ComponentActivity() {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -135,7 +134,7 @@ class NewsDetailsActivity : ComponentActivity() {
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
                 alpha = 0.8f
             ),
-            contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
             MainBody(
@@ -221,11 +220,8 @@ fun NewsDetailsActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.mainActivityBackgroundDrawable.value =
-                    AppUtils.getCurrentWallpaperBackground(
-                        context = this,
-                        type = mainViewModel.appSettings.value.backgroundImage.option
-                    )
+                // Reload settings
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,

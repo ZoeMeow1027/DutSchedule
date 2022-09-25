@@ -19,7 +19,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
@@ -36,8 +36,8 @@ fun Account(
         enabled = dialogLogoutEnabled,
         logoutRequest = {
             Intent(context, AccountService::class.java).apply {
-                putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGOUT)
-                putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT)
+                putExtra(ServiceBroadcastOptions.SOURCE_COMPONENT, MainActivity::class.java.name)
             }.also {
                 context.startService(it)
             }
@@ -72,7 +72,7 @@ fun Account(
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_logout_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }

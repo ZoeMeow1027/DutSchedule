@@ -38,7 +38,7 @@ import io.zoemeow.dutnotify.model.appsettings.SubjectCode
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
@@ -107,10 +107,10 @@ class NewsFilterSettingsActivity : ComponentActivity() {
 
                 // Re-login to receive new data from server.
                 Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
-                    putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
+                    putExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
                     putExtra(
-                        ServiceCode.SOURCE_COMPONENT,
+                        ServiceBroadcastOptions.SOURCE_COMPONENT,
                         NewsFilterSettingsActivity::class.java.name
                     )
                 }.also {
@@ -125,7 +125,6 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                 content = @Composable {
                     MainScreen(mainViewModel = newsFilterViewModel)
                 },
-                backgroundDrawable = newsFilterViewModel.mainActivityBackgroundDrawable.value,
                 appModeChanged = {
                     // Trigger for dark mode detection.
                     newsFilterViewModel.mainActivityIsDarkTheme.value = it
@@ -474,11 +473,11 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                                         AccountService::class.java
                                                     ).apply {
                                                         putExtra(
-                                                            ServiceCode.ACTION,
-                                                            ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE
+                                                            ServiceBroadcastOptions.ACTION,
+                                                            ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
                                                         )
                                                         putExtra(
-                                                            ServiceCode.SOURCE_COMPONENT,
+                                                            ServiceBroadcastOptions.SOURCE_COMPONENT,
                                                             NewsFilterSettingsActivity::class.java.name
                                                         )
                                                     }.also {

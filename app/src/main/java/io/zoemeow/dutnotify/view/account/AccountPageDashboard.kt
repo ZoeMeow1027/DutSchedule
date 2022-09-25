@@ -97,7 +97,7 @@ fun AccountPageDashboard(
         SubjectPreview.SubjectScheduleDetails(
             dialogEnabled = mainViewModel.subjectScheduleEnabled.value,
             item = mainViewModel.subjectScheduleItem.value,
-            darkTheme = mainViewModel.mainActivityIsDarkTheme.value,
+            darkTheme = mainViewModel.isDarkTheme.value,
             onClose = {
                 mainViewModel.subjectScheduleEnabled.value = false
             }

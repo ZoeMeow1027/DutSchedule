@@ -21,7 +21,7 @@ import io.zoemeow.dutnotify.MainActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.model.news.NewsGroupByDate
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
@@ -40,14 +40,9 @@ class MainViewModel @Inject constructor(
     val subjectScheduleEnabled: MutableState<Boolean> = mutableStateOf(false)
 
     /**
-     * Drawable and painter for background image.
-     */
-    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
-
-    /**
      * Main Activity: Check if current theme is dark mode.
      */
-    val mainActivityIsDarkTheme: MutableState<Boolean> = mutableStateOf(false)
+    val isDarkTheme: MutableState<Boolean> = mutableStateOf(false)
 
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
@@ -70,8 +65,13 @@ class MainViewModel @Inject constructor(
     }
 
     fun requestSaveChanges() {
-        Log.d("AppSettings", "Saved changes!")
-        file.saveAppSettings(appSettings = appSettings.value)
+        try {
+            Log.d("AppSettings", "Saved changes!")
+            file.saveAppSettings(appSettings = appSettings.value)
+        } catch (ex: Exception) {
+            Log.d("AppSettings", "Error while saving changes!")
+            ex.printStackTrace()
+        }
     }
 
     val News_Process_Global = mutableStateOf(ProcessState.NotRanYet)
@@ -85,28 +85,28 @@ class MainViewModel @Inject constructor(
             override fun onStatusReceived(key: String, value: String) {
                 Log.d("NewsService", "onStatusReceived - $key: $value")
                 when (key) {
-                    ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+                    ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 News_Process_Global.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 News_Process_Global.value = ProcessState.Failed
                             }
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 News_Process_Global.value = ProcessState.Running
                             }
                         }
                     }
-                    ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+                    ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 News_Process_Subject.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 News_Process_Subject.value = ProcessState.Failed
                             }
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 News_Process_Subject.value = ProcessState.Running
                             }
                         }
@@ -118,11 +118,11 @@ class MainViewModel @Inject constructor(
             override fun onDataReceived(key: String, data: Any) {
                 Log.d("NewsService", "onDataReceived - $key")
                 when (key) {
-                    ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+                    ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL -> {
                         News_Data_Global.clear()
                         News_Data_Global.addAll(data as ArrayList<NewsGroupByDate<NewsGlobalItem>>)
                     }
-                    ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+                    ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT -> {
                         News_Data_Subject.clear()
                         News_Data_Subject.addAll(data as ArrayList<NewsGroupByDate<NewsSubjectItem>>)
                     }
@@ -131,44 +131,6 @@ class MainViewModel @Inject constructor(
 
             override fun onErrorReceived(key: String, msg: String) {}
         }.apply { return this }
-    }
-
-    private fun getAppBroadcastReceiver(): AppBroadcastReceiver {
-        object : AppBroadcastReceiver() {
-            override fun onSnackBarMessage(title: String?, forceCloseOld: Boolean) {}
-            override fun onNewsScrollToTopRequested() {}
-            override fun onPermissionRequested(
-                permission: String?,
-                granted: Boolean,
-                notifyToUser: Boolean
-            ) {
-            }
-
-            override fun onNewsReloadRequested() {
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    withContext(Dispatchers.IO) {
-//                        file.getCacheNewsGlobal().apply {
-//                            newsDataStore.newsGlobalPageCurrent.value = pageCurrent
-//                            newsDataStore.listNewsGlobalByDate.swapList(newsListByDate)
-//                        }
-//                        file.getCacheNewsSubject().apply {
-//                            newsDataStore.newsSubjectPageCurrent.value = pageCurrent
-//                            newsDataStore.listNewsSubjectByDate.swapList(newsListByDate)
-//                        }
-//                    }
-//                }
-            }
-
-            override fun onAccountReloadRequested(newsType: String) {
-
-            }
-
-            override fun onSettingsReloadRequested() {
-                appSettings.value = file.getAppSettings()
-            }
-        }.apply {
-            return this
-        }
     }
 
     val Account_HasSaved = mutableStateOf(false)
@@ -215,32 +177,32 @@ class MainViewModel @Inject constructor(
             override fun onStatusReceived(key: String, value: String) {
                 Log.d("AccountService", "AccountBroadcastReceiver - $key: $value")
                 when (key) {
-                    ServiceCode.ACTION_ACCOUNT_LOGIN -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
                                 Account_HasSaved.value = true
 
                                 showSnackBarMessage("Successfully login!", true)
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 Account_LoginProcess.value = LoginState.NotLoggedIn
                                 Account_HasSaved.value = false
                             }
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_LoginProcess.value = LoginState.LoggingIn
                                 Account_HasSaved.value = false
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
 
                                 showSnackBarMessage("Successfully re-login!", true)
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 if (Account_HasSaved.value) {
                                     Account_LoginProcess.value = LoginState.NotLoggedInButRemembered
                                 } else {
@@ -249,49 +211,49 @@ class MainViewModel @Inject constructor(
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_LOGOUT -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_HasSaved.value = false
                                 showSnackBarMessage("Successfully logout!", true)
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         when (value) {
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Running
                             }
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Failed
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE -> {
                         when (value) {
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_Process_SubjectFee.value = ProcessState.Running
                             }
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_Process_SubjectFee.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 Account_Process_SubjectFee.value = ProcessState.Failed
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
                         when (value) {
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_Process_AccountInformation.value = ProcessState.Running
                             }
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_Process_AccountInformation.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 Account_Process_AccountInformation.value = ProcessState.Failed
                             }
                         }
@@ -304,10 +266,10 @@ class MainViewModel @Inject constructor(
             override fun onDataReceived(key: String, data: Any) {
                 Log.d("AccountService", "Triggered data")
                 when (key) {
-                    ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION -> {
                         Account_Data_AccountInformation.value = data as AccountInformation
                     }
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         Account_Data_SubjectSchedule.apply {
                             clear()
                             addAll(data as ArrayList<SubjectScheduleItem>)
@@ -317,13 +279,13 @@ class MainViewModel @Inject constructor(
                             dayOfWeek = if (DUTDateUtils.getCurrentDayOfWeek() - 1 == 0) 7 else DUTDateUtils.getCurrentDayOfWeek() - 1
                         )
                     }
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTFEE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE -> {
                         Account_Data_SubjectFee.apply {
                             clear()
                             addAll(data as ArrayList<SubjectFeeItem>)
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
                         Account_HasSaved.value = data as Boolean
                     }
                 }
@@ -344,7 +306,6 @@ class MainViewModel @Inject constructor(
         LocalBroadcastManager.getInstance(application.applicationContext).apply {
             unregisterReceiver(getNewsBroadcastReceiver())
             unregisterReceiver(getAccountBroadcastReceiver())
-            unregisterReceiver(getAppBroadcastReceiver())
         }
         super.onCleared()
     }
@@ -362,39 +323,26 @@ class MainViewModel @Inject constructor(
                 registerReceiver(
                     getNewsBroadcastReceiver(),
                     IntentFilter().apply {
-                        addAction(ServiceCode.ACTION_NEWS_FETCHGLOBAL)
-                        addAction(ServiceCode.ACTION_NEWS_FETCHSUBJECT)
+                        addAction(ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL)
+                        addAction(ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT)
                     }
                 )
                 registerReceiver(
                     getAccountBroadcastReceiver(),
                     IntentFilter().apply {
-                        addAction(ServiceCode.ACTION_ACCOUNT_LOGIN)
-                        addAction(ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
-                        addAction(ServiceCode.ACTION_ACCOUNT_LOGOUT)
-                        addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                        addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTFEE)
-                        addAction(ServiceCode.ACTION_ACCOUNT_ACCOUNTINFORMATION)
-                        addAction(ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_LOGIN)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_LOGOUT)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION)
+                        addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
                     }
                 )
-                // TODO: This line will be deleted.
-//                registerReceiver(
-//                    getAppBroadcastReceiver(),
-//                    IntentFilter(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY)
-//                )
-                // Reload news from cache
-                // TODO: This line will also be deleted.
-                // sendBroadcast(Intent(AppBroadcastReceiver.NEWS_RELOADREQUESTED_SERVICE_ACTIVITY))
             }
 
             Log.d("MainViewModel", "Initialized")
             initOnce = true
         }
     }
-}
-
-fun <T> SnapshotStateList<T>.swapList(element: Collection<T>) {
-    clear()
-    addAll(element)
 }

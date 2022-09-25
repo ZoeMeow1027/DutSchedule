@@ -54,20 +54,20 @@ fun SettingsBackgroundImage(
         )
         mainViewModel.requestSaveChanges()
 
-        if (PermissionRequestActivity.checkPermission(
-                activity,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) {
-            activity.onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
-        } else {
-            Intent(activity, PermissionRequestActivity::class.java)
-                .apply {
-                    putExtra("permissions.list", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
-                }
-                .also {
-                    activity.startActivity(it)
-                }
+        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+            if (!PermissionRequestActivity.checkPermission(
+                    context = activity,
+                    permission = Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            ) {
+                Intent(activity, PermissionRequestActivity::class.java)
+                    .apply {
+                        putExtra("permissions.list", arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE))
+                    }
+                    .also {
+                        activity.startActivity(it)
+                    }
+            } else activity.onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
         }
 
         enabled.value = false
@@ -143,7 +143,7 @@ fun SettingsBackgroundImage(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                            tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black
                         )
                         Text(stringResource(id = R.string.settings_backgroundimage_note))
                     }

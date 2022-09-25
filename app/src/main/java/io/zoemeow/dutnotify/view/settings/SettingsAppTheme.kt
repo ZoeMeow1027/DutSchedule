@@ -137,7 +137,7 @@ fun SettingsAppTheme(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
                             contentDescription = "info_icon",
-                            tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                            tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black
                         )
                         Text(stringResource(id = R.string.settings_apptheme_note))
                     }

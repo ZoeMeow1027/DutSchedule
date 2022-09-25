@@ -1,8 +1,8 @@
 package io.zoemeow.dutnotify.model.enums
 
-import java.io.Serializable
-
-enum class BackgroundImageType(code: Int) : Serializable {
+enum class BackgroundImageType(
+    @Suppress("UNUSED_PARAMETER") code: Int
+) {
     Unset(0),
     FromWallpaper(1),
     FromItemYouSpecific(2)

@@ -1,7 +1,7 @@
 package io.zoemeow.dutnotify.model.enums
 
 @Suppress("SpellCheckingInspection")
-class ServiceCode {
+class ServiceBroadcastOptions {
     companion object {
         // Send to broadcast a action
         const val ACTION = "action"

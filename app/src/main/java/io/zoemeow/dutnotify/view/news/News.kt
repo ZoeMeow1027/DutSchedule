@@ -18,7 +18,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import io.zoemeow.dutnotify.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -41,7 +41,7 @@ fun News(
 
     Scaffold(
         containerColor = Color.Transparent,
-        contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+        contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
         topBar = {
             TopAppBar(
                 colors = TopAppBarDefaults.smallTopAppBarColors(
@@ -66,7 +66,7 @@ fun News(
                         ) {
                             Text(
                                 text = tabItem,
-                                color = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black
+                                color = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black
                             )
                         }
                         count += 1
@@ -108,15 +108,15 @@ fun News(
                                     context = context,
                                     intent = Intent(context, NewsService::class.java).apply {
                                         putExtra(
-                                            ServiceCode.ACTION,
-                                            ServiceCode.ACTION_NEWS_FETCHGLOBAL
+                                            ServiceBroadcastOptions.ACTION,
+                                            ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL
                                         )
                                         putExtra(
-                                            ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
-                                            if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
-                                            else ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
+                                            ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION,
+                                            if (it) ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
+                                            else ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
                                         )
-                                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                                        putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                                     }
                                 )
                             },
@@ -136,15 +136,15 @@ fun News(
                                     context = context,
                                     intent = Intent(context, NewsService::class.java).apply {
                                         putExtra(
-                                            ServiceCode.ACTION,
-                                            ServiceCode.ACTION_NEWS_FETCHSUBJECT
+                                            ServiceBroadcastOptions.ACTION,
+                                            ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT
                                         )
                                         putExtra(
-                                            ServiceCode.ARGUMENT_NEWS_PAGEOPTION,
-                                            if (it) ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
-                                            else ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
+                                            ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION,
+                                            if (it) ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1
+                                            else ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE
                                         )
-                                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                                        putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                                     }
                                 )
                             },

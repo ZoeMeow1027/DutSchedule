@@ -20,7 +20,7 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.CustomClock
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
 import io.zoemeow.dutnotify.model.enums.NewsPageType
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.module.NewsModule
 import io.zoemeow.dutnotify.utils.AppUtils
@@ -75,49 +75,49 @@ class NewsService : Service() {
             return
 
         // Check if notify to user here!
-        val notifyToUser = intent.getBooleanExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
-        val newsPageType = when (intent.getStringExtra(ServiceCode.ARGUMENT_NEWS_PAGEOPTION)) {
-            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE -> NewsPageType.NextPage
-            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1 -> NewsPageType.GetFirstPage
-            ServiceCode.ARGUMENT_NEWS_PAGEOPTION_RESETTO1 -> NewsPageType.ResetToPage1
+        val notifyToUser = intent.getBooleanExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+        val newsPageType = when (intent.getStringExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION)) {
+            ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_NEXTPAGE -> NewsPageType.NextPage
+            ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_GETPAGE1 -> NewsPageType.GetPage1
+            ServiceBroadcastOptions.ARGUMENT_NEWS_PAGEOPTION_RESETTO1 -> NewsPageType.ResetToPage1
             else -> NewsPageType.NextPage
         }
 
-        when (intent.getStringExtra(ServiceCode.ACTION)) {
-            ServiceCode.ACTION_NEWS_INITIALIZATION -> {
+        when (intent.getStringExtra(ServiceBroadcastOptions.ACTION)) {
+            ServiceBroadcastOptions.ACTION_NEWS_INITIALIZATION -> {
                 sendBroadcastToMainActivity(
-                    action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
+                    action = ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL,
                     data = file.getCacheNewsGlobal().newsListByDate
                 )
                 sendBroadcastToMainActivity(
-                    action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
+                    action = ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT,
                     data = file.getCacheNewsSubject().newsListByDate
                 )
                 setNotificationOnForeground("Getting news global...", 0)
-                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetPage1)
                 setNotificationOnForeground("Getting news subject...", 50)
-                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetPage1)
             }
-            ServiceCode.ACTION_NEWS_FETCHGLOBAL -> {
+            ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL -> {
                 setNotificationOnForeground("Getting news global...", 0)
                 fetchNewsGlobalAndNotify(notifyToUser, newsPageType)
             }
-            ServiceCode.ACTION_NEWS_FETCHSUBJECT -> {
+            ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT -> {
                 setNotificationOnForeground("Getting news subject...", 0)
                 fetchNewsSubjectAndNotify(notifyToUser, newsPageType)
             }
-            ServiceCode.ACTION_NEWS_FETCHALL -> {
+            ServiceBroadcastOptions.ACTION_NEWS_FETCHALL -> {
                 setNotificationOnForeground("Getting news global...", 0)
-                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetPage1)
                 setNotificationOnForeground("Getting news subject...", 50)
-                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetPage1)
             }
-            ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND -> {
+            ServiceBroadcastOptions.ACTION_NEWS_FETCHALLBACKGROUND -> {
                 fetchInBackground = true
                 setNotificationOnForeground("Getting news global...", 0)
-                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsGlobalAndNotify(notifyToUser, NewsPageType.GetPage1)
                 setNotificationOnForeground("Getting news subject...", 50)
-                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetFirstPage)
+                fetchNewsSubjectAndNotify(notifyToUser, NewsPageType.GetPage1)
             }
         }
     }
@@ -128,15 +128,15 @@ class NewsService : Service() {
     ) {
         try {
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
-                status = ServiceCode.STATUS_PROCESSING
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceBroadcastOptions.STATUS_PROCESSING
             )
 
             val newsCacheGlobal = file.getCacheNewsGlobal()
             val newsFromInternet = NewsModule.getNewsGlobal(
                 page = when (newsPageType) {
                     NewsPageType.NextPage -> newsCacheGlobal.pageCurrent
-                    NewsPageType.GetFirstPage -> 1
+                    NewsPageType.GetPage1 -> 1
                     NewsPageType.ResetToPage1 -> 1
                 }
             )
@@ -158,7 +158,7 @@ class NewsService : Service() {
                 NewsPageType.NextPage -> {
                     newsCacheGlobal.pageCurrent += 1
                 }
-                NewsPageType.GetFirstPage -> {
+                NewsPageType.GetPage1 -> {
                     if (newsCacheGlobal.pageCurrent <= 1)
                         newsCacheGlobal.pageCurrent += 1
                 }
@@ -169,8 +169,8 @@ class NewsService : Service() {
             file.saveCacheNewsGlobal(newsCacheGlobal)
 
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
-                status = ServiceCode.STATUS_SUCCESSFUL,
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceBroadcastOptions.STATUS_SUCCESSFUL,
                 data = newsCacheGlobal.newsListByDate
             )
 
@@ -180,8 +180,8 @@ class NewsService : Service() {
         } catch (ex: Exception) {
             ex.printStackTrace()
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHGLOBAL,
-                status = ServiceCode.STATUS_FAILED
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHGLOBAL,
+                status = ServiceBroadcastOptions.STATUS_FAILED
             )
         }
     }
@@ -192,15 +192,15 @@ class NewsService : Service() {
     ) {
         try {
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
-                status = ServiceCode.STATUS_PROCESSING
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceBroadcastOptions.STATUS_PROCESSING
             )
 
             val newsCacheSubject = file.getCacheNewsSubject()
             val newsFromInternet = NewsModule.getNewsSubject(
                 page = when (newsPageType) {
                     NewsPageType.NextPage -> newsCacheSubject.pageCurrent
-                    NewsPageType.GetFirstPage -> 1
+                    NewsPageType.GetPage1 -> 1
                     NewsPageType.ResetToPage1 -> 1
                 }
             )
@@ -222,7 +222,7 @@ class NewsService : Service() {
                 NewsPageType.NextPage -> {
                     newsCacheSubject.pageCurrent += 1
                 }
-                NewsPageType.GetFirstPage -> {
+                NewsPageType.GetPage1 -> {
                     if (newsCacheSubject.pageCurrent <= 1)
                         newsCacheSubject.pageCurrent += 1
                 }
@@ -233,8 +233,8 @@ class NewsService : Service() {
             file.saveCacheNewsSubject(newsCacheSubject)
 
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
-                status = ServiceCode.STATUS_SUCCESSFUL,
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceBroadcastOptions.STATUS_SUCCESSFUL,
                 data = newsCacheSubject.newsListByDate
             )
 
@@ -244,8 +244,8 @@ class NewsService : Service() {
         } catch (ex: Exception) {
             ex.printStackTrace()
             sendBroadcastToMainActivity(
-                action = ServiceCode.ACTION_NEWS_FETCHSUBJECT,
-                status = ServiceCode.STATUS_FAILED,
+                action = ServiceBroadcastOptions.ACTION_NEWS_FETCHSUBJECT,
+                status = ServiceBroadcastOptions.STATUS_FAILED,
             )
         }
     }
@@ -425,9 +425,9 @@ class NewsService : Service() {
         errorMsg: String? = null
     ) {
         Intent(action).apply {
-            if (status != null) putExtra(ServiceCode.STATUS, status)
-            if (data != null) putExtra(ServiceCode.DATA, data as java.io.Serializable)
-            if (errorMsg != null) putExtra(ServiceCode.ERRORMESSAGE, errorMsg)
+            if (status != null) putExtra(ServiceBroadcastOptions.STATUS, status)
+            if (data != null) putExtra(ServiceBroadcastOptions.DATA, data as java.io.Serializable)
+            if (errorMsg != null) putExtra(ServiceBroadcastOptions.ERRORMESSAGE, errorMsg)
         }.also {
             sendBroadcast(it)
         }
@@ -550,8 +550,8 @@ class NewsService : Service() {
     companion object {
         fun getPendingIntentOnBackground(context: Context): PendingIntent {
             val intent = Intent(context, NewsService::class.java)
-            intent.putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND)
-            intent.putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
+            intent.putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_NEWS_FETCHALLBACKGROUND)
+            intent.putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, true)
             val pendingIntent: PendingIntent
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 pendingIntent = PendingIntent.getForegroundService(

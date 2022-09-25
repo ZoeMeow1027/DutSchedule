@@ -22,7 +22,7 @@ import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AccountBroadcastReceiver
 import javax.inject.Inject
@@ -89,13 +89,13 @@ class NewsFilterSettingsViewModel @Inject constructor(
             override fun onStatusReceived(key: String, value: String) {
                 Log.d("AccountService", "NewsFilter - AccountBroadcastReceiver - $key: $value")
                 when (key) {
-                    ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP -> {
                         when (value) {
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_LoginProcess.value = LoginState.LoggedIn
                                 requestSaveChanges()
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 if (Account_HasSaved.value) {
                                     Account_LoginProcess.value = LoginState.NotLoggedInButRemembered
                                 } else {
@@ -103,20 +103,20 @@ class NewsFilterSettingsViewModel @Inject constructor(
                                 }
                                 requestSaveChanges()
                             }
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_LoginProcess.value = LoginState.LoggingIn
                             }
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         when (value) {
-                            ServiceCode.STATUS_PROCESSING -> {
+                            ServiceBroadcastOptions.STATUS_PROCESSING -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Running
                             }
-                            ServiceCode.STATUS_SUCCESSFUL -> {
+                            ServiceBroadcastOptions.STATUS_SUCCESSFUL -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Successful
                             }
-                            ServiceCode.STATUS_FAILED -> {
+                            ServiceBroadcastOptions.STATUS_FAILED -> {
                                 Account_Process_SubjectSchedule.value = ProcessState.Failed
                             }
                         }
@@ -129,13 +129,13 @@ class NewsFilterSettingsViewModel @Inject constructor(
             override fun onDataReceived(key: String, data: Any) {
                 Log.d("AccountService", "Triggered data")
                 when (key) {
-                    ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE -> {
                         Account_Data_SubjectSchedule.apply {
                             clear()
                             addAll(data as ArrayList<SubjectScheduleItem>)
                         }
                     }
-                    ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
+                    ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN -> {
                         Account_HasSaved.value = data as Boolean
                     }
                 }
@@ -169,9 +169,9 @@ class NewsFilterSettingsViewModel @Inject constructor(
             LocalBroadcastManager.getInstance(application.applicationContext).registerReceiver(
                 getAccountBroadcastReceiver(),
                 IntentFilter().apply {
-                    addAction(ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
-                    addAction(ServiceCode.ACTION_ACCOUNT_SUBJECTSCHEDULE)
-                    addAction(ServiceCode.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
+                    addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
+                    addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE)
+                    addAction(ServiceBroadcastOptions.ACTION_ACCOUNT_GETSTATUS_HASSAVEDLOGIN)
                 }
             )
 

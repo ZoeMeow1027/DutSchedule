@@ -31,12 +31,11 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
-import io.zoemeow.dutnotify.model.enums.ServiceCode
+import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.service.NewsService
 import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
-import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.utils.NotificationsUtils
 import io.zoemeow.dutnotify.view.account.Account
 import io.zoemeow.dutnotify.view.navbar.MainBottomNavigationBar
@@ -96,14 +95,14 @@ class MainActivity : ComponentActivity() {
                 NewsService.startService(
                     context = this@MainActivity,
                     intent = Intent(this@MainActivity, NewsService::class.java).apply {
-                        putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_INITIALIZATION)
-                        putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, false)
+                        putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_NEWS_INITIALIZATION)
+                        putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, false)
                     }
                 )
                 Intent(this@MainActivity, AccountService::class.java).apply {
-                    putExtra(ServiceCode.ACTION, ServiceCode.ACTION_ACCOUNT_LOGINSTARTUP)
-                    putExtra(ServiceCode.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(ServiceCode.SOURCE_COMPONENT, MainActivity::class.java.name)
+                    putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
+                    putExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
+                    putExtra(ServiceBroadcastOptions.SOURCE_COMPONENT, MainActivity::class.java.name)
                 }.also {
                     this@MainActivity.startService(it)
                 }
@@ -116,12 +115,13 @@ class MainActivity : ComponentActivity() {
                 content = @Composable {
                     MainScreen()
                 },
-                backgroundDrawable = mainViewModel.mainActivityBackgroundDrawable.value,
                 appModeChanged = {
                     // Trigger for dark mode detection.
-                    mainViewModel.mainActivityIsDarkTheme.value = it
+                    mainViewModel.isDarkTheme.value = it
                 },
             )
+
+
         }
     }
 
@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
                 alpha = 0.8f
             ),
-            contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
                 MainBottomNavigationBar(
@@ -214,8 +214,8 @@ class MainActivity : ComponentActivity() {
                     NewsService.startService(
                         context = this@MainActivity,
                         intent = Intent(this@MainActivity, NewsService::class.java).apply {
-                            putExtra(ServiceCode.ACTION, ServiceCode.ACTION_NEWS_FETCHALLBACKGROUND)
-                            putExtra(ServiceCode.ARGUMENT_NEWS_NOTIFYTOUSER, true)
+                            putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_NEWS_FETCHALLBACKGROUND)
+                            putExtra(ServiceBroadcastOptions.ARGUMENT_NEWS_NOTIFYTOUSER, true)
                         }
                     )
             } else {
@@ -294,11 +294,8 @@ fun MainActivity.onPermissionResult(
     when (permission) {
         Manifest.permission.READ_EXTERNAL_STORAGE -> {
             if (granted) {
-                mainViewModel.mainActivityBackgroundDrawable.value =
-                    AppUtils.getCurrentWallpaperBackground(
-                        context = this,
-                        type = mainViewModel.appSettings.value.backgroundImage.option
-                    )
+                // Reload settings
+                mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
             } else {
                 mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
                     optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
