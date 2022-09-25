@@ -17,7 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.view.MainActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.service.AccountService

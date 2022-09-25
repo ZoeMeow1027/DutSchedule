@@ -11,7 +11,7 @@ import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
-import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.view.PermissionRequestActivity
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import kotlinx.coroutines.flow.distinctUntilChanged

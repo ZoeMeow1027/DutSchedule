@@ -27,6 +27,9 @@ import io.zoemeow.dutnotify.ui.custom.SettingsOptionHeader
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemClickable
 import io.zoemeow.dutnotify.ui.custom.SettingsOptionItemSwitch
 import io.zoemeow.dutnotify.utils.AppUtils
+import io.zoemeow.dutnotify.view.MainActivity
+import io.zoemeow.dutnotify.view.NewsFilterSettingsActivity
+import io.zoemeow.dutnotify.view.PermissionRequestActivity
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)

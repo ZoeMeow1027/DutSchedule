@@ -7,7 +7,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import io.zoemeow.dutnotify.NewsDetailsActivity
+import io.zoemeow.dutnotify.view.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
 import java.io.Serializable
 

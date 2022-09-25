@@ -3,7 +3,6 @@ package io.zoemeow.dutnotify.viewmodel
 import android.app.Application
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
@@ -17,7 +16,7 @@ import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
-import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.view.MainActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState

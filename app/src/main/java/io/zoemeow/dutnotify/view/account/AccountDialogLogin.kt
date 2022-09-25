@@ -20,7 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutnotify.MainActivity
+import io.zoemeow.dutnotify.view.MainActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions

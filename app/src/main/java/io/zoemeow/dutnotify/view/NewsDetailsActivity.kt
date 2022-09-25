@@ -1,20 +1,16 @@
-package io.zoemeow.dutnotify
+package io.zoemeow.dutnotify.view
 
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,46 +25,38 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.utils.AppUtils
 import io.zoemeow.dutnotify.view.news.NewsDetailsGlobal
 import io.zoemeow.dutnotify.view.news.NewsDetailsSubject
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @AndroidEntryPoint
-class NewsDetailsActivity : ComponentActivity() {
+class NewsDetailsActivity : BaseActivity() {
     private val newsTitle = mutableStateOf("")
     internal lateinit var mainViewModel: MainViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    @Composable
+    override fun OnPreloadOnce() {
+        registerBroadcastReceiver(context = applicationContext)
+        checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
+    }
 
-        setContent {
-            mainViewModel = viewModel()
+    @Composable
+    override fun OnPreload() {
+        mainViewModel = viewModel()
+    }
 
-            LaunchedEffect(Unit) {
-                registerBroadcastReceiver(context = applicationContext)
-                checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
-            }
-
-            MainActivityTheme(
-                appSettings = mainViewModel.appSettings.value,
-                content = @Composable {
-                    MainScreen(
-                        mainViewModel = mainViewModel,
-                        intent = intent,
-                    )
-                },
-                appModeChanged = {
-                    // Trigger for dark mode detection.
-                    mainViewModel.isDarkTheme.value = it
-                },
-            )
-        }
+    @Composable
+    override fun OnMainView() {
+        MainScreen(
+            mainViewModel = mainViewModel,
+            intent = intent,
+        )
     }
 
     @Suppress("DEPRECATION")
@@ -122,7 +110,7 @@ class NewsDetailsActivity : ComponentActivity() {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (isAppInDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -134,7 +122,7 @@ class NewsDetailsActivity : ComponentActivity() {
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
                 alpha = 0.8f
             ),
-            contentColor = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (isAppInDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
             MainBody(
@@ -210,59 +198,59 @@ class NewsDetailsActivity : ComponentActivity() {
             }
         )
     }
-}
 
-fun NewsDetailsActivity.onPermissionResult(
-    permission: String?,
-    granted: Boolean,
-    notifyToUser: Boolean = false
-) {
-    when (permission) {
-        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-            if (granted) {
-                // Reload settings
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
+    private fun onPermissionResult(
+        permission: String?,
+        granted: Boolean,
+        notifyToUser: Boolean = false
+    ) {
+        when (permission) {
+            Manifest.permission.READ_EXTERNAL_STORAGE -> {
+                if (granted) {
+                    // Reload settings
+                    mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
+                } else {
+                    mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                        optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                        value = BackgroundImage(
+                            option = BackgroundImageType.Unset,
+                            path = null
+                        )
                     )
-                )
-                mainViewModel.requestSaveChanges()
-                mainViewModel.showSnackBarMessage(
-                    "Missing permission for background image. " +
-                            "This setting will be turned off to avoid another issues."
-                )
+                    mainViewModel.requestSaveChanges()
+                    mainViewModel.showSnackBarMessage(
+                        "Missing permission for background image. " +
+                                "This setting will be turned off to avoid another issues."
+                    )
+                }
             }
+            else -> {}
         }
-        else -> {}
-    }
-}
-
-fun NewsDetailsActivity.checkSettingsPermissionOnStartup(
-    mainViewModel: MainViewModel
-) {
-    val permissionList = arrayListOf<String>()
-
-    // Read external storage - Background Image
-    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-        if (!PermissionRequestActivity.checkPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
     }
 
-    if (permissionList.isNotEmpty()) {
-        Intent(this, PermissionRequestActivity::class.java)
-            .apply {
-                putExtra("permissions.list", permissionList.toTypedArray())
-            }
-            .also {
-                this.startActivity(it)
-            }
+    private fun checkSettingsPermissionOnStartup(
+        mainViewModel: MainViewModel
+    ) {
+        val permissionList = arrayListOf<String>()
+
+        // Read external storage - Background Image
+        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+            if (!PermissionRequestActivity.checkPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+        }
+
+        if (permissionList.isNotEmpty()) {
+            Intent(this, PermissionRequestActivity::class.java)
+                .apply {
+                    putExtra("permissions.list", permissionList.toTypedArray())
+                }
+                .also {
+                    this.startActivity(it)
+                }
+        }
     }
 }

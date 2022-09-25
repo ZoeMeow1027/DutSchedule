@@ -1,12 +1,9 @@
-package io.zoemeow.dutnotify
+package io.zoemeow.dutnotify.view
 
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,6 +34,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
 import io.zoemeow.dutapi.objects.accounts.SubjectFeeItem
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
@@ -46,49 +43,29 @@ import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
-import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @AndroidEntryPoint
-class AccountDetailsActivity : ComponentActivity() {
+class AccountDetailsActivity : BaseActivity() {
     private val scaffoldTitle = mutableStateOf("")
     internal lateinit var mainViewModel: MainViewModel
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    @Composable
+    override fun OnPreloadOnce() {
+        setAppSettings(mainViewModel.appSettings.value)
+        registerBroadcastReceiver(context = applicationContext)
+        checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
+    }
 
-        setContent {
-            mainViewModel = viewModel()
-
-            LaunchedEffect(Unit) {
-                registerBroadcastReceiver(context = applicationContext)
-                checkSettingsPermissionOnStartup(mainViewModel = mainViewModel)
-            }
-
-            MainActivityTheme(
-                appSettings = mainViewModel.appSettings.value,
-                content = @Composable {
-                    MainScreen(
-                        mainViewModel = mainViewModel,
-                        intent = intent,
-                    )
-                },
-                appModeChanged = {
-                    // Trigger for dark mode detection.
-                    mainViewModel.isDarkTheme.value = it
-                },
-            )
-        }
+    @Composable
+    override fun OnPreload() {
+        mainViewModel = viewModel()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun MainScreen(
-        mainViewModel: MainViewModel,
-        intent: Intent,
-    ) {
+    override fun OnMainView() {
         val type: String? = intent.getStringExtra("type")
-        val context = LocalContext.current
 
         val swipeRefreshStateSubjectSchedule = rememberSwipeRefreshState(false)
         val swipeRefreshStateSubjectFee = rememberSwipeRefreshState(false)
@@ -99,7 +76,7 @@ class AccountDetailsActivity : ComponentActivity() {
                 "subject_schedule" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectschedule)
-                    val intentService = Intent(context, AccountService::class.java)
+                    val intentService = Intent(applicationContext, AccountService::class.java)
                     intentService.putExtra(
                         ServiceBroadcastOptions.ACTION,
                         ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
@@ -108,12 +85,12 @@ class AccountDetailsActivity : ComponentActivity() {
                         ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
-                    context.startService(intentService)
+                    applicationContext.startService(intentService)
                 }
                 "subject_fee" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_subjectfee)
-                    val intentService = Intent(context, AccountService::class.java)
+                    val intentService = Intent(applicationContext, AccountService::class.java)
                     intentService.putExtra(
                         ServiceBroadcastOptions.ACTION,
                         ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
@@ -122,8 +99,8 @@ class AccountDetailsActivity : ComponentActivity() {
                         ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
-                    context.startService(intentService)
-                    val intentService2 = Intent(context, AccountService::class.java)
+                    applicationContext.startService(intentService)
+                    val intentService2 = Intent(applicationContext, AccountService::class.java)
                     intentService2.putExtra(
                         ServiceBroadcastOptions.ACTION,
                         ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE
@@ -132,12 +109,12 @@ class AccountDetailsActivity : ComponentActivity() {
                         ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
-                    context.startService(intentService2)
+                    applicationContext.startService(intentService2)
                 }
                 "account_information" -> {
                     scaffoldTitle.value =
                         applicationContext.getString(R.string.account_page_accinfo)
-                    val intentService = Intent(context, AccountService::class.java)
+                    val intentService = Intent(applicationContext, AccountService::class.java)
                     intentService.putExtra(
                         ServiceBroadcastOptions.ACTION,
                         ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION
@@ -146,7 +123,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         ServiceBroadcastOptions.SOURCE_COMPONENT,
                         MainActivity::class.java.name
                     )
-                    context.startService(intentService)
+                    applicationContext.startService(intentService)
                 }
                 else -> {
                     setResult(RESULT_CANCELED)
@@ -223,7 +200,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         subjectScheduleList = mainViewModel.Account_Data_SubjectSchedule,
                         swipeRefreshState = swipeRefreshStateSubjectSchedule,
                         reloadRequested = {
-                            val intentService = Intent(context, AccountService::class.java)
+                            val intentService = Intent(applicationContext, AccountService::class.java)
                             intentService.putExtra(
                                 ServiceBroadcastOptions.ACTION,
                                 ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
@@ -242,7 +219,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         subjectFeeList = mainViewModel.Account_Data_SubjectFee,
                         swipeRefreshState = swipeRefreshStateSubjectFee,
                         reloadRequested = {
-                            val intentService = Intent(context, AccountService::class.java)
+                            val intentService = Intent(applicationContext, AccountService::class.java)
                             intentService.putExtra(
                                 ServiceBroadcastOptions.ACTION,
                                 ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTSCHEDULE
@@ -251,8 +228,8 @@ class AccountDetailsActivity : ComponentActivity() {
                                 ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
-                            context.startService(intentService)
-                            val intentService2 = Intent(context, AccountService::class.java)
+                            applicationContext.startService(intentService)
+                            val intentService2 = Intent(applicationContext, AccountService::class.java)
                             intentService2.putExtra(
                                 ServiceBroadcastOptions.ACTION,
                                 ServiceBroadcastOptions.ACTION_ACCOUNT_SUBJECTFEE
@@ -261,7 +238,7 @@ class AccountDetailsActivity : ComponentActivity() {
                                 ServiceBroadcastOptions.SOURCE_COMPONENT,
                                 MainActivity::class.java.name
                             )
-                            context.startService(intentService2)
+                            applicationContext.startService(intentService2)
                         }
                     )
                 }
@@ -271,7 +248,7 @@ class AccountDetailsActivity : ComponentActivity() {
                         accountInformation = mainViewModel.Account_Data_AccountInformation.value,
                         swipeRefreshState = swipeRefreshStateAccInfo,
                         reloadRequested = {
-                            val intentService = Intent(context, AccountService::class.java)
+                            val intentService = Intent(applicationContext, AccountService::class.java)
                             intentService.putExtra(
                                 ServiceBroadcastOptions.ACTION,
                                 ServiceBroadcastOptions.ACTION_ACCOUNT_ACCOUNTINFORMATION
@@ -563,59 +540,59 @@ class AccountDetailsActivity : ComponentActivity() {
             }
         )
     }
-}
 
-fun AccountDetailsActivity.onPermissionResult(
-    permission: String?,
-    granted: Boolean,
-    notifyToUser: Boolean = false
-) {
-    when (permission) {
-        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-            if (granted) {
-                // Reload settings
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
-            } else {
-                mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
-                    optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
-                    value = BackgroundImage(
-                        option = BackgroundImageType.Unset,
-                        path = null
+    private fun onPermissionResult(
+        permission: String?,
+        granted: Boolean,
+        notifyToUser: Boolean = false
+    ) {
+        when (permission) {
+            Manifest.permission.READ_EXTERNAL_STORAGE -> {
+                if (granted) {
+                    // Reload settings
+                    mainViewModel.appSettings.value = mainViewModel.appSettings.value.clone()
+                } else {
+                    mainViewModel.appSettings.value = mainViewModel.appSettings.value.modify(
+                        optionToModify = AppSettings.APPEARANCE_BACKGROUNDIMAGE,
+                        value = BackgroundImage(
+                            option = BackgroundImageType.Unset,
+                            path = null
+                        )
                     )
-                )
-                mainViewModel.requestSaveChanges()
-                mainViewModel.showSnackBarMessage(
-                    "Missing permission for background image. " +
-                            "This setting will be turned off to avoid another issues."
-                )
+                    mainViewModel.requestSaveChanges()
+                    mainViewModel.showSnackBarMessage(
+                        "Missing permission for background image. " +
+                                "This setting will be turned off to avoid another issues."
+                    )
+                }
             }
+            else -> {}
         }
-        else -> {}
-    }
-}
-
-fun AccountDetailsActivity.checkSettingsPermissionOnStartup(
-    mainViewModel: MainViewModel
-) {
-    val permissionList = arrayListOf<String>()
-
-    // Read external storage - Background Image
-    if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
-        if (!PermissionRequestActivity.checkPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-        ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
-        else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
     }
 
-    if (permissionList.isNotEmpty()) {
-        Intent(this, PermissionRequestActivity::class.java)
-            .apply {
-                putExtra("permissions.list", permissionList.toTypedArray())
-            }
-            .also {
-                this.startActivity(it)
-            }
+    private fun checkSettingsPermissionOnStartup(
+        mainViewModel: MainViewModel
+    ) {
+        val permissionList = arrayListOf<String>()
+
+        // Read external storage - Background Image
+        if (mainViewModel.appSettings.value.backgroundImage.option != BackgroundImageType.Unset) {
+            if (!PermissionRequestActivity.checkPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                )
+            ) permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            else onPermissionResult(Manifest.permission.READ_EXTERNAL_STORAGE, true)
+        }
+
+        if (permissionList.isNotEmpty()) {
+            Intent(this, PermissionRequestActivity::class.java)
+                .apply {
+                    putExtra("permissions.list", permissionList.toTypedArray())
+                }
+                .also {
+                    this.startActivity(it)
+                }
+        }
     }
 }

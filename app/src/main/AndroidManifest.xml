@@ -41,7 +41,6 @@
             android:name=".receiver.AccountBroadcastReceiver"
             android:enabled="true"
             android:exported="true" />
-
         <service
             android:name=".service.NewsService"
             android:enabled="true"
@@ -53,33 +52,37 @@
             android:enabled="true"
             android:exported="true"
             android:label="Account Service" />
-
         <activity
-            android:name=".PermissionRequestActivity"
-            android:exported="false" />
+            android:name=".view.PermissionRequestActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".NewsDetailsActivity"
+            android:name=".view.NewsDetailsActivity"
             android:exported="false"
             android:label="News Details"
             android:launchMode="standard"
-            android:theme="@style/Theme.DUTAppForAndroid" />
+            android:theme="@style/Theme.DUTAppForAndroid"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".AccountDetailsActivity"
+            android:name=".view.AccountDetailsActivity"
             android:exported="false"
             android:label="Account Details"
-            android:theme="@style/Theme.DUTAppForAndroid" />
+            android:theme="@style/Theme.DUTAppForAndroid"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".NewsFilterSettingsActivity"
+            android:name=".view.NewsFilterSettingsActivity"
             android:exported="false"
             android:label="News Filter Settings"
             android:theme="@style/Theme.DUTAppForAndroid"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
         <activity
-            android:name=".MainActivity"
+            android:name=".view.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.DUTAppForAndroid"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

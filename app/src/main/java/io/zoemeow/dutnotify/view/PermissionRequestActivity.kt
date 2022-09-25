@@ -1,11 +1,8 @@
-package io.zoemeow.dutnotify
+package io.zoemeow.dutnotify.view
 
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -15,90 +12,85 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import io.zoemeow.dutnotify.module.FileModule
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
-import io.zoemeow.dutnotify.ui.theme.DefaultActivityTheme
 
-class PermissionRequestActivity : ComponentActivity() {
+class PermissionRequestActivity : BaseActivity() {
     private val permissionRequestList = arrayListOf<String>()
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
+    @Composable
+    override fun OnPreloadOnce() {
         if (intent.getStringArrayExtra("permissions.list")?.isNotEmpty() == true) {
             permissionRequestList.addAll(intent.getStringArrayExtra("permissions.list")!!)
         } else {
             setResult(RESULT_CANCELED)
             finish()
         }
-
-        setContent {
-            DefaultActivityTheme {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text("Requested permission") }
-                        )
-                    },
-                ) { padding ->
-                    MainScreen(padding = padding)
-                }
-            }
-        }
+        setAppSettings(FileModule(this).getAppSettings())
     }
 
     @Composable
-    private fun MainScreen(
-        padding: PaddingValues,
-    ) {
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .padding(padding)
-                .padding(start = 10.dp, end = 10.dp)
-        ) {
-            Text(
-                "- Some permissions request you to be accepted as you have enabled a function before.\n" +
-                        "- If you deny, app will still be functional, but functions related to permission " +
-                        "list below will be turned off.",
-                modifier = Modifier
-                    .padding(bottom = 15.dp)
-            )
-            permissionRequestList.forEach {
-                Text(it)
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+    override fun OnPreload() { }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun OnMainView() {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Requested permission") }
+                )
+            },
+        ) { paddingValues ->
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(top = 15.dp)
+                    .padding(paddingValues)
+                    .padding(start = 10.dp, end = 10.dp)
             ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Button(
-                    content = { Text("Request to accept") },
-                    onClick = { requestPermission() },
+                Text(
+                    "- Some permissions request you to be accepted as you have enabled a function before.\n" +
+                            "- If you deny, app will still be functional, but functions related to permission " +
+                            "list below will be turned off.",
                     modifier = Modifier
+                        .padding(bottom = 15.dp)
                 )
-                Spacer(modifier = Modifier.size(5.dp))
-                Button(
-                    content = { Text("Deny") },
-                    onClick = {
-                        sendBroadcastToActivity(arrayListOf<Pair<String, Boolean>>().apply {
-                            permissionRequestList.forEach {
-                                this.add(Pair(it, false))
-                            }
-                        })
-                        setResult(RESULT_CANCELED)
-                        finish()
-                    },
+                permissionRequestList.forEach {
+                    Text(it)
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
-                )
-                Spacer(modifier = Modifier.weight(1f))
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(top = 15.dp)
+                ) {
+                    Spacer(modifier = Modifier.weight(1f))
+                    Button(
+                        content = { Text("Request to accept") },
+                        onClick = { requestPermission() },
+                        modifier = Modifier
+                    )
+                    Spacer(modifier = Modifier.size(5.dp))
+                    Button(
+                        content = { Text("Deny") },
+                        onClick = {
+                            sendBroadcastToActivity(arrayListOf<Pair<String, Boolean>>().apply {
+                                permissionRequestList.forEach {
+                                    this.add(Pair(it, false))
+                                }
+                            })
+                            setResult(RESULT_CANCELED)
+                            finish()
+                        },
+                        modifier = Modifier
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }

@@ -1,25 +1,19 @@
 package io.zoemeow.dutnotify.viewmodel
 
-import android.Manifest
 import android.app.Application
-import android.app.WallpaperManager
-import android.content.Context
 import android.content.IntentFilter
-import android.content.pm.PackageManager
-import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
-import io.zoemeow.dutnotify.NewsFilterSettingsActivity
+import io.zoemeow.dutnotify.view.NewsFilterSettingsActivity
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
-import io.zoemeow.dutnotify.model.enums.BackgroundImageType
+import io.zoemeow.dutnotify.model.appsettings.SubjectCode
 import io.zoemeow.dutnotify.model.enums.LoginState
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
@@ -33,41 +27,41 @@ class NewsFilterSettingsViewModel @Inject constructor(
     private val file: FileModule,
     private val application: Application,
 ) : ViewModel() {
-    // Drawable and painter for background image
-    val mainActivityBackgroundDrawable: MutableState<Drawable?> = mutableStateOf(null)
+    /**
+     * Store all selected subject which user chosen.
+     */
+    val selectedSubjects = mutableStateListOf<SubjectCode>()
 
     /**
-     * Main Activity: Check if current theme is dark mode.
+     * Store all available subject which didn't in selected subjects.
      */
-    val mainActivityIsDarkTheme: MutableState<Boolean> = mutableStateOf(false)
-
+    val availableSubjectFromAccount = mutableStateListOf<SubjectScheduleItem>()
 
     /**
-     * Get current drawable for background image. Image loaded will save to backgroundPainter.
+     * Define selected item index in selected subjects list.
      */
-    fun reloadAppBackground(
-        context: Context,
-        type: BackgroundImageType,
-    ) {
-        try {
-            // This will get background wallpaper from launcher.
-            if (type == BackgroundImageType.FromWallpaper) {
-                if (
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    ) == PackageManager.PERMISSION_GRANTED
-                ) {
-                    val wallpaperManager = WallpaperManager.getInstance(context)
-                    mainActivityBackgroundDrawable.value = wallpaperManager.drawable
-                } else throw Exception("Missing permission: READ_EXTERNAL_STORAGE")
-            }
-            // Otherwise set to null
-            else mainActivityBackgroundDrawable.value = null
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-    }
+    val selectedAvailableSubjectFromAccountIndex = mutableStateOf(0)
+
+    /**
+     * Define selected item name. This will also display selected subject name
+     * in outlined text box in 'add by subject schedule list' area.
+     */
+    val selectedAvailableSubjectFromAccountName = mutableStateOf("")
+
+    /**
+     * Index for selected main body for expend.
+     */
+    val selectedMainBodyIndex = mutableStateOf(0)
+
+    /**
+     * Detect if a setting in this activity has changed.
+     */
+    val modifiedSettings = mutableStateOf(false)
+
+    /**
+     * Show 'Unsaved changes' dialog.
+     */
+    val modifiedSettingsDialog = mutableStateOf(false)
 
     // App settings
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())

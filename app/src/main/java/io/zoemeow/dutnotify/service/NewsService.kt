@@ -14,7 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.zoemeow.dutapi.objects.enums.LessonStatus
 import io.zoemeow.dutapi.objects.news.NewsGlobalItem
 import io.zoemeow.dutapi.objects.news.NewsSubjectItem
-import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.view.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.CustomClock

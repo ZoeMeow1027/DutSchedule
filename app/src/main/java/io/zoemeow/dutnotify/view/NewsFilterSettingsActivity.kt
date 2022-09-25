@@ -1,13 +1,10 @@
-package io.zoemeow.dutnotify
+package io.zoemeow.dutnotify.view
 
 import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,7 +28,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.accompanist.flowlayout.FlowMainAxisAlignment
 import com.google.accompanist.flowlayout.FlowRow
 import dagger.hilt.android.AndroidEntryPoint
-import io.zoemeow.dutapi.objects.accounts.SubjectScheduleItem
+import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.appsettings.SubjectCode
@@ -42,107 +39,48 @@ import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.receiver.AppBroadcastReceiver
 import io.zoemeow.dutnotify.service.AccountService
 import io.zoemeow.dutnotify.ui.controls.CustomTitleAndExpandableColumn
-import io.zoemeow.dutnotify.ui.theme.MainActivityTheme
 import io.zoemeow.dutnotify.viewmodel.NewsFilterSettingsViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class NewsFilterSettingsActivity : ComponentActivity() {
-    companion object {
-        private var isInitialized = false
-    }
-
+class NewsFilterSettingsActivity : BaseActivity() {
     private lateinit var newsFilterViewModel: NewsFilterSettingsViewModel
     private lateinit var snackBarState: SnackbarHostState
     private lateinit var scope: CoroutineScope
 
-    /**
-     * Store all selected subject which user chosen.
-     */
-    private val selectedSubjects = mutableStateListOf<SubjectCode>()
-
-    /**
-     * Store all available subject which didn't in selected subjects.
-     */
-    private val availableSubjectFromAccount = mutableStateListOf<SubjectScheduleItem>()
-
-    /**
-     * Define selected item index in selected subjects list.
-     */
-    private val selectedAvailableSubjectFromAccountIndex = mutableStateOf(0)
-
-    /**
-     * Define selected item name. This will also display selected subject name
-     * in outlined text box in 'add by subject schedule list' area.
-     */
-    private val selectedAvailableSubjectFromAccountName = mutableStateOf("")
-
-    /**
-     * Index for selected main body for expend.
-     */
-    private val selectedMainBodyIndex = mutableStateOf(0)
-
-    /**
-     * Detect if a setting in this activity has changed.
-     */
-    private val modifiedSettings = mutableStateOf(false)
-
-    /**
-     * Show 'Unsaved changes' dialog.
-     */
-    private val modifiedSettingsDialog = mutableStateOf(false)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContent {
-            snackBarState = SnackbarHostState()
-            scope = rememberCoroutineScope()
-            newsFilterViewModel = viewModel()
-
-            if (!isInitialized) {
-                registerBroadcastReceiver(context = applicationContext)
-                checkSettingsPermissionOnStartup(mainViewModel = newsFilterViewModel)
-
-                // Re-login to receive new data from server.
-                Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
-                    putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
-                    putExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
-                    putExtra(
-                        ServiceBroadcastOptions.SOURCE_COMPONENT,
-                        NewsFilterSettingsActivity::class.java.name
-                    )
-                }.also {
-                    this@NewsFilterSettingsActivity.startService(it)
-                }
-
-                isInitialized = true
-            }
-
-            MainActivityTheme(
-                appSettings = newsFilterViewModel.appSettings.value,
-                content = @Composable {
-                    MainScreen(mainViewModel = newsFilterViewModel)
-                },
-                appModeChanged = {
-                    // Trigger for dark mode detection.
-                    newsFilterViewModel.mainActivityIsDarkTheme.value = it
-                },
-            )
-        }
+    @Composable
+    override fun OnPreload() {
+        snackBarState = SnackbarHostState()
+        scope = rememberCoroutineScope()
+        newsFilterViewModel = viewModel()
+        setAppSettings(newsFilterViewModel.appSettings.value)
     }
 
-    override fun onDestroy() {
-        isInitialized = false
-        finish()
-        super.onDestroy()
+    @Composable
+    override fun OnPreloadOnce() {
+        registerBroadcastReceiver(context = applicationContext)
+        checkSettingsPermissionOnStartup(mainViewModel = newsFilterViewModel)
+
+        // Re-login to receive new data from server.
+        Intent(this@NewsFilterSettingsActivity, AccountService::class.java).apply {
+            putExtra(ServiceBroadcastOptions.ACTION, ServiceBroadcastOptions.ACTION_ACCOUNT_LOGINSTARTUP)
+            putExtra(ServiceBroadcastOptions.ARGUMENT_ACCOUNT_LOGINSTARTUP_PRELOAD, true)
+            putExtra(
+                ServiceBroadcastOptions.SOURCE_COMPONENT,
+                NewsFilterSettingsActivity::class.java.name
+            )
+        }.also {
+            this@NewsFilterSettingsActivity.startService(it)
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MainScreen(mainViewModel: NewsFilterSettingsViewModel) {
-        MainDialog_ModifiedSettings(enabled = modifiedSettingsDialog)
+    override fun OnMainView() {
+        MainDialog_ModifiedSettings(
+            enabled = newsFilterViewModel.modifiedSettingsDialog
+        )
 
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackBarState) },
@@ -161,8 +99,8 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                 .height(48.dp)
                                 .clip(CircleShape)
                                 .clickable {
-                                    if (modifiedSettings.value) {
-                                        modifiedSettingsDialog.value = true
+                                    if (newsFilterViewModel.modifiedSettings.value) {
+                                        newsFilterViewModel.modifiedSettingsDialog.value = true
                                     } else {
                                         setResult(RESULT_OK)
                                         finish()
@@ -172,7 +110,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_arrow_back_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (isAppInDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -191,7 +129,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                 Icon(
                                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_save_24),
                                     contentDescription = "",
-                                    tint = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+                                    tint = if (isAppInDarkTheme.value) Color.White else Color.Black,
                                     modifier = Modifier.align(Alignment.Center)
                                 )
                             }
@@ -199,20 +137,20 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                     }
                 )
             },
-            containerColor = if (mainViewModel.appSettings.value.backgroundImage.option == BackgroundImageType.Unset)
+            containerColor = if (newsFilterViewModel.appSettings.value.backgroundImage.option == BackgroundImageType.Unset)
                 MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.background.copy(
                 alpha = 0.8f
             ),
-            contentColor = if (mainViewModel.mainActivityIsDarkTheme.value) Color.White else Color.Black,
+            contentColor = if (isAppInDarkTheme.value) Color.White else Color.Black,
             modifier = Modifier.fillMaxSize()
         ) { padding ->
             LaunchedEffect(Unit) {
-                selectedSubjects.addAll(mainViewModel.appSettings.value.newsFilterList)
+                newsFilterViewModel.selectedSubjects.addAll(newsFilterViewModel.appSettings.value.newsFilterList)
             }
 
             BackHandler(
-                enabled = modifiedSettings.value,
-                onBack = { modifiedSettingsDialog.value = true }
+                enabled = newsFilterViewModel.modifiedSettings.value,
+                onBack = { newsFilterViewModel.modifiedSettingsDialog.value = true }
             )
 
             Column(
@@ -229,23 +167,23 @@ class NewsFilterSettingsActivity : ComponentActivity() {
 
                 // Load from your subject schedule to add to filter.
                 MainBody_AvailableSubjectList(
-                    expended = selectedMainBodyIndex.value == 0,
+                    expended = newsFilterViewModel.selectedMainBodyIndex.value == 0,
                     onExpended = {
-                        selectedMainBodyIndex.value = 0
+                        newsFilterViewModel.selectedMainBodyIndex.value = 0
                     }
                 )
                 // Add filter manually.
                 MainBody_AddManually(
-                    expended = selectedMainBodyIndex.value == 1,
+                    expended = newsFilterViewModel.selectedMainBodyIndex.value == 1,
                     onExpended = {
-                        selectedMainBodyIndex.value = 1
+                        newsFilterViewModel.selectedMainBodyIndex.value = 1
                     }
                 )
                 // Reset to default
                 MainBody_ClearAll(
-                    expended = selectedMainBodyIndex.value == 2,
+                    expended = newsFilterViewModel.selectedMainBodyIndex.value == 2,
                     onExpended = {
-                        selectedMainBodyIndex.value = 2
+                        newsFilterViewModel.selectedMainBodyIndex.value = 2
                     }
                 )
             }
@@ -313,7 +251,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                 expanded = true,
                 onExpanded = { },
             ) {
-                if (selectedSubjects.isEmpty()) {
+                if (newsFilterViewModel.selectedSubjects.isEmpty()) {
                     Text(text = stringResource(id = R.string.subjectnewsfilter_currentlist_empty))
                 } else {
                     Text(
@@ -326,12 +264,12 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                             .wrapContentHeight(),
                         mainAxisAlignment = FlowMainAxisAlignment.Center
                     ) {
-                        selectedSubjects.forEach {
+                        newsFilterViewModel.selectedSubjects.forEach {
                             InputChip(
                                 selected = false,
                                 onClick = {
-                                    selectedSubjects.remove(it)
-                                    modifiedSettings.value = true
+                                    newsFilterViewModel.selectedSubjects.remove(it)
+                                    newsFilterViewModel.modifiedSettings.value = true
                                     updateTemporarySettings()
 
                                     showSnackBarMessage(
@@ -409,7 +347,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                         ExposedDropdownMenuBox(
                                             expanded = dropDownExpanded.value,
                                             onExpandedChange = {
-                                                if (availableSubjectFromAccount.isNotEmpty())
+                                                if (newsFilterViewModel.availableSubjectFromAccount.isNotEmpty())
                                                     dropDownExpanded.value = !dropDownExpanded.value
                                             },
                                             modifier = Modifier
@@ -418,7 +356,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                         ) {
                                             OutlinedTextField(
                                                 readOnly = true,
-                                                value = selectedAvailableSubjectFromAccountName.value,
+                                                value = newsFilterViewModel.selectedAvailableSubjectFromAccountName.value,
                                                 onValueChange = {},
                                                 label = { Text(stringResource(id = R.string.subjectnewsfilter_addbyschedule_adddropdownname)) },
                                                 trailingIcon = {
@@ -441,12 +379,12 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                                     .wrapContentHeight()
                                                     .padding(bottom = 5.dp)
                                             ) {
-                                                availableSubjectFromAccount.forEach {
+                                                newsFilterViewModel.availableSubjectFromAccount.forEach {
                                                     DropdownMenuItem(
                                                         text = { Text(it.name) },
                                                         onClick = {
-                                                            selectedMainBodyIndex.value =
-                                                                availableSubjectFromAccount.indexOf(
+                                                            newsFilterViewModel.selectedMainBodyIndex.value =
+                                                                newsFilterViewModel.availableSubjectFromAccount.indexOf(
                                                                     it
                                                                 )
                                                             dropDownExpanded.value = false
@@ -497,7 +435,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                                 onClick = {
                                                     try {
                                                         val subjectScheduleItem =
-                                                            availableSubjectFromAccount[selectedAvailableSubjectFromAccountIndex.value]
+                                                            newsFilterViewModel.availableSubjectFromAccount[newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value]
                                                         val item = SubjectCode(
                                                             studentYearId = subjectScheduleItem.id.studentYearId,
                                                             classId = subjectScheduleItem.id.classId,
@@ -505,8 +443,8 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                                                         )
 
                                                         if (!isDuplicate(item))
-                                                            selectedSubjects.add(item)
-                                                        modifiedSettings.value = true
+                                                            newsFilterViewModel.selectedSubjects.add(item)
+                                                        newsFilterViewModel.modifiedSettings.value = true
                                                         updateTemporarySettings()
 
                                                         showSnackBarMessage(
@@ -608,8 +546,8 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                             )
 
                             if (!isDuplicate(item))
-                                selectedSubjects.add(item)
-                            modifiedSettings.value = true
+                                newsFilterViewModel.selectedSubjects.add(item)
+                            newsFilterViewModel.modifiedSettings.value = true
                             updateTemporarySettings()
 
                             showSnackBarMessage(
@@ -650,8 +588,8 @@ class NewsFilterSettingsActivity : ComponentActivity() {
                     Button(
                         content = { Text(stringResource(id = R.string.options_clearall)) },
                         onClick = {
-                            selectedSubjects.clear()
-                            modifiedSettings.value = true
+                            newsFilterViewModel.selectedSubjects.clear()
+                            newsFilterViewModel.modifiedSettings.value = true
                             updateTemporarySettings()
                             showSnackBarMessage(getString(R.string.subjectnewsfilter_snackbar_deletedall))
                         }
@@ -663,7 +601,7 @@ class NewsFilterSettingsActivity : ComponentActivity() {
 
     private fun isDuplicate(input: SubjectCode): Boolean {
         return try {
-            return selectedSubjects.any { input.isEquals(it) }
+            return newsFilterViewModel.selectedSubjects.any { input.isEquals(it) }
         } catch (ex: Exception) {
             true
         }
@@ -671,10 +609,10 @@ class NewsFilterSettingsActivity : ComponentActivity() {
 
     private fun updateTemporarySettings() {
         fun isInIndexAvailableList(value: Int): Boolean {
-            return (value >= 0) && (value <= availableSubjectFromAccount.size - 1)
+            return (value >= 0) && (value <= newsFilterViewModel.availableSubjectFromAccount.size - 1)
         }
 
-        availableSubjectFromAccount.apply {
+        newsFilterViewModel.availableSubjectFromAccount.apply {
             clear()
             newsFilterViewModel.Account_Data_SubjectSchedule.forEach {
                 val item = SubjectCode(
@@ -689,18 +627,18 @@ class NewsFilterSettingsActivity : ComponentActivity() {
             }
         }
 
-        if (!isInIndexAvailableList(selectedAvailableSubjectFromAccountIndex.value)) {
-            if (availableSubjectFromAccount.isEmpty()) {
-                selectedAvailableSubjectFromAccountIndex.value = -1
-                selectedAvailableSubjectFromAccountName.value =
+        if (!isInIndexAvailableList(newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value)) {
+            if (newsFilterViewModel.availableSubjectFromAccount.isEmpty()) {
+                newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value = -1
+                newsFilterViewModel.selectedAvailableSubjectFromAccountName.value =
                     getString(R.string.subjectnewsfilter_addfromsubjectschedule_nomore)
             } else {
-                selectedAvailableSubjectFromAccountIndex.value = 0
-                selectedAvailableSubjectFromAccountName.value =
-                    availableSubjectFromAccount[selectedAvailableSubjectFromAccountIndex.value].name
+                newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value = 0
+                newsFilterViewModel.selectedAvailableSubjectFromAccountName.value =
+                    newsFilterViewModel.availableSubjectFromAccount[newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value].name
             }
-        } else selectedAvailableSubjectFromAccountName.value =
-            availableSubjectFromAccount[selectedAvailableSubjectFromAccountIndex.value].name
+        } else newsFilterViewModel.selectedAvailableSubjectFromAccountName.value =
+            newsFilterViewModel.availableSubjectFromAccount[newsFilterViewModel.selectedAvailableSubjectFromAccountIndex.value].name
     }
 
     private fun saveChanges() {
@@ -708,14 +646,14 @@ class NewsFilterSettingsActivity : ComponentActivity() {
             newsFilterViewModel.appSettings.value.modify(
                 optionToModify = AppSettings.NEWSFILTER_FILTERLIST,
                 value = arrayListOf<SubjectCode>().apply {
-                    addAll(selectedSubjects)
+                    addAll(newsFilterViewModel.selectedSubjects)
                 }
             )
 
         newsFilterViewModel.requestSaveChanges()
         showSnackBarMessage(application.getString(R.string.subjectnewsfilter_snackbar_successful))
-        modifiedSettings.value = false
-        modifiedSettingsDialog.value = false
+        newsFilterViewModel.modifiedSettings.value = false
+        newsFilterViewModel.modifiedSettingsDialog.value = false
     }
 
     private fun showSnackBarMessage(
@@ -784,10 +722,8 @@ class NewsFilterSettingsActivity : ComponentActivity() {
         when (permission) {
             Manifest.permission.READ_EXTERNAL_STORAGE -> {
                 if (granted) {
-                    newsFilterViewModel.reloadAppBackground(
-                        context = this,
-                        type = newsFilterViewModel.appSettings.value.backgroundImage.option
-                    )
+                    // Reload settings
+                    newsFilterViewModel.appSettings.value = newsFilterViewModel.appSettings.value.clone()
                 } else {
                     newsFilterViewModel.appSettings.value =
                         newsFilterViewModel.appSettings.value.modify(

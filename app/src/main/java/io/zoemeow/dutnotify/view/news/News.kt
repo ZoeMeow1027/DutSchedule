@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
-import io.zoemeow.dutnotify.NewsDetailsActivity
+import io.zoemeow.dutnotify.view.NewsDetailsActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ServiceBroadcastOptions
 import io.zoemeow.dutnotify.service.NewsService

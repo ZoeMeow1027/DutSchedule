@@ -16,13 +16,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.dutnotify.MainActivity
-import io.zoemeow.dutnotify.PermissionRequestActivity
+import io.zoemeow.dutnotify.view.MainActivity
+import io.zoemeow.dutnotify.view.PermissionRequestActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.appsettings.AppSettings
 import io.zoemeow.dutnotify.model.appsettings.BackgroundImage
 import io.zoemeow.dutnotify.model.enums.BackgroundImageType
-import io.zoemeow.dutnotify.onPermissionResult
+import io.zoemeow.dutnotify.view.onPermissionResult
 import io.zoemeow.dutnotify.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)

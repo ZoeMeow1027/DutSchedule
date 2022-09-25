@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutapi.Utils
 import io.zoemeow.dutapi.objects.accounts.AccountInformation
-import io.zoemeow.dutnotify.AccountDetailsActivity
+import io.zoemeow.dutnotify.view.AccountDetailsActivity
 import io.zoemeow.dutnotify.R
 import io.zoemeow.dutnotify.model.enums.ProcessState
 import io.zoemeow.dutnotify.ui.custom.SubjectPreview
