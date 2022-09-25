@@ -1,12 +1,10 @@
-# DUT Notify - App for Android
+# SubjectNotifier - App for Android
 
 Just a Android app to view news from sv.dut.udn.vn, but optimized for a better experience for users on mobile instead of web.
 
 # Version
 
-- Release [![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTNotify)](https://github.com/ZoeMeow5466/DUTNotify/releases)
-- Alpha [![https://github.com/ZoeMeow5466/DUTNotify](https://img.shields.io/github/v/release/ZoeMeow5466/DUTNotify?include_prereleases)](https://github.com/ZoeMeow5466/DUTNotify/releases)
-- Note: If no display version for alpha here, that means no alpha version yet.
+- Release [![https://github.com/ZoeMeow5466/SubjectNotifier](https://img.shields.io/github/v/release/ZoeMeow5466/SubjectNotifier)](https://github.com/ZoeMeow5466/DUTNotify/releases)
 - You can [view change log](CHANGELOG.md) for this project.
 - Thanks [https://shields.io/](https://shields.io/) for providing badge for this project.
 
@@ -16,7 +14,7 @@ Just a Android app to view news from sv.dut.udn.vn, but optimized for a better e
 
 # Downloads
 
-- Navigate to release (at right of this README) or click [here](https://github.com/ZoeMeow5466/DUTNotify/releases) to download app.
+- Navigate to release (at right of this README) or click [here](https://github.com/ZoeMeow5466/SubjectNotifier/releases) to download app.
 
 # Build app yourself
 
@@ -33,7 +31,7 @@ For Powershell: ./gradlew build
 
 ### Where can I found app changelog?
 
-- https://github.com/ZoeMeow5466/DUTNotify/commits. You will need to change branch if you want to view changelog for beta/alpha/draft version.
+- https://github.com/ZoeMeow5466/SubjectNotifier/commits. You will need to change branch if you want to view changelog for beta/alpha/draft version.
 
 ### Why some news in application is different from sv.dut.udn.vn?
 
@@ -49,7 +47,7 @@ For Powershell: ./gradlew build
 
 # Copyright?
 
-- This project - DUT Notify - is not affiliated with Da Nang University of Technology. 
+- This project - DUT Notify - is not affiliated with Da Nang University of Technology.
 - DUT, Da Nang University of Technology, web materials and web contents are trademarks and copyrights of Da Nang University of Technology school.
 
 # Implementations
