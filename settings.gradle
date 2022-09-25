@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
-rootProject.name = "DUT App for Android"
+rootProject.name = "Subject Notifier"
 include ':app'

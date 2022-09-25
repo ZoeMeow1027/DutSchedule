@@ -10,10 +10,10 @@ plugins {
 
 android {
     compileSdk 33
-    namespace 'io.zoemeow.dutnotify'
+    namespace 'io.zoemeow.subjectnotifier'
 
     defaultConfig {
-        applicationId "io.zoemeow.dutnotify"
+        applicationId "io.zoemeow.subjectnotifier"
         minSdk 21 // Android Lollipop - 5.0
         targetSdk 33 // Android Tiramisu - 13
         versionCode 528
