@@ -16,8 +16,8 @@ android {
         applicationId "io.zoemeow.subjectnotifier"
         minSdk 21 // Android Lollipop - 5.0
         targetSdk 33 // Android Tiramisu - 13
-        versionCode 528
-        versionName "1.0-beta10"
+        versionCode 532
+        versionName "1.0-beta11"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,16 +59,16 @@ dependencies {
 
     // https://issuetracker.google.com/issues/245626686
     // Fixed in 1.0.0-beta3
-    implementation 'androidx.compose.material3:material3:1.0.0-beta03'
+    implementation 'androidx.compose.material3:material3:1.0.0-rc01'
 
-    implementation "androidx.compose.ui:ui:1.3.0-beta03"
-    implementation "androidx.compose.ui:ui-tooling-preview:1.3.0-beta03"
+    implementation "androidx.compose.ui:ui:1.3.0-rc01"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.3.0-rc01"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
     implementation 'androidx.navigation:navigation-compose:2.5.2'
-    debugImplementation "androidx.compose.ui:ui-test-manifest:1.3.0-beta03"
-    debugImplementation "androidx.compose.ui:ui-tooling:1.3.0-beta03"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:1.3.0-rc01"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.3.0-rc01"
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.3.0-beta03"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.3.0-rc01"
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
@@ -110,8 +110,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
-    // dutapi-library/dutapi.java from GitHub (from JitPack.io)
-    implementation 'com.github.dutapi-library:dutapi.java:1.7.3'
+    // com.github.dutwrapper-lib:java from GitHub (from JitPack.io)
+    implementation 'com.github.dutwrapper-lib:java:1.7.4'
 
     // Google Dagger/Hilt
     implementation "com.google.dagger:hilt-android:2.43.2"

@@ -3,6 +3,41 @@
 - This will save add developer log for this application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow5466/SubjectNotifier/commits](https://github.com/ZoeMeow5466/SubjectNotifier/commits).
 
+## 1.0-beta11 (532)
+
+### What's changed:
+- Updated implementations to latest.
+
+### Fixed:
+- Fixed issue in #12
+
+## 1.0-beta10 (528)
+
+### Important notes
+
+- Renamed app package to "io.zoemeow.subjectnotifier".
+
+### What's changed (general)
+- Just rename package and optimize codes.
+
+### What's changed (technically information)
+- androidx.compose.material3:material3 fixed in 1.0.0-beta3.
+- Moved from SmallTopAppBar (as deprecated in 1.0.0-beta3) to TopAppBar.
+- Addressed a issue cause logged in account won't preload in "Account" tab.
+- Created BaseBroadcastReceiver.
+- Renamed AccountServiceCode to ServiceCode.
+- Updated implements.
+- Fully converted to receive news data with NewsBroadcastServer.
+- Deleted NewsDataStore and Old news service.
+- Deleted old news service.
+- Adjust algorithms for better news loading performance.
+- [Android 13] Added app language support in Android Settings.
+- Enabled in build.gradle: shrinkResources and minifyEnabled.
+- MainActivityTheme is now directly load drawable (without MainViewModel).
+- Renamed ServiceCode to ServiceBroadcastOptions.
+- AppBroadcastReceiver2 will replace AppBroadcastReceiver. However, this won't ready yet.
+- Implements all activity to using BaseActivity.
+
 ## 1.0-beta9 (518)
 
 ### Important notes

@@ -41,7 +41,7 @@ For Powershell: ./gradlew build
 
 - Navigate to settings, find application and delete app cache. App needs to be closed to completely cleared news cache.
 
-### I'm got issue with this app. Which place can I retroduce issue for you?
+### I'm got issue with this app. Which place can I reproduce issue for you?
 
 - You can report issue via Issue tab on this repository. Thank you for your support!
 
