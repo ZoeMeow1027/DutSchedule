@@ -2,6 +2,7 @@ package io.zoemeow.subjectnotifier.view.settings
 
 import android.Manifest
 import android.content.Intent
+import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -9,19 +10,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import io.zoemeow.subjectnotifier.view.MainActivity
-import io.zoemeow.subjectnotifier.view.PermissionRequestActivity
 import io.zoemeow.subjectnotifier.R
 import io.zoemeow.subjectnotifier.model.appsettings.AppSettings
 import io.zoemeow.subjectnotifier.model.appsettings.BackgroundImage
 import io.zoemeow.subjectnotifier.model.enums.BackgroundImageType
+import io.zoemeow.subjectnotifier.view.MainActivity
+import io.zoemeow.subjectnotifier.view.PermissionRequestActivity
 import io.zoemeow.subjectnotifier.viewmodel.MainViewModel
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -30,12 +29,33 @@ fun SettingsBackgroundImage(
     enabled: MutableState<Boolean>,
     mainViewModel: MainViewModel,
 ) {
-    val optionList = listOf(
-        stringResource(id = R.string.settings_backgroundimage_none),
-        stringResource(id = R.string.settings_backgroundimage_fromsystem),
-        stringResource(id = R.string.settings_backgroundimage_specific),
+    data class AvailableOptions(
+        val index: Int,
+        val name: String,
+        val enabled: Boolean,
+        val msgIfDisabled: String? = null,
     )
-    val selectedOptionList = remember { mutableStateOf("") }
+
+    val optionList: ArrayList<AvailableOptions> = arrayListOf(
+        AvailableOptions(
+            index = 0,
+            name = stringResource(id = R.string.settings_backgroundimage_none),
+            enabled = true,
+        ),
+        AvailableOptions(
+            index = 1,
+            name = stringResource(id = R.string.settings_backgroundimage_fromsystem),
+            enabled = (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU),
+            msgIfDisabled = stringResource(id = R.string.settings_backgroundimage_fromsystem_disabledreason)
+        ),
+        AvailableOptions(
+            index = 2,
+            name = stringResource(id = R.string.settings_backgroundimage_specific),
+            enabled = false,
+            msgIfDisabled = stringResource(id = R.string.settings_backgroundimage_specific_disabledreason),
+        ),
+    )
+    val selectedOptionList = remember { mutableStateOf(optionList[0]) }
     val activity = (LocalContext.current) as MainActivity
 
     LaunchedEffect(enabled.value) {
@@ -106,45 +126,61 @@ fun SettingsBackgroundImage(
                     horizontalAlignment = Alignment.Start
                 ) {
                     optionList.forEach { option ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (optionList.indexOf(option) <= 1) {
+                        fun optionClick() {
+                            if (option.enabled) {
+                                when (option.index) {
+                                    0, 1 -> {
                                         selectedOptionList.value = option
                                         commitChanges()
                                     }
-                                }
-                        ) {
-                            RadioButton(
-                                selected = (option == selectedOptionList.value),
-                                onClick = {
-                                    if (optionList.indexOf(option) <= 1) {
-                                        selectedOptionList.value = option
-                                        commitChanges()
+                                    else -> {
+
                                     }
                                 }
-                            )
-                            Spacer(modifier = Modifier.size(5.dp))
-                            Text(text = option)
+                            }
                         }
-                    }
-                    Spacer(modifier = Modifier.size(15.dp))
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                    ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
-                            contentDescription = "info_icon",
-                            tint = if (mainViewModel.isDarkTheme.value) Color.White else Color.Black
-                        )
-                        Text(stringResource(id = R.string.settings_backgroundimage_note))
+
+                        Column(
+                            modifier = Modifier
+                                .clickable { optionClick() },
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                            ) {
+                                RadioButton(
+                                    selected = (option == selectedOptionList.value),
+                                    onClick = { optionClick() }
+                                )
+                                Spacer(modifier = Modifier.size(5.dp))
+                                Text(text = option.name)
+                            }
+
+                            if (!option.enabled) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                ) {
+                                    RadioButton(
+                                        modifier = Modifier.alpha(0f),
+                                        selected = false,
+                                        onClick = { }
+                                    )
+                                    Spacer(modifier = Modifier.size(5.dp))
+                                    Text(text = "${option.msgIfDisabled}")
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.size(5.dp))
+                        }
                     }
                 }
             }

@@ -75,7 +75,7 @@ class AppUtils {
         }
 
         fun calcMD5CharValue(input: String): Int {
-            var result: Int = 0
+            var result = 0
 
             val byteArray = input.toByteArray()
             byteArray.forEach {

@@ -239,12 +239,9 @@ fun Settings(
                 )
                 SettingsOptionItemClickable(
                     title = stringResource(id = R.string.settings_backgroundimage_name),
-                    description = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                        stringResource(id = R.string.settings_backgroundimage_disabledandroid13)
-                    else backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal],
+                    description = backgroundImageOptionList[mainViewModel.appSettings.value.backgroundImage.option.ordinal],
                     clickable = {
-                        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
-                            backgroundImageSettingsEnabled.value = true
+                        backgroundImageSettingsEnabled.value = true
                     }
                 )
                 CustomDivider()
