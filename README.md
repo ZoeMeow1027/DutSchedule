@@ -1,5 +1,7 @@
 # SubjectNotifier - App for Android
 
+## UPDATED 2023/07/15: This project has moved to [dutschedule](https://github.com/ZoeMeow1027/dutschedule-flutter).
+
 Just a Android app to view news from sv.dut.udn.vn, but optimized for a better experience for users on mobile instead of web.
 
 # Version
