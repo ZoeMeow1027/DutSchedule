@@ -1,14 +1,12 @@
-# SubjectNotifier - App for Android
+# DutSchedule
 
-## UPDATED 2023/07/15: This project has moved to [dutschedule](https://github.com/ZoeMeow1027/dutschedule-flutter).
-
-Just a Android app to view news from sv.dut.udn.vn, but optimized for a better experience for users on mobile instead of web.
+A unofficial Android app about Da Nang University of technology to provide better UI from [sv.dut.udn.vn](http://sv.dut.udn.vn) on mobile.
 
 # Version
 
-- Release [![https://github.com/ZoeMeow5466/SubjectNotifier](https://img.shields.io/github/v/release/ZoeMeow5466/SubjectNotifier)](https://github.com/ZoeMeow5466/DUTNotify/releases)
+- Release [![https://github.com/ZoeMeow1027/DutSchedule](https://img.shields.io/github/v/release/ZoeMeow1027/DutSchedule)](https://github.com/ZoeMeow1027/DutSchedule/releases)
 - You can [view change log](CHANGELOG.md) for this project.
-- Thanks [https://shields.io/](https://shields.io/) for providing badge for this project.
+- Badge provided by [https://shields.io/](https://shields.io/).
 
 # Features & Screenshots?
 
@@ -16,13 +14,13 @@ Just a Android app to view news from sv.dut.udn.vn, but optimized for a better e
 
 # Downloads
 
-- Navigate to release (at right of this README) or click [here](https://github.com/ZoeMeow5466/SubjectNotifier/releases) to download app.
+- Navigate to release (at right of this README) or click [here](https://github.com/ZoeMeow1027/DutSchedule/releases) to download app.
 
 # Build app yourself
 
-- If you open project with Android Studio, make sure your IDE support [Gradle 7.4.2 or latest](https://gradle.org/releases/). This can be fixed by upgrading your IDE. After that, just build and run app normally as you do with another Android project.
+- If you open project with Android Studio, make sure your IDE support [Gradle 8.0 or latest](https://gradle.org/releases/). This can be fixed by upgrading your IDE. After that, just build and run app normally as you do with another Android project.
 
-- If you want to build app without IDE, just type command as you build another gradle project (note that you need to install [Gradle 7.4.2 or latest](https://gradle.org/releases/) first, otherwise this didn't work):
+- If you want to build app without IDE, just type command as you build another gradle project (note that you need to install [Gradle 8.0 or latest](https://gradle.org/releases/) first, otherwise this didn't work):
 
 ```
 Build: gradlew build
@@ -33,7 +31,7 @@ For Powershell: ./gradlew build
 
 ### Where can I found app changelog?
 
-- https://github.com/ZoeMeow5466/SubjectNotifier/commits. You will need to change branch if you want to view changelog for beta/alpha/draft version.
+- [Here](https://github.com/ZoeMeow1027/DutSchedule/commits). You will need to change branch if you want to view changelog for stable/draft version.
 
 ### Why some news in application is different from sv.dut.udn.vn?
 
@@ -45,18 +43,7 @@ For Powershell: ./gradlew build
 
 ### I'm got issue with this app. Which place can I reproduce issue for you?
 
-- You can report issue via Issue tab on this repository. Thank you for your support!
+- You can report issue via [Issue tab](https://github.com/ZoeMeow1027/DutSchedule/issues) on this repository. Thank you for your support!
 
-# Copyright?
-
-- This project - DUT Notify - is not affiliated with Da Nang University of Technology.
-- DUT, Da Nang University of Technology, web materials and web contents are trademarks and copyrights of Da Nang University of Technology school.
-
-# Implementations
-
-- Material You (Material3) on Android 12 and up
-- [Google Accompanist](https://github.com/google/accompanist)
-- [Google Gson](https://github.com/google/gson)
-- [JSoup](https://github.com/jhy/jsoup/)
-- [KotlinX-DateTime](https://github.com/Kotlin/kotlinx-datetime)
-- [Retrofit](https://github.com/square/retrofit)
+# Credits and Copyright?
+- [Navigate here](CHANGELOG.md).
