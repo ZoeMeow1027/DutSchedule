@@ -5,13 +5,13 @@ import java.io.Serializable
 
 data class AccountSession(
     @SerializedName("account.session.auth")
-    var accountAuth: AccountAuth = AccountAuth(),
+    val accountAuth: AccountAuth = AccountAuth(),
 
     @SerializedName("account.session.id")
-    var sessionId: String? = null,
+    val sessionId: String? = null,
 
     @SerializedName("account.session.lastrequest")
-    var sessionLastRequest: Long = 0,
+    val sessionLastRequest: Long = 0,
 ): Serializable {
     fun clone(
         accountAuth: AccountAuth? = null,

@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.activity
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -30,7 +31,7 @@ import io.zoemeow.dutschedule.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-abstract class BaseActivity : ComponentActivity() {
+abstract class BaseActivity: ComponentActivity() {
     companion object {
         private lateinit var mainViewModel: MainViewModel
 
@@ -43,6 +44,8 @@ abstract class BaseActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        permitAllPolicy()
+
         setContent {
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
@@ -120,6 +123,10 @@ abstract class BaseActivity : ComponentActivity() {
         return mainViewModel
     }
 
+    fun saveSettings() {
+        mainViewModel.saveSettings()
+    }
+
     fun showSnackBar(
         text: String,
         clearPrevious: Boolean = false,
@@ -135,5 +142,17 @@ abstract class BaseActivity : ComponentActivity() {
                     duration = SnackbarDuration.Short
                 )
         }
+    }
+
+    /**
+     * This will bypass network on main thread exception.
+     * Use this at your own risk.
+     * Target: OkHttp3
+     *
+     * Source: https://blog.cpming.top/p/android-os-networkonmainthreadexception
+     */
+    private fun permitAllPolicy() {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
     }
 }

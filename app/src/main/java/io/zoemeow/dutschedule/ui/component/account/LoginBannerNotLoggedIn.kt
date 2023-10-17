@@ -20,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -34,10 +33,9 @@ fun LoginBannerNotLoggedIn(
     schoolYear: Int? = null,
 ) {
     Surface(
-        modifier = Modifier
-            .padding(padding)
-            .clip(RoundedCornerShape(7.dp)),
+        modifier = Modifier.padding(padding),
         color = MaterialTheme.colorScheme.secondaryContainer,
+        shape = RoundedCornerShape(7.dp),
         content = {
             Row(
                 modifier = Modifier

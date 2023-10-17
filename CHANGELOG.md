@@ -1,11 +1,11 @@
 # DutSchedule - CHANGELOG
 
-- This will save add developer log for this application. Feel free to report issues, fork or contribute this project :))
+- This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
 ## 2.0-draft1 (540)
 - A experiment UI and re-coding this app were applied, but not working yet.
-- Renamed app package to io.zoemeow.dutschedule.
+- Renamed app package to "io.zoemeow.dutschedule".
 
 ## 1.0-beta11 (532)
 

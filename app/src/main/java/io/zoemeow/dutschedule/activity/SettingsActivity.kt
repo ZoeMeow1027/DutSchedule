@@ -139,7 +139,7 @@ class SettingsActivity : BaseActivity() {
                                     getMainViewModel().appSettings.value.clone(
                                         blackBackground = value
                                     )
-                                getMainViewModel().saveSettings()
+                                saveSettings()
                             }
                         )
                         OptionItem(
@@ -162,7 +162,7 @@ class SettingsActivity : BaseActivity() {
                                     getMainViewModel().appSettings.value.clone(
                                         openLinkInsideApp = value
                                     )
-                                getMainViewModel().saveSettings()
+                                saveSettings()
                             }
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
@@ -215,7 +215,7 @@ class SettingsActivity : BaseActivity() {
                     themeMode = themeMode,
                     dynamicColor = dynamicColor
                 )
-                getMainViewModel().saveSettings()
+                saveSettings()
             }
         )
         BackHandler(

@@ -118,6 +118,10 @@ dependencies {
     implementation 'androidx.browser:browser:1.7.0-alpha01'
 
     implementation files('libs/dutwrapper_java-1.7.5.jar')
+
+
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.11'
 }
 
 // Allow references to generated code

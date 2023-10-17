@@ -32,7 +32,7 @@ import io.zoemeow.dutschedule.ui.component.base.DialogBase
 
 @Composable
 fun LoginDialog(
-    loginClicked: (String, String) -> Unit,
+    loginClicked: (String, String, Boolean) -> Unit,
     cancelRequested: () -> Unit,
     canDismiss: Boolean = false,
     dismissClicked: (() -> Unit)? = null,
@@ -99,7 +99,7 @@ fun LoginDialog(
                     ),
                     keyboardActions = KeyboardActions(
                         onGo = {
-                            loginClicked(username.value, password.value)
+                            loginClicked(username.value, password.value, rememberLogin.value)
                         }
                     )
                 )
@@ -126,7 +126,7 @@ fun LoginDialog(
         },
         actionButtons = {
             TextButton(
-                onClick = { loginClicked(username.value, password.value) },
+                onClick = { loginClicked(username.value, password.value, rememberLogin.value) },
                 content = { Text("Login") },
             )
             TextButton(

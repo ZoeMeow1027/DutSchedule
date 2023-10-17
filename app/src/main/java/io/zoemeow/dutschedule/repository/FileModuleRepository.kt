@@ -3,6 +3,7 @@ package io.zoemeow.dutschedule.repository
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import java.io.File
 
@@ -38,6 +39,30 @@ class FileModuleRepository(
         } catch (ex: Exception) {
             ex.printStackTrace()
             return AppSettings()
+        }
+    }
+
+    fun saveAccountSession(
+        accountSession: AccountSession
+    ) {
+        val file = File(PATH_ACCOUNT)
+        file.writeText(Gson().toJson(accountSession))
+    }
+
+    fun getAccountSession(): AccountSession {
+        val file = File(PATH_ACCOUNT)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val accountSession =
+                    Gson().fromJson<AccountSession>(text, (object : TypeToken<AccountSession>() {}.type))
+                this.close()
+
+                return accountSession
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return AccountSession()
         }
     }
 }
