@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -93,7 +94,8 @@ fun DialogBase(
                                     Text(
                                         title,
                                         style = TextStyle(fontSize = 27.sp),
-                                        modifier = Modifier.padding(bottom = 15.dp)
+                                        modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
+                                        textAlign = if (isTitleCentered) TextAlign.Center else TextAlign.Start
                                     )
                                 }
                                 content()

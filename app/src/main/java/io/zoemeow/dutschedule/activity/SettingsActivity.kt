@@ -28,6 +28,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,8 +40,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
+import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
+import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterAddManually
+import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterClearAll
+import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterCurrentFilter
 import io.zoemeow.dutschedule.ui.component.settings.DividerItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionHeaderItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionItem
@@ -49,10 +55,25 @@ import io.zoemeow.dutschedule.utils.OpenLink
 
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun OnMainView(padding: PaddingValues) {
+        when (intent.action) {
+            "news_filter" -> {
+                NewsFilterSettingsView()
+            }
+            else -> {
+                MainView()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun MainView() {
         val dialogAppTheme: MutableState<Boolean> = remember { mutableStateOf(false) }
+        val dialogBackground: MutableState<Boolean> = remember { mutableStateOf(false) }
+        val context = LocalContext.current
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
@@ -77,9 +98,10 @@ class SettingsActivity : BaseActivity() {
                 )
             },
             content = {
-                val context = LocalContext.current
                 Column(
-                    modifier = Modifier.padding(it).verticalScroll(rememberScrollState()),
+                    modifier = Modifier
+                        .padding(it)
+                        .verticalScroll(rememberScrollState()),
                     content = {
                         OptionHeaderItem(
                             text = "News",
@@ -103,7 +125,9 @@ class SettingsActivity : BaseActivity() {
                             description = "Make your filter to only receive your subject news.",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = {
-                                context.startActivity(Intent(context, SettingsNewsFilterActivity::class.java))
+                                val intent = Intent(context, SettingsActivity::class.java)
+                                intent.action = "news_filter"
+                                context.startActivity(intent)
                             }
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
@@ -144,8 +168,13 @@ class SettingsActivity : BaseActivity() {
                         )
                         OptionItem(
                             title = "Background image",
-                            description = "None",
+                            description = when (getMainViewModel().appSettings.value.backgroundImage) {
+                                BackgroundImageOption.None -> "None"
+                                BackgroundImageOption.YourWallpaper -> "Your current wallpaper"
+                                BackgroundImageOption.ChooseFromFile -> "Pick a file"
+                            },
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                            clicked = { dialogBackground.value = true }
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                         OptionHeaderItem(
@@ -181,7 +210,7 @@ class SettingsActivity : BaseActivity() {
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = {
                                 OpenLink(
-                                    url = "https://github.com/ZoeMeow1027/SubjectNotifier/blob/stable/CHANGELOG.md",
+                                    url = "https://github.com/ZoeMeow1027/DutSchedule/blob/stable/CHANGELOG.md",
                                     context = context,
                                     customTab = getMainViewModel().appSettings.value.openLinkInsideApp,
                                 )
@@ -189,11 +218,11 @@ class SettingsActivity : BaseActivity() {
                         )
                         OptionItem(
                             title = "GitHub (click to open link)",
-                            description = "https://github.com/ZoeMeow1027/SubjectNotifier",
+                            description = "https://github.com/ZoeMeow1027/DutSchedule",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = {
                                 OpenLink(
-                                    url = "https://github.com/ZoeMeow1027/SubjectNotifier",
+                                    url = "https://github.com/ZoeMeow1027/DutSchedule",
                                     context = context,
                                     customTab = getMainViewModel().appSettings.value.openLinkInsideApp,
                                 )
@@ -218,12 +247,91 @@ class SettingsActivity : BaseActivity() {
                 saveSettings()
             }
         )
-        BackHandler(
-            enabled = dialogAppTheme.value,
-            onBack = {
-                if (dialogAppTheme.value) {
-                    dialogAppTheme.value = false
+        DialogSettingAppBackground(
+            backgroundValue = getMainViewModel().appSettings.value.backgroundImage,
+            isVisible = dialogBackground.value,
+            manageStorageGranted = PermissionRequestActivity.isPermissionGranted(
+                PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
+                context = context
+            ),
+            dismissRequested = {
+                dialogBackground.value = false
+            },
+            onValueClicked = {
+                when (it) {
+                    BackgroundImageOption.None -> {
+                        getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                            backgroundImage = it
+                        )
+                    }
+                    BackgroundImageOption.YourWallpaper -> {
+                        // When active
+                        if (PermissionRequestActivity.isPermissionGranted(
+                                PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
+                                context = context
+                            )) {
+                            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                                backgroundImage = it
+                            )
+                        }
+                    }
+                    else -> { }
                 }
+                saveSettings()
+            }
+        )
+        BackHandler(
+            enabled = dialogAppTheme.value || dialogBackground.value,
+            onBack = {
+                dialogAppTheme.value = false
+                dialogBackground.value = false
+            }
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun NewsFilterSettingsView() {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("News filter settings") },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_OK)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                )
+            },
+            content = {
+                val tabIndex = remember { mutableIntStateOf(1) }
+
+                Column(
+                    modifier = Modifier.padding(it),
+                    content = {
+                        NewsFilterCurrentFilter()
+                        NewsFilterAddManually(
+                            expanded = tabIndex.intValue == 1,
+                            onExpanded = { tabIndex.intValue = 1 }
+                        )
+                        NewsFilterClearAll(
+                            expanded = tabIndex.intValue == 2,
+                            onExpanded = { tabIndex.intValue = 2 }
+                        )
+                    }
+                )
             }
         )
     }
@@ -299,6 +407,51 @@ class SettingsActivity : BaseActivity() {
                     modifier = Modifier.padding(start = 8.dp),
                 )
             },
+        )
+    }
+
+    @Composable
+    private fun DialogSettingAppBackground(
+        isVisible: Boolean = false,
+        manageStorageGranted: Boolean = false,
+        dismissRequested: (() -> Unit)? = null,
+        backgroundValue: BackgroundImageOption,
+        onValueClicked: ((BackgroundImageOption) -> Unit)? = null
+    ) {
+        DialogBase(
+            title = "App background",
+            padding = PaddingValues(15.dp),
+            isVisible = isVisible,
+            canDismiss = true,
+            isTitleCentered = true,
+            dismissClicked = {
+                dismissRequested?.let { it() }
+            },
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    DialogRadioButton(
+                        title = "None",
+                        selected = backgroundValue == BackgroundImageOption.None,
+                        onClick = { onValueClicked?.let { it(BackgroundImageOption.None) } }
+                    )
+                    DialogRadioButton(
+                        title = "Your current wallpaper${if (!manageStorageGranted) "\n(You might need to grant access all file permission)" else ""}",
+                        selected = backgroundValue == BackgroundImageOption.YourWallpaper,
+                        onClick = { onValueClicked?.let { it(BackgroundImageOption.YourWallpaper) } }
+                    )
+                }
+            },
+            actionButtons = {
+                TextButton(
+                    onClick = { dismissRequested?.let { it() } },
+                    content = { Text("Cancel") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
         )
     }
 

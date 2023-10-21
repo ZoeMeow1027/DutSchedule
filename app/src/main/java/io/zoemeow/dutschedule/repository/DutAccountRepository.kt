@@ -6,13 +6,12 @@ import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectFeeItem
 import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
+import io.zoemeow.dutschedule.utils.GlobalVariable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DutAccountRepository {
-    private val SESSIONID_DURATION = 1000 * 60 * 30
-
     /**
      * Detect if a account existed in account session.
      *
@@ -41,7 +40,7 @@ class DutAccountRepository {
         onSessionChanged: ((String?, Long?) -> Unit)? = null
     ): Boolean {
         return when {
-            (accountSession.sessionId != null && System.currentTimeMillis() - accountSession.sessionLastRequest >= SESSIONID_DURATION && Account.isLoggedIn(accountSession.sessionId) && !forceLogin) -> true
+            (accountSession.sessionId != null && System.currentTimeMillis() - accountSession.sessionLastRequest >= GlobalVariable.SESSIONID_DURATION && Account.isLoggedIn(accountSession.sessionId) && !forceLogin) -> true
             (accountSession.accountAuth.username != null && accountSession.accountAuth.password != null) -> {
                 val sessionId = generateNewSessionId()
                 val timestamp = System.currentTimeMillis()

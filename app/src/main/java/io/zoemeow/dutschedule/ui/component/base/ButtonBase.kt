@@ -25,6 +25,7 @@ fun ButtonBase(
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     cornerSize: Dp = 5.dp,
     modifier: Modifier? = null,
+    modifierInside: Modifier? = null,
 ) {
     Surface(
         modifier = (modifier ?: Modifier)
@@ -39,7 +40,7 @@ fun ButtonBase(
             Row(
                 horizontalArrangement = horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
+                modifier = (modifierInside ?: Modifier).padding(vertical = 8.dp, horizontal = 12.dp),
                 content = content,
             )
         },

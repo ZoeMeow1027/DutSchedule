@@ -59,13 +59,6 @@
             android:label="Settings"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
-        <activity
-            android:name=".activity.SettingsNewsFilterActivity"
-            android:exported="false"
-            android:label="News Filter Settings"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.DutSchedule"
-            android:windowSoftInputMode="adjustResize" />
     </application>
 
 </manifest>

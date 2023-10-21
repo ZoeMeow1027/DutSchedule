@@ -3,6 +3,10 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft2 (600)
+- Rollback Account feature, app theme, and more in settings.
+- Update dependencies to latest.
+
 ## 2.0-draft1 (540)
 - A experiment UI and re-coding this app were applied, but not working yet.
 - Renamed app package to "io.zoemeow.dutschedule".
