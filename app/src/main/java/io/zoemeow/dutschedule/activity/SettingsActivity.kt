@@ -26,6 +26,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,6 +81,7 @@ class SettingsActivity : BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Settings") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -298,6 +300,7 @@ class SettingsActivity : BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("News filter settings") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {

@@ -23,6 +23,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +82,7 @@ class AccountActivity: BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Subject schedule") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -180,6 +183,7 @@ class AccountActivity: BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Subject fee") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -269,6 +273,7 @@ class AccountActivity: BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Basic Information") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -396,6 +401,7 @@ class AccountActivity: BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text("Account") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -430,9 +436,10 @@ class AccountActivity: BaseActivity() {
                                 )
                             }
                             ProcessState.Running -> {
-                                Box(
+                                Column(
                                     modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
                                     content = {
                                         CircularProgressIndicator()
                                     }

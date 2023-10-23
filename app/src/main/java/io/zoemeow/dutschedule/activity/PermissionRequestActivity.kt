@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
@@ -81,6 +82,7 @@ class PermissionRequestActivity : BaseActivity() {
             topBar = {
                 TopAppBar(
                     title = { Text(text = "Permission request") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -119,7 +121,7 @@ class PermissionRequestActivity : BaseActivity() {
                         Text(
                             "Below is all permissions requested by this app. Click a permission to grant that. " +
                                     "You can deny some permissions if you don't need some app features by open Android app settings.",
-                            modifier = Modifier.padding(bottom = 20.dp),
+                            modifier = Modifier.padding(vertical = 10.dp),
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Column(
