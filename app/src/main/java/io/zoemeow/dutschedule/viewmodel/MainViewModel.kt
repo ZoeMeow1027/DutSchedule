@@ -1,6 +1,8 @@
 package io.zoemeow.dutschedule.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,11 +17,13 @@ import io.zoemeow.dutschedule.model.VariableTimestamp
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
+import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.repository.DutAccountRepository
+import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
-import io.zoemeow.dutschedule.utils.GlobalVariable
+import io.zoemeow.dutschedule.util.GlobalVariables
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,18 +31,20 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val fileModuleRepository: FileModuleRepository,
     private val dutAccountRepository: DutAccountRepository,
+    private val application: Application
 ) : ViewModel() {
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
     val accountSession: MutableState<VariableTimestamp<AccountSession>> = mutableStateOf(
         VariableTimestamp(data = AccountSession())
     )
 
-    val newsGlobal: MutableState<VariableTimestamp<List<NewsGroupByDate<NewsGlobalItem>>?>> = mutableStateOf(
-        VariableTimestamp(data = null)
+    val newsGlobal: MutableState<VariableTimestamp<NewsCache<NewsGlobalItem>>> = mutableStateOf(
+        VariableTimestamp(data = NewsCache())
     )
-    val newsSubject: MutableState<VariableTimestamp<List<NewsGroupByDate<NewsSubjectItem>>?>> = mutableStateOf(
-        VariableTimestamp(data = null)
+    val newsSubject: MutableState<VariableTimestamp<NewsCache<NewsSubjectItem>>> = mutableStateOf(
+        VariableTimestamp(data = NewsCache())
     )
+
     val subjectSchedule: MutableState<VariableTimestamp<List<SubjectScheduleItem>?>> = mutableStateOf(
         VariableTimestamp(data = null)
     )
@@ -63,7 +69,7 @@ class MainViewModel @Inject constructor(
 
         // If ProcessState.Successful and last run doesn't last 5 minutes, ignore.
         // Otherwise will continue
-        if (accountSession.value.processState == ProcessState.Successful && !GlobalVariable.isExpired(accountSession.value.timestamp)) {
+        if (accountSession.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountSession.value.timestamp)) {
             // After run
             after?.let { it(accountSession.value.processState == ProcessState.Successful) }
 
@@ -149,7 +155,7 @@ class MainViewModel @Inject constructor(
         after: ((Boolean) -> Unit)? = null
     ) {
         // If current process is running, ignore this run.
-        if (subjectSchedule.value.processState == ProcessState.Successful && !GlobalVariable.isExpired(subjectSchedule.value.timestamp)) {
+        if (subjectSchedule.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectSchedule.value.timestamp)) {
             // After run
             after?.let { it(true) }
 
@@ -171,7 +177,7 @@ class MainViewModel @Inject constructor(
         subjectSchedule.value = subjectSchedule.value.clone(
             data = response,
             processState = if (response != null) ProcessState.Successful else ProcessState.Failed,
-            timestamp = GlobalVariable.currentTimestampInMilliseconds()
+            timestamp = GlobalVariables.currentTimestampInMilliseconds()
         )
 
         // Save settings
@@ -186,7 +192,7 @@ class MainViewModel @Inject constructor(
         after: ((Boolean) -> Unit)? = null
     ) {
         // If current process is running, ignore this run.
-        if (subjectFee.value.processState == ProcessState.Successful && !GlobalVariable.isExpired(subjectFee.value.timestamp)) {
+        if (subjectFee.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectFee.value.timestamp)) {
             // After run
             after?.let { it(true) }
 
@@ -208,7 +214,7 @@ class MainViewModel @Inject constructor(
         subjectFee.value = subjectFee.value.clone(
             data = response,
             processState = if (response != null) ProcessState.Successful else ProcessState.Failed,
-            timestamp = GlobalVariable.currentTimestampInMilliseconds()
+            timestamp = GlobalVariables.currentTimestampInMilliseconds()
         )
 
         // Save settings
@@ -223,7 +229,7 @@ class MainViewModel @Inject constructor(
         after: ((Boolean) -> Unit)? = null
     ) {
         // If current process is running, ignore this run.
-        if (accountInformation.value.processState == ProcessState.Successful && !GlobalVariable.isExpired(accountInformation.value.timestamp)) {
+        if (accountInformation.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountInformation.value.timestamp)) {
             // After run
             after?.let { it(true) }
 
@@ -244,7 +250,7 @@ class MainViewModel @Inject constructor(
         accountInformation.value = accountInformation.value.clone(
             data = response,
             processState = if (response != null) ProcessState.Successful else ProcessState.Failed,
-            timestamp = GlobalVariable.currentTimestampInMilliseconds()
+            timestamp = GlobalVariables.currentTimestampInMilliseconds()
         )
 
         // Save settings
@@ -261,13 +267,137 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    init {
+    private fun loadNewsCache() {
         viewModelScope.launch {
-            appSettings.value = fileModuleRepository.getAppSettings()
-            accountSession.value = VariableTimestamp(
-                timestamp = 0,
-                data = fileModuleRepository.getAccountSession()
+            fileModuleRepository.getCacheNewsGlobal().also {
+                newsGlobal.value = newsGlobal.value.clone(
+                    data = it
+                )
+            }
+            fileModuleRepository.getCacheNewsSubject().also {
+                newsSubject.value = newsSubject.value.clone(
+                    data = it
+                )
+            }
+        }
+    }
+
+    fun fetchNewsGlobal(
+        newsPageType: Int = 0,
+        page: Int = 1
+    ) {
+        viewModelScope.launch {
+            newsGlobal.value = newsGlobal.value.clone(
+                processState = ProcessState.Running
+            )
+
+            // Get news from internet
+            val newsFromInternet = DutNewsRepository.getNewsGlobal(
+                page = when (newsPageType) {
+                    0 -> newsGlobal.value.data.pageCurrent
+                    2 -> page
+                    1, 3 -> 1
+                    else -> 1
+                }
+            )
+
+            // If requested, clear cache
+            if (newsPageType == 3) {
+                newsGlobal.value.data.newsListByDate.clear()
+            }
+
+            val newsDiff = DutNewsRepository.getNewsGlobalDiff(
+                source = newsGlobal.value.data.newsListByDate,
+                target = newsFromInternet,
+            )
+
+            DutNewsRepository.addAndCheckDuplicateNewsGlobal(
+                source = newsGlobal.value.data.newsListByDate,
+                target = newsDiff,
+                addItemToTop = newsPageType != 0
+            )
+
+            when (newsPageType) {
+                0 -> {
+                    newsGlobal.value.data.pageCurrent += 1
+                }
+                1 -> {
+                    if (newsGlobal.value.data.pageCurrent <= 1)
+                        newsGlobal.value.data.pageCurrent += 1
+                }
+                3 -> {
+                    newsGlobal.value.data.pageCurrent = 2
+                }
+            }
+            fileModuleRepository.saveCacheNewsGlobal(newsGlobal.value.data)
+        }.invokeOnCompletion {
+            newsGlobal.value = newsGlobal.value.clone(
+                processState = if (it != null) ProcessState.Successful else ProcessState.Failed
             )
         }
+    }
+
+    fun fetchNewsSubject(
+        newsPageType: Int = 0,
+        page: Int = 1
+    ) {
+        viewModelScope.launch {
+            newsSubject.value = newsSubject.value.clone(
+                processState = ProcessState.Running
+            )
+
+            // Get news from internet
+            val newsFromInternet = DutNewsRepository.getNewsSubject(
+                page = when (newsPageType) {
+                    0 -> newsSubject.value.data.pageCurrent
+                    2 -> page
+                    1, 3 -> 1
+                    else -> 1
+                }
+            )
+
+            // If requested, clear cache
+            if (newsPageType == 3) {
+                newsSubject.value.data.newsListByDate.clear()
+            }
+
+            val newsDiff = DutNewsRepository.getNewsSubjectDiff(
+                source = newsSubject.value.data.newsListByDate,
+                target = newsFromInternet,
+            )
+
+            DutNewsRepository.addAndCheckDuplicateNewsSubject(
+                source = newsSubject.value.data.newsListByDate,
+                target = newsDiff,
+                addItemToTop = newsPageType != 0
+            )
+
+            when (newsPageType) {
+                0 -> {
+                    newsSubject.value.data.pageCurrent += 1
+                }
+                1 -> {
+                    if (newsSubject.value.data.pageCurrent <= 1)
+                        newsSubject.value.data.pageCurrent += 1
+                }
+                3 -> {
+                    newsSubject.value.data.pageCurrent = 2
+                }
+            }
+            fileModuleRepository.saveCacheNewsSubject(newsSubject.value.data)
+        }.invokeOnCompletion {
+            newsSubject.value = newsSubject.value.clone(
+                processState = if (it != null) ProcessState.Successful else ProcessState.Failed
+            )
+        }
+    }
+
+    init {
+        appSettings.value = fileModuleRepository.getAppSettings()
+        accountSession.value = VariableTimestamp(
+            timestamp = 0,
+            data = fileModuleRepository.getAccountSession()
+        )
+        loadNewsCache()
     }
 }

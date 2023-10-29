@@ -1,6 +1,6 @@
 package io.zoemeow.dutschedule.model
 
-enum class ProcessState(value: Int) {
+enum class ProcessState(val value: Int) {
     NotRunYet(-1),
     Running(0),
     Failed(1),

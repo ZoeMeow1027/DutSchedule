@@ -15,6 +15,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -26,7 +27,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
-import io.zoemeow.dutschedule.utils.BackgroundImageUtils
+import io.zoemeow.dutschedule.util.BackgroundImageUtils
 import io.zoemeow.dutschedule.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -47,8 +48,17 @@ abstract class BaseActivity: ComponentActivity() {
         permitAllPolicy()
 
         setContent {
+            snackbarHostState = remember { SnackbarHostState() }
+            snackbarScope = rememberCoroutineScope()
+            val loadScriptAtStartup = remember { mutableStateOf(true) }
+
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
+            }
+
+            if (loadScriptAtStartup.value) {
+                OnPreloadOnce()
+                loadScriptAtStartup.value = false
             }
 
             DutScheduleTheme(
@@ -59,19 +69,11 @@ abstract class BaseActivity: ComponentActivity() {
                 },
                 dynamicColor = mainViewModel.appSettings.value.dynamicColor,
                 content = {
-                    snackbarHostState = remember { SnackbarHostState() }
-                    snackbarScope = rememberCoroutineScope()
                     val context = LocalContext.current
 
                     var draw: Bitmap? = null
                     when (mainViewModel.appSettings.value.backgroundImage) {
-                        BackgroundImageOption.YourWallpaper -> {
-                            try {
-                                draw = BackgroundImageUtils.getCurrentWallpaperBackground(context)
-                            } catch (_: Exception) {
-                                // TODO: Missing permissions MANAGE_EXTERNAL_STORAGE
-                            }
-                        }
+                        BackgroundImageOption.YourWallpaper -> draw = BackgroundImageUtils.getCurrentWallpaperBackground(context)
                         else -> { }
                     }
                     if (draw != null) {
@@ -92,8 +94,12 @@ abstract class BaseActivity: ComponentActivity() {
                                 }
                                 false -> MaterialTheme.colorScheme.background
                             }
-                            BackgroundImageOption.YourWallpaper -> MaterialTheme.colorScheme.background.copy(alpha = 0.8f)
-                            BackgroundImageOption.ChooseFromFile -> MaterialTheme.colorScheme.background.copy(alpha = 0.8f)
+                            BackgroundImageOption.YourWallpaper -> MaterialTheme.colorScheme.background.copy(
+                                alpha = getMainViewModel().appSettings.value.backgroundImageOpacity
+                            )
+                            BackgroundImageOption.ChooseFromFile -> MaterialTheme.colorScheme.background.copy(
+                                alpha = getMainViewModel().appSettings.value.backgroundImageOpacity
+                            )
                         },
                         contentColor = if (isAppInDarkMode()) Color.White else Color.Black,
                         content = {
@@ -115,6 +121,9 @@ abstract class BaseActivity: ComponentActivity() {
             ThemeMode.FollowDeviceTheme -> isSystemInDarkTheme()
         }
     }
+
+    @Composable
+    abstract fun OnPreloadOnce()
 
     @Composable
     abstract fun OnMainView(padding: PaddingValues)

@@ -3,6 +3,14 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft4 (640)
+- Improve app performance.
+- News activity works (but not fully functionally yet).
+- News service (just test, not ready yet).
+
+## 2.0-draft3 (604)
+- Improve app performance.
+
 ## 2.0-draft2 (600)
 - Rollback Account feature, app theme, and more in settings.
 - Update dependencies to latest.

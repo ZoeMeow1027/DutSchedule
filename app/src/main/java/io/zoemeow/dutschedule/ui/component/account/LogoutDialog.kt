@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.ui.component.account
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -19,7 +20,7 @@ fun LogoutDialog(
     dismissClicked: (() -> Unit)? = null,
 ) {
     DialogBase(
-        padding = PaddingValues(15.dp),
+        modifier = Modifier.fillMaxWidth().padding(25.dp),
         isVisible = isVisible,
         title = "Logout",
         canDismiss = canDismiss,

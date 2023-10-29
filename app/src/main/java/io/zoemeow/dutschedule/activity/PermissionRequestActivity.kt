@@ -43,6 +43,11 @@ class PermissionRequestActivity : BaseActivity() {
     private val recentPermissionRequestList = mutableStateListOf<Pair<String, Boolean>>()
 
     @Composable
+    override fun OnPreloadOnce() {
+
+    }
+
+    @Composable
     override fun OnMainView(padding: PaddingValues) {
         val context = LocalContext.current
         MainView(
@@ -81,7 +86,7 @@ class PermissionRequestActivity : BaseActivity() {
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text(text = "Permission request") },
+                    title = { Text(text = "Permissions request") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(

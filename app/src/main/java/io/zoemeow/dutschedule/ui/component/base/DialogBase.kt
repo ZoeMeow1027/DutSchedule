@@ -34,89 +34,76 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun DialogBase(
+    modifier: Modifier = Modifier.fillMaxWidth().padding(25.dp),
     content: @Composable () -> Unit,
     actionButtons: @Composable (RowScope.() -> Unit)? = null,
     title: String,
-    padding: PaddingValues = PaddingValues(0.dp),
     isVisible: Boolean = false,
     canDismiss: Boolean = true,
     dismissClicked: (() -> Unit)? = null,
     isTitleCentered: Boolean = false,
-    fillMaxWidth: Boolean = true,
-    fillMaxHeight: Boolean = false
 ) {
-    val modifier: MutableState<Modifier> = remember {
-        mutableStateOf(
-            Modifier.padding(padding)
-        )
-    }
     val interactionSource = remember { MutableInteractionSource() }
 
-    modifier.value =
-        if (fillMaxWidth) modifier.value.fillMaxWidth() else modifier.value.wrapContentWidth()
-    modifier.value =
-        if (fillMaxHeight) modifier.value.fillMaxHeight() else modifier.value.wrapContentHeight()
-
-    AnimatedVisibility(
-        visible = isVisible,
-        enter = fadeIn(animationSpec = tween(200)),
-        exit = fadeOut(animationSpec = tween(200)),
-        content = {
-            Surface(
-                modifier = Modifier.fillMaxSize()
-                    .clickable(
+    if (isVisible) {
+        Dialog(
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = canDismiss,
+                usePlatformDefaultWidth = false
+            ),
+            onDismissRequest = {
+                if (canDismiss) dismissClicked?.let { it() }
+            },
+            content = {
+                Surface(
+                    modifier = modifier.clickable(
                         interactionSource = interactionSource,
                         indication = null,
-                    ) { if (canDismiss) dismissClicked?.let { it() } },
-                color = MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
-                content = {
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        shape = RoundedCornerShape(7.dp),
-                        modifier = modifier.value.clickable(
-                            interactionSource = interactionSource,
-                            indication = null,
-                        ) { },
-                        content = {
+                    ) { },
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = RoundedCornerShape(7.dp),
+                    content = {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.Top,
+                            modifier = Modifier.padding(20.dp),
+                        ) {
                             Column(
-                                horizontalAlignment = Alignment.Start,
+                                horizontalAlignment = if (isTitleCentered) Alignment.CenterHorizontally else Alignment.Start,
                                 verticalArrangement = Arrangement.Top,
-                                modifier = Modifier.padding(20.dp),
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
-                                Column(
-                                    horizontalAlignment = if (isTitleCentered) Alignment.CenterHorizontally else Alignment.Start,
-                                    verticalArrangement = Arrangement.Top,
-                                    modifier = Modifier.fillMaxWidth(),
-                                ) {
-                                    Text(
-                                        title,
-                                        style = TextStyle(fontSize = 27.sp),
-                                        modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
-                                        textAlign = if (isTitleCentered) TextAlign.Center else TextAlign.Start
-                                    )
-                                }
-                                content()
-                                actionButtons?.let {
-                                    Row(
-                                        horizontalArrangement = Arrangement.End,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight()
-                                            .padding(top = 10.dp),
-                                        content = it,
-                                    )
-                                }
+                                Text(
+                                    title,
+                                    style = TextStyle(fontSize = 27.sp),
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
+                                    textAlign = if (isTitleCentered) TextAlign.Center else TextAlign.Start
+                                )
                             }
-                        },
-                    )
-                }
-            )
-        }
-    )
+                            content()
+                            actionButtons?.let {
+                                Row(
+                                    horizontalArrangement = Arrangement.End,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight()
+                                        .padding(top = 10.dp),
+                                    content = it,
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        )
+    }
 }
 
 @Composable

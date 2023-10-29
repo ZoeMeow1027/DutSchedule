@@ -26,7 +26,7 @@ class DutNewsRepository {
         }
 
         fun getNewsGlobalDiff(
-            source: ArrayList<NewsGroupByDate<NewsGlobalItem>>,
+            source: List<NewsGroupByDate<NewsGlobalItem>>,
             target: ArrayList<NewsGlobalItem>
         ): ArrayList<NewsGlobalItem> {
             val result: ArrayList<NewsGlobalItem> = arrayListOf()

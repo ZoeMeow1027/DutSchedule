@@ -25,25 +25,45 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.service.BaseService
+import io.zoemeow.dutschedule.service.NewsService
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.main.SummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
+import io.zoemeow.dutschedule.util.NotificationsUtils
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
     @Composable
+    override fun OnPreloadOnce() {
+        applicationContext.run {
+            CoroutineScope(Dispatchers.IO).launch {
+                NotificationsUtils.initializeNotificationChannel(this@MainActivity)
+//                BaseService.startService(
+//                    context = applicationContext,
+//                    intent = Intent(applicationContext, NewsService::class.java).apply {
+//                        action = "news.service.action.fetchall"
+//                    }
+//                )
+            }
+        }
+    }
+
+    @Composable
     override fun OnMainView(padding: PaddingValues) {
         // A surface container using the 'background' color from the theme
-        val context = LocalContext.current
         MainView(
             newsClicked = {
                 this.startActivity(Intent(this, NewsActivity::class.java))
@@ -86,17 +106,6 @@ class MainActivity : BaseActivity() {
                             "Latest version: 1.0",
                     clicked = {},
                 )
-                SummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Missing some permissions",
-                    content = "Some features won't work correctly if you don't grant these permissions:\n\n" +
-                            "android.permissions.fewjfewojf\n" +
-                            "android.permissions.fewjfewojf\n" +
-                            "android.permissions.fewjfewojf",
-                    clicked = {
-                        context.startActivity(Intent(context, PermissionRequestActivity::class.java))
-                    },
-                )
             }
         )
     }
@@ -122,7 +131,9 @@ class MainActivity : BaseActivity() {
                 BottomAppBar(
                     actions = {
                         Row(
-                            modifier = Modifier.fillMaxWidth().wrapContentHeight(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                             content = {
@@ -134,7 +145,9 @@ class MainActivity : BaseActivity() {
                                         Icon(
                                             painter = painterResource(id = R.drawable.baseline_newspaper_24),
                                             "News",
-                                            modifier = Modifier.size(30.dp).padding(end = 7.dp),
+                                            modifier = Modifier
+                                                .size(30.dp)
+                                                .padding(end = 7.dp),
                                         )
                                         Text("News")
                                     }
@@ -150,7 +163,9 @@ class MainActivity : BaseActivity() {
                                         Icon(
                                             Icons.Outlined.AccountCircle,
                                             "",
-                                            modifier = Modifier.size(30.dp).padding(end = 7.dp),
+                                            modifier = Modifier
+                                                .size(30.dp)
+                                                .padding(end = 7.dp),
                                         )
                                         Text("Account")
                                     }
@@ -166,7 +181,9 @@ class MainActivity : BaseActivity() {
                                         Icon(
                                             Icons.Default.Settings,
                                             "",
-                                            modifier = Modifier.size(30.dp).padding(end = 7.dp),
+                                            modifier = Modifier
+                                                .size(30.dp)
+                                                .padding(end = 7.dp),
                                         )
                                         Text("Settings")
                                     }
@@ -178,7 +195,9 @@ class MainActivity : BaseActivity() {
             },
             content = { padding ->
                 Surface(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     color = Color.Transparent,
                     content = {
                         Column(

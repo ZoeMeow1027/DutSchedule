@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.ui.component.newsfilter
+package io.zoemeow.dutschedule.ui.component.settings.newsfilter
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

@@ -1,18 +1,22 @@
 package io.zoemeow.dutschedule.activity
 
+import io.zoemeow.dutschedule.BuildConfig
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -20,8 +24,10 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,17 +52,22 @@ import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
-import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterAddManually
-import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterClearAll
-import io.zoemeow.dutschedule.ui.component.newsfilter.NewsFilterCurrentFilter
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterAddManually
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterClearAll
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterCurrentFilter
 import io.zoemeow.dutschedule.ui.component.settings.DividerItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionHeaderItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionSwitchItem
-import io.zoemeow.dutschedule.utils.OpenLink
+import io.zoemeow.dutschedule.util.OpenLink
 
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity() {
+    @Composable
+    override fun OnPreloadOnce() {
+
+    }
+
     @Composable
     override fun OnMainView(padding: PaddingValues) {
         when (intent.action) {
@@ -180,8 +192,16 @@ class SettingsActivity : BaseActivity() {
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                         OptionHeaderItem(
-                            text = "Behavior",
+                            text = "Miscellaneous settings",
                             padding = PaddingValues(horizontal = 20.dp),
+                        )
+                        OptionItem(
+                            title = "Application permissions",
+                            description = "Did you change your mind to great permission? Just click here to open them.",
+                            padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                            clicked = {
+                                context.startActivity(Intent(context, PermissionRequestActivity::class.java))
+                            }
                         )
                         OptionSwitchItem(
                             title = "Open link inside app",
@@ -203,7 +223,7 @@ class SettingsActivity : BaseActivity() {
                         )
                         OptionItem(
                             title = "Version (click to check update)",
-                            description = "0.1",
+                            description = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                         )
                         OptionItem(
@@ -279,6 +299,7 @@ class SettingsActivity : BaseActivity() {
                     }
                     else -> { }
                 }
+                dialogBackground.value = false
                 saveSettings()
             }
         )
@@ -348,8 +369,10 @@ class SettingsActivity : BaseActivity() {
         onValueClicked: ((ThemeMode, Boolean) -> Unit)? = null
     ) {
         DialogBase(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(25.dp),
             title = "App theme",
-            padding = PaddingValues(15.dp),
             isVisible = isVisible,
             canDismiss = false,
             isTitleCentered = true,
@@ -422,8 +445,10 @@ class SettingsActivity : BaseActivity() {
         onValueClicked: ((BackgroundImageOption) -> Unit)? = null
     ) {
         DialogBase(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(25.dp),
             title = "App background",
-            padding = PaddingValues(15.dp),
             isVisible = isVisible,
             canDismiss = true,
             isTitleCentered = true,

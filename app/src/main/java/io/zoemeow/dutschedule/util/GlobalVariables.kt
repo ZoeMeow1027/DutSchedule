@@ -1,6 +1,6 @@
-package io.zoemeow.dutschedule.utils
+package io.zoemeow.dutschedule.util
 
-class GlobalVariable {
+class GlobalVariables {
     companion object {
         // Session ID duration in milliseconds
         val SESSIONID_DURATION = 1000 * 60 * 30

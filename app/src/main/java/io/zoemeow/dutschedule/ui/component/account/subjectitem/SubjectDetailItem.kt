@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
-import io.zoemeow.dutschedule.utils.CustomDateUtils
+import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
 fun SubjectDetailItem(
@@ -29,7 +29,7 @@ fun SubjectDetailItem(
     dismissClicked: (() -> Unit)? = null
 ) {
     DialogBase(
-        padding = PaddingValues(15.dp),
+        modifier = Modifier.fillMaxWidth().padding(25.dp),
         title = "${item?.name ?: "(unknown)"}\n${item?.lecturer ?: "(unknown)"}",
         isVisible = isVisible,
         isTitleCentered = true,

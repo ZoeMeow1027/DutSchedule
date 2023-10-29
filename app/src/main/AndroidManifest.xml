@@ -29,6 +29,12 @@
             android:theme="@style/Theme.DutSchedule"
             android:windowSoftInputMode="adjustResize" />
         <activity
+            android:name=".activity.NewsDetailActivity"
+            android:exported="false"
+            android:label="NewsDetailActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.DutSchedule" />
+        <activity
             android:name=".activity.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
@@ -59,6 +65,11 @@
             android:label="Settings"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
+        <service
+            android:name=".service.NewsService"
+            android:enabled="true"
+            android:exported="true"
+            android:label="DutSchedule - News Service" />
     </application>
 
 </manifest>

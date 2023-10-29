@@ -1,0 +1,108 @@
+package io.zoemeow.dutschedule.ui.component.news
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
+import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsGroupByDate
+import io.zoemeow.dutschedule.util.CustomDateUtils
+
+@Composable
+fun NewsListPage(
+    newsList: List<NewsGroupByDate<NewsGlobalItem>> = listOf(),
+    processState: ProcessState = ProcessState.NotRunYet,
+    endOfListReached: (() -> Unit)? = null,
+    itemClicked: ((NewsGlobalItem) -> Unit)? = null
+) {
+    when {
+        (processState == ProcessState.Running && newsList.isEmpty()) -> {
+            CircularProgressIndicator()
+        }
+        else -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(start = 20.dp, end = 20.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Top,
+                content = {
+                    newsList?.forEach {
+                        Column(
+                            modifier = Modifier.padding(bottom = 10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = CustomDateUtils.dateToString(it.date, "dd/MM/yyyy"),
+                                modifier = Modifier.padding(bottom = 5.dp)
+                            )
+                            it.itemList.forEach { newsGroupSubItem ->
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 5.dp)
+                                        // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
+                                        .clip(RoundedCornerShape(10.dp))
+                                        //.background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 1.0f))
+                                        .clickable {
+                                            itemClicked?.let { it(newsGroupSubItem) }
+                                        },
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                    content = {
+                                        Column(
+                                            modifier = Modifier.padding(
+                                                horizontal = 15.dp,
+                                                vertical = 10.dp
+                                            ),
+                                            horizontalAlignment = Alignment.Start,
+                                            verticalArrangement = Arrangement.Center,
+                                            content = {
+                                                // https://stackoverflow.com/questions/2891361/how-to-set-time-zone-of-a-java-util-date
+                                                Text(
+                                                    text = newsGroupSubItem.title ?: "",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                )
+                                                Spacer(modifier = Modifier.size(15.dp))
+                                                Text(
+                                                    text = newsGroupSubItem.contentString ?: "",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    // https://stackoverflow.com/a/65736376
+                                                    maxLines = 3,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                            Spacer(modifier = Modifier.size(10.dp))
+                        }
+                    }
+                }
+            )
+        }
+    }
+}

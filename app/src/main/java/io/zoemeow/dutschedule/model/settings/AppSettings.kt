@@ -16,8 +16,14 @@ data class AppSettings(
     @SerializedName("appsettings.backgroundimage")
     val backgroundImage: BackgroundImageOption = BackgroundImageOption.None,
 
+    @SerializedName("appsettings.backgroundimage.opacity")
+    val backgroundImageOpacity: Float = 0.7f,
+
     @SerializedName("appsettings.openlinkinsideapp")
     val openLinkInsideApp: Boolean = true,
+
+    @SerializedName("appsettings.newsfilterlist")
+    val newsFilterList: List<SubjectCode> = listOf()
 ): Serializable {
     fun clone(
         themeMode: ThemeMode? = null,
@@ -25,13 +31,17 @@ data class AppSettings(
         blackBackground: Boolean? = null,
         backgroundImage: BackgroundImageOption? = null,
         openLinkInsideApp: Boolean? = null,
+        newsFilterList: List<SubjectCode>? = null,
+        backgroundImageOpacity: Float? = null
     ): AppSettings {
         return AppSettings(
             themeMode = themeMode ?: this.themeMode,
             dynamicColor = dynamicColor ?: this.dynamicColor,
             blackBackground = blackBackground ?: this.blackBackground,
             backgroundImage = backgroundImage ?: this.backgroundImage,
-            openLinkInsideApp = openLinkInsideApp ?: this.openLinkInsideApp
+            openLinkInsideApp = openLinkInsideApp ?: this.openLinkInsideApp,
+            newsFilterList = newsFilterList ?: this.newsFilterList,
+            backgroundImageOpacity = backgroundImageOpacity ?: this.backgroundImageOpacity
         )
     }
 }

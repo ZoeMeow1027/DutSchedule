@@ -3,7 +3,10 @@ package io.zoemeow.dutschedule.repository
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.account.AccountSession
+import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import java.io.File
 
@@ -63,6 +66,56 @@ class FileModuleRepository(
         } catch (ex: Exception) {
             ex.printStackTrace()
             return AccountSession()
+        }
+    }
+
+    fun saveCacheNewsGlobal(
+        newsCacheGlobal: NewsCache<NewsGlobalItem>
+    ) {
+        val file = File(PATH_CACHE_NEWSGLOBAL)
+        file.writeText(Gson().toJson(newsCacheGlobal))
+    }
+
+    fun getCacheNewsGlobal(): NewsCache<NewsGlobalItem> {
+        val file = File(PATH_CACHE_NEWSGLOBAL)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsGlobalItem>>(
+                    text,
+                    (object : TypeToken<NewsCache<NewsGlobalItem>>() {}.type)
+                )
+                this.close()
+                return newsCacheGlobal
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return NewsCache()
+        }
+    }
+
+    fun saveCacheNewsSubject(
+        newsCacheSubject: NewsCache<NewsSubjectItem>
+    ) {
+        val file = File(PATH_CACHE_NEWSSUBJECT)
+        file.writeText(Gson().toJson(newsCacheSubject))
+    }
+
+    fun getCacheNewsSubject(): NewsCache<NewsSubjectItem> {
+        val file = File(PATH_CACHE_NEWSSUBJECT)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsSubjectItem>>(
+                    text,
+                    (object : TypeToken<NewsCache<NewsSubjectItem>>() {}.type)
+                )
+                this.close()
+                return newsCacheGlobal
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return NewsCache()
         }
     }
 }

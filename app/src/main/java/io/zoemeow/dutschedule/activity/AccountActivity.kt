@@ -53,6 +53,11 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class AccountActivity: BaseActivity() {
     @Composable
+    override fun OnPreloadOnce() {
+
+    }
+
+    @Composable
     override fun OnMainView(padding: PaddingValues) {
         when (intent.action) {
             "subject_schedule" -> {

@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.ui.component.newsfilter
+package io.zoemeow.dutschedule.ui.component.settings.newsfilter
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

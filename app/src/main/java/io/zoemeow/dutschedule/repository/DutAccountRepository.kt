@@ -6,7 +6,7 @@ import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectFeeItem
 import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
-import io.zoemeow.dutschedule.utils.GlobalVariable
+import io.zoemeow.dutschedule.util.GlobalVariables
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -40,7 +40,7 @@ class DutAccountRepository {
         onSessionChanged: ((String?, Long?) -> Unit)? = null
     ): Boolean {
         return when {
-            (accountSession.sessionId != null && System.currentTimeMillis() - accountSession.sessionLastRequest >= GlobalVariable.SESSIONID_DURATION && Account.isLoggedIn(accountSession.sessionId) && !forceLogin) -> true
+            (accountSession.sessionId != null && System.currentTimeMillis() - accountSession.sessionLastRequest >= GlobalVariables.SESSIONID_DURATION && Account.isLoggedIn(accountSession.sessionId) && !forceLogin) -> true
             (accountSession.accountAuth.username != null && accountSession.accountAuth.password != null) -> {
                 val sessionId = generateNewSessionId()
                 val timestamp = System.currentTimeMillis()

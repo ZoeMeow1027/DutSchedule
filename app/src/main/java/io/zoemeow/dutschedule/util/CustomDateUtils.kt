@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.utils
+package io.zoemeow.dutschedule.util
 
 import android.annotation.SuppressLint
 import io.dutwrapperlib.dutwrapper.Utils

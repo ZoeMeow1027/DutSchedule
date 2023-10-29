@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Intent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,8 +14,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -29,15 +32,40 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.news.NewsListPage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class NewsActivity : BaseActivity() {
+    @Composable
+    override fun OnPreloadOnce() {
+        run {
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                    getMainViewModel().fetchNewsGlobal(
+                        newsPageType = 3
+                    )
+                    getMainViewModel().fetchNewsSubject(
+                        newsPageType = 3
+                    )
+                }
+            }
+        }
+    }
+
     @Composable
     override fun OnMainView(padding: PaddingValues) {
         MainView()
@@ -48,6 +76,7 @@ class NewsActivity : BaseActivity() {
     private fun MainView() {
         val pagerState = rememberPagerState(initialPage = 0, pageCount = { 2 })
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -70,12 +99,20 @@ class NewsActivity : BaseActivity() {
                                 )
                             }
                         )
+                    },
+                    actions = {
+                        IconButton(
+                            onClick = { },
+                            content = {
+                                Icon(Icons.Default.Search, "Search")
+                            }
+                        )
                     }
                 )
             },
             floatingActionButton = {
                 FloatingActionButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Default.Search, "")
+                    Icon(Icons.Default.Refresh, "")
                 }
             },
             bottomBar = {
@@ -137,22 +174,36 @@ class NewsActivity : BaseActivity() {
                 ) { pageIndex ->
                     when (pageIndex) {
                         0 -> {
-                            NewsListPage(title = "News Global")
+                            getMainViewModel().newsGlobal.apply {
+                                NewsListPage(
+                                    newsList = this.value.data.newsListByDate,
+                                    processState = this.value.processState,
+                                    itemClicked = { newsItem ->
+                                        context.startActivity(Intent(context, NewsDetailActivity::class.java).also {
+                                            it.action = "news_global"
+                                            it.putExtra("data", Gson().toJson(newsItem))
+                                        })
+                                    }
+                                )
+                            }
                         }
-
                         1 -> {
-                            NewsListPage(title = "News Subject")
+                            getMainViewModel().newsSubject.apply {
+                                NewsListPage(
+                                    newsList = this.value.data.newsListByDate as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
+                                    processState = this.value.processState,
+                                    itemClicked = { newsItem ->
+                                        context.startActivity(Intent(context, NewsDetailActivity::class.java).also {
+                                            it.action = "news_subject"
+                                            it.putExtra("data", Gson().toJson(newsItem))
+                                        })
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
         )
-    }
-
-    @Composable
-    private fun NewsListPage(title: String) {
-        Surface {
-            Text(text = title)
-        }
     }
 }

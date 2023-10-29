@@ -55,7 +55,7 @@ fun LoginDialog(
     }
 
     DialogBase(
-        padding = PaddingValues(15.dp),
+        modifier = Modifier.fillMaxWidth().padding(25.dp),
         isVisible = isVisible,
         title = "Login",
         isTitleCentered = true,
