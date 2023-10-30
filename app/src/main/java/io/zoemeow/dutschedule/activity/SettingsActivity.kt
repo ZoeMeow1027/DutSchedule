@@ -2,6 +2,8 @@ package io.zoemeow.dutschedule.activity
 
 import io.zoemeow.dutschedule.BuildConfig
 import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -203,6 +205,18 @@ class SettingsActivity : BaseActivity() {
                                 context.startActivity(Intent(context, PermissionRequestActivity::class.java))
                             }
                         )
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            OptionItem(
+                                title = "System notification settings",
+                                description = "Click here to manage app notifications in Android app settings.",
+                                padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                clicked = {
+                                    context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).also { intent ->
+                                        intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                                    })
+                                }
+                            )
+                        }
                         OptionSwitchItem(
                             title = "Open link inside app",
                             description = "Open clicked link without leaving this app. Turn off to open link in default browser.",
@@ -337,6 +351,20 @@ class SettingsActivity : BaseActivity() {
                             }
                         )
                     },
+                    actions = {
+                        IconButton(
+                            onClick = {
+
+                            },
+                            content = {
+                                Icon(
+                                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_save_24),
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    }
                 )
             },
             content = {

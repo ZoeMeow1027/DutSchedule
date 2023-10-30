@@ -23,18 +23,19 @@ import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 fun NewsFilterAddManually(
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
+    onSubmit: ((String, String) -> Unit)? = null
 ) {
     val studentYearId = remember { mutableStateOf("") }
     val classId = remember { mutableStateOf("") }
 
     NewsFilterSurface {
         ContentExpandable(
-            title = "Add manually",
+            title = "Add filter manually",
             expanded = expanded,
             onExpanded = { onExpanded?.let { it() } },
             content = {
                 Text(
-                    text = "Enter your subject filter manually here",
+                    text = "Enter your subject filter (you can view templates in sv.dut.udn.vn) and tap \"Add\" to add to filter above.\n\nExample:\n - 19 | 01\n - xx | 94A\n\nNote:\n- You need to enter carefully, otherwise you won\'t received notifications exactly.",
                     modifier = Modifier.padding(bottom = 5.dp)
                 )
                 Column(
@@ -72,36 +73,11 @@ fun NewsFilterAddManually(
                                 .weight(0.5f)
                         )
                     }
-//                    Spacer(modifier = Modifier.size(5.dp))
-//                    OutlinedTextField(
-//                        value = subjectName.value,
-//                        onValueChange = { subjectName.value = it },
-//                        label = { Text(stringResource(id = R.string.subjectnewsfilter_addmanually_subjecttextbox)) },
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .wrapContentHeight()
-//                    )
                     Spacer(modifier = Modifier.size(10.dp))
                     Button(
                         content = { Text("Add") },
                         onClick = {
-//                            val item = SubjectCode(
-//                                studentYearId.value,
-//                                classId.value,
-//                                subjectName.value
-//                            )
-//
-//                            if (!isDuplicate(item))
-//                                newsFilterViewModel.selectedSubjects.add(item)
-//                            newsFilterViewModel.modifiedSettings.value = true
-//                            updateTemporarySettings()
-//
-//                            showSnackBarMessage(
-//                                String.format(
-//                                    getString(R.string.subjectnewsfilter_snackbar_added),
-//                                    item.name
-//                                )
-//                            )
+                                  onSubmit?.let { it(studentYearId.value, classId.value) }
                         },
                     )
                 }

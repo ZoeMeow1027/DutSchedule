@@ -3,6 +3,12 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft5 (651)
+- [Changed] News: Handle end of list for load next page.
+- [Changed] Settings: Added a option to quickly navigate to Android notification settings.
+- [New] News filter settings (not functionally yet).
+- Imporve app performance.
+
 ## 2.0-draft4 (640)
 - Improve app performance.
 - News activity works (but not fully functionally yet).

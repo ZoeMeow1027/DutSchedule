@@ -427,6 +427,7 @@ class AccountActivity: BaseActivity() {
             content = {
                 Column(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(it)
                         .verticalScroll(rememberScrollState()),
                     content = {

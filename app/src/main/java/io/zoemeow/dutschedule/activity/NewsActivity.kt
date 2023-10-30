@@ -56,10 +56,10 @@ class NewsActivity : BaseActivity() {
             CoroutineScope(Dispatchers.Main).launch {
                 withContext(Dispatchers.IO) {
                     getMainViewModel().fetchNewsGlobal(
-                        newsPageType = 3
+                        newsPageType = 1
                     )
                     getMainViewModel().fetchNewsSubject(
-                        newsPageType = 3
+                        newsPageType = 1
                     )
                 }
             }
@@ -102,6 +102,45 @@ class NewsActivity : BaseActivity() {
                     },
                     actions = {
                         IconButton(
+                            onClick = {
+                                when (pagerState.currentPage) {
+                                    0 -> {
+                                        getMainViewModel().fetchNewsGlobal(
+                                            newsPageType = 3
+                                        )
+                                    }
+                                    1 -> {
+                                        getMainViewModel().fetchNewsSubject(
+                                            newsPageType = 3
+                                        )
+                                    }
+                                    else -> {}
+                                }
+                            },
+                            enabled = when (pagerState.currentPage) {
+                                0 -> {
+                                    getMainViewModel().newsGlobal.value.processState != ProcessState.Running
+                                }
+                                1 -> {
+                                    getMainViewModel().newsSubject.value.processState != ProcessState.Running
+                                }
+                                else -> false
+                            },
+                            content = {
+                                when {
+                                    (pagerState.currentPage == 0 && getMainViewModel().newsGlobal.value.processState == ProcessState.Running) || (pagerState.currentPage == 1 && getMainViewModel().newsSubject.value.processState == ProcessState.Running) -> {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(25.dp),
+                                            strokeWidth = 3.dp
+                                        )
+                                    }
+                                    else -> {
+                                        Icon(Icons.Default.Refresh, "Search")
+                                    }
+                                }
+                            }
+                        )
+                        IconButton(
                             onClick = { },
                             content = {
                                 Icon(Icons.Default.Search, "Search")
@@ -110,11 +149,11 @@ class NewsActivity : BaseActivity() {
                     }
                 )
             },
-            floatingActionButton = {
-                FloatingActionButton(onClick = { /*TODO*/ }) {
-                    Icon(Icons.Default.Refresh, "")
-                }
-            },
+//            floatingActionButton = {
+//                FloatingActionButton(onClick = { /*TODO*/ }) {
+//                    Icon(Icons.Default.Refresh, "")
+//                }
+//            },
             bottomBar = {
                 BottomAppBar(
                     actions = {
@@ -183,6 +222,15 @@ class NewsActivity : BaseActivity() {
                                             it.action = "news_global"
                                             it.putExtra("data", Gson().toJson(newsItem))
                                         })
+                                    },
+                                    endOfListReached = {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            withContext(Dispatchers.IO) {
+                                                getMainViewModel().fetchNewsGlobal(
+                                                    newsPageType = 0
+                                                )
+                                            }
+                                        }
                                     }
                                 )
                             }
@@ -197,6 +245,15 @@ class NewsActivity : BaseActivity() {
                                             it.action = "news_subject"
                                             it.putExtra("data", Gson().toJson(newsItem))
                                         })
+                                    },
+                                    endOfListReached = {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            withContext(Dispatchers.IO) {
+                                                getMainViewModel().fetchNewsSubject(
+                                                    newsPageType = 0
+                                                )
+                                            }
+                                        }
                                     }
                                 )
                             }

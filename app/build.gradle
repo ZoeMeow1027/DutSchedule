@@ -14,8 +14,8 @@ android {
         applicationId "io.zoemeow.dutschedule"
         minSdk 21
         targetSdkVersion 34
-        versionCode 640
-        versionName "2.0-draft4"
+        versionCode 651
+        versionName "2.0-draft5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -101,6 +101,8 @@ dependencies {
 
     // Accompanist - Pager - https://mvnrepository.com/artifact/com.google.accompanist/accompanist-pager
     runtimeOnly 'com.google.accompanist:accompanist-pager:0.33.2-alpha'
+
+    // Accompanist - FlowLayout (deprecated) implementation 'com.google.accompanist:accompanist-flowlayout:0.33.2-alpha'
 
     // https://mvnrepository.com/artifact/com.google.accompanist/accompanist-pager-indicators
     runtimeOnly 'com.google.accompanist:accompanist-pager-indicators:0.33.2-alpha'

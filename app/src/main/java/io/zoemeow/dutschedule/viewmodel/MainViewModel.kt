@@ -2,10 +2,8 @@ package io.zoemeow.dutschedule.viewmodel
 
 import android.app.Application
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dutwrapperlib.dutwrapper.objects.accounts.AccountInformation
 import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectFeeItem
@@ -18,13 +16,15 @@ import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.model.news.NewsCache
-import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.repository.DutAccountRepository
 import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import io.zoemeow.dutschedule.util.GlobalVariables
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -261,134 +261,157 @@ class MainViewModel @Inject constructor(
     }
 
     fun saveSettings() {
-        viewModelScope.launch {
-            fileModuleRepository.saveAppSettings(appSettings.value)
-            fileModuleRepository.saveAccountSession(accountSession.value.data)
-        }
+        launchOnScope(
+            script = {
+                fileModuleRepository.saveAppSettings(appSettings.value)
+                fileModuleRepository.saveAccountSession(accountSession.value.data)
+            }
+        )
     }
 
     private fun loadNewsCache() {
-        viewModelScope.launch {
-            fileModuleRepository.getCacheNewsGlobal().also {
-                newsGlobal.value = newsGlobal.value.clone(
-                    data = it
-                )
+        launchOnScope(
+            script = {
+                fileModuleRepository.getCacheNewsGlobal().also {
+                    newsGlobal.value = newsGlobal.value.clone(
+                        data = it
+                    )
+                }
+                fileModuleRepository.getCacheNewsSubject().also {
+                    newsSubject.value = newsSubject.value.clone(
+                        data = it
+                    )
+                }
             }
-            fileModuleRepository.getCacheNewsSubject().also {
-                newsSubject.value = newsSubject.value.clone(
-                    data = it
-                )
-            }
-        }
+        )
     }
 
     fun fetchNewsGlobal(
         newsPageType: Int = 0,
         page: Int = 1
     ) {
-        viewModelScope.launch {
-            newsGlobal.value = newsGlobal.value.clone(
-                processState = ProcessState.Running
-            )
+        launchOnScope(
+            script = {
+                newsGlobal.value = newsGlobal.value.clone(
+                    processState = ProcessState.Running
+                )
 
-            // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsGlobal(
-                page = when (newsPageType) {
-                    0 -> newsGlobal.value.data.pageCurrent
-                    2 -> page
-                    1, 3 -> 1
-                    else -> 1
+                // Get news from internet
+                val newsFromInternet = DutNewsRepository.getNewsGlobal(
+                    page = when (newsPageType) {
+                        0 -> newsGlobal.value.data.pageCurrent
+                        2 -> page
+                        1, 3 -> 1
+                        else -> 1
+                    }
+                )
+
+                // If requested, clear cache
+                if (newsPageType == 3) {
+                    newsGlobal.value.data.newsListByDate.clear()
                 }
-            )
 
-            // If requested, clear cache
-            if (newsPageType == 3) {
-                newsGlobal.value.data.newsListByDate.clear()
-            }
+                val newsDiff = DutNewsRepository.getNewsGlobalDiff(
+                    source = newsGlobal.value.data.newsListByDate,
+                    target = newsFromInternet,
+                )
 
-            val newsDiff = DutNewsRepository.getNewsGlobalDiff(
-                source = newsGlobal.value.data.newsListByDate,
-                target = newsFromInternet,
-            )
+                DutNewsRepository.addAndCheckDuplicateNewsGlobal(
+                    source = newsGlobal.value.data.newsListByDate,
+                    target = newsDiff,
+                    addItemToTop = newsPageType != 0
+                )
 
-            DutNewsRepository.addAndCheckDuplicateNewsGlobal(
-                source = newsGlobal.value.data.newsListByDate,
-                target = newsDiff,
-                addItemToTop = newsPageType != 0
-            )
-
-            when (newsPageType) {
-                0 -> {
-                    newsGlobal.value.data.pageCurrent += 1
-                }
-                1 -> {
-                    if (newsGlobal.value.data.pageCurrent <= 1)
+                when (newsPageType) {
+                    0 -> {
                         newsGlobal.value.data.pageCurrent += 1
+                    }
+                    1 -> {
+                        if (newsGlobal.value.data.pageCurrent <= 1)
+                            newsGlobal.value.data.pageCurrent += 1
+                    }
+                    3 -> {
+                        newsGlobal.value.data.pageCurrent = 2
+                    }
                 }
-                3 -> {
-                    newsGlobal.value.data.pageCurrent = 2
-                }
+                fileModuleRepository.saveCacheNewsGlobal(newsGlobal.value.data)
+            },
+            invokeOnCompleted = {
+                newsGlobal.value = newsGlobal.value.clone(
+                    processState = if (it != null) ProcessState.Successful else ProcessState.Failed
+                )
             }
-            fileModuleRepository.saveCacheNewsGlobal(newsGlobal.value.data)
-        }.invokeOnCompletion {
-            newsGlobal.value = newsGlobal.value.clone(
-                processState = if (it != null) ProcessState.Successful else ProcessState.Failed
-            )
-        }
+        )
     }
 
     fun fetchNewsSubject(
         newsPageType: Int = 0,
         page: Int = 1
     ) {
-        viewModelScope.launch {
-            newsSubject.value = newsSubject.value.clone(
-                processState = ProcessState.Running
-            )
+        launchOnScope(
+            script = {
+                newsSubject.value = newsSubject.value.clone(
+                    processState = ProcessState.Running
+                )
 
-            // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsSubject(
-                page = when (newsPageType) {
-                    0 -> newsSubject.value.data.pageCurrent
-                    2 -> page
-                    1, 3 -> 1
-                    else -> 1
+                // Get news from internet
+                val newsFromInternet = DutNewsRepository.getNewsSubject(
+                    page = when (newsPageType) {
+                        0 -> newsSubject.value.data.pageCurrent
+                        2 -> page
+                        1, 3 -> 1
+                        else -> 1
+                    }
+                )
+
+                // If requested, clear cache
+                if (newsPageType == 3) {
+                    newsSubject.value.data.newsListByDate.clear()
                 }
-            )
 
-            // If requested, clear cache
-            if (newsPageType == 3) {
-                newsSubject.value.data.newsListByDate.clear()
-            }
+                val newsDiff = DutNewsRepository.getNewsSubjectDiff(
+                    source = newsSubject.value.data.newsListByDate,
+                    target = newsFromInternet,
+                )
 
-            val newsDiff = DutNewsRepository.getNewsSubjectDiff(
-                source = newsSubject.value.data.newsListByDate,
-                target = newsFromInternet,
-            )
+                DutNewsRepository.addAndCheckDuplicateNewsSubject(
+                    source = newsSubject.value.data.newsListByDate,
+                    target = newsDiff,
+                    addItemToTop = newsPageType != 0
+                )
 
-            DutNewsRepository.addAndCheckDuplicateNewsSubject(
-                source = newsSubject.value.data.newsListByDate,
-                target = newsDiff,
-                addItemToTop = newsPageType != 0
-            )
-
-            when (newsPageType) {
-                0 -> {
-                    newsSubject.value.data.pageCurrent += 1
-                }
-                1 -> {
-                    if (newsSubject.value.data.pageCurrent <= 1)
+                when (newsPageType) {
+                    0 -> {
                         newsSubject.value.data.pageCurrent += 1
+                    }
+                    1 -> {
+                        if (newsSubject.value.data.pageCurrent <= 1)
+                            newsSubject.value.data.pageCurrent += 1
+                    }
+                    3 -> {
+                        newsSubject.value.data.pageCurrent = 2
+                    }
                 }
-                3 -> {
-                    newsSubject.value.data.pageCurrent = 2
-                }
+                fileModuleRepository.saveCacheNewsSubject(newsSubject.value.data)
+            },
+            invokeOnCompleted = {
+                newsSubject.value = newsSubject.value.clone(
+                    processState = if (it != null) ProcessState.Successful else ProcessState.Failed
+                )
             }
-            fileModuleRepository.saveCacheNewsSubject(newsSubject.value.data)
-        }.invokeOnCompletion {
-            newsSubject.value = newsSubject.value.clone(
-                processState = if (it != null) ProcessState.Successful else ProcessState.Failed
-            )
+        )
+    }
+
+    private fun launchOnScope(
+        script: () -> Unit,
+        invokeOnCompleted: ((Throwable?) -> Unit)? = null
+    ) {
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(Dispatchers.IO) {
+                script()
+            }
+        }.invokeOnCompletion { thr ->
+            invokeOnCompleted?.let { it(thr) }
         }
     }
 

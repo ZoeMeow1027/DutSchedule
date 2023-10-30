@@ -16,7 +16,8 @@ import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 @Composable
 fun NewsFilterClearAll(
     expanded: Boolean = false,
-    onExpanded: (() -> Unit)? = null
+    onExpanded: (() -> Unit)? = null,
+    onSubmit: (() -> Unit)? = null
 ) {
     NewsFilterSurface {
         ContentExpandable(
@@ -32,16 +33,13 @@ fun NewsFilterClearAll(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Clear your all subject filters.",
+                        text = "Just click button below to clear all.\nNote:\n- This will delete all filters you added before and cannot be undone.\n- If you want to revert, close this settings and choose UNSAVE CHANGES. This is your ONLY chance to undo your action.",
                         modifier = Modifier.padding(bottom = 5.dp)
                     )
                     Button(
                         content = { Text("Clear all") },
                         onClick = {
-//                            newsFilterViewModel.selectedSubjects.clear()
-//                            newsFilterViewModel.modifiedSettings.value = true
-//                            updateTemporarySettings()
-//                            showSnackBarMessage(getString(R.string.subjectnewsfilter_snackbar_deletedall))
+                            onSubmit?.let { it() }
                         }
                     )
                 }
