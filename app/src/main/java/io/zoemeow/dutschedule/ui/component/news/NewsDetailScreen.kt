@@ -12,7 +12,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,26 +23,146 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import io.dutwrapperlib.dutwrapper.objects.enums.LessonStatus
+import io.dutwrapperlib.dutwrapper.objects.enums.NewsType
+import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
 import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
-fun NewsDetailsSubject(
-    isDarkMode: Boolean = false,
-    padding: PaddingValues,
-    news: NewsSubjectItem,
-    linkClicked: (String) -> Unit
+fun NewsDetailScreen(
+    newsItem: NewsGlobalItem,
+    newsType: NewsType,
+    darkMode: Boolean = false,
+    padding: PaddingValues = PaddingValues(0.dp),
+    linkClicked: ((String) -> Unit)? = null
 ) {
-    @Composable
-    fun CustomDivider() {
-        Spacer(modifier = Modifier.size(10.dp))
-        Divider(
-            color = Color.Gray,
-            thickness = 1.dp
-        )
-        Spacer(modifier = Modifier.size(10.dp))
+    when (newsType) {
+        NewsType.Global -> {
+            NewsDetailBody_NewsGlobal(
+                darkMode = darkMode,
+                padding = padding,
+                newsItem = newsItem,
+                linkClicked = linkClicked
+            )
+        }
+        NewsType.Subject -> {
+            NewsDetailBody_NewsSubject(
+                darkMode = darkMode,
+                padding = padding,
+                newsItem = newsItem as NewsSubjectItem,
+                linkClicked = linkClicked
+            )
+        }
     }
+}
 
+@Composable
+private fun NewsDetailBody_NewsGlobal(
+    darkMode: Boolean = false,
+    padding: PaddingValues,
+    newsItem: NewsGlobalItem,
+    linkClicked: ((String) -> Unit)? = null
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .verticalScroll(rememberScrollState())
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.padding(10.dp)
+        ) {
+            Text(
+                text = newsItem.title,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+            Text(
+                text = "⏱ ${
+                    CustomDateUtils.dateToString(
+                        newsItem.date,
+                        "dd/MM/yyyy",
+                        "UTC"
+                    )
+                } (${CustomDateUtils.unixToDuration(newsItem.date)})",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 7.dp)
+            )
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
+            val annotatedString = buildAnnotatedString {
+                if (newsItem.contentString != null) {
+                    // Parse all string to annotated string.
+                    append(newsItem.contentString)
+                    // Adjust color for annotated string to follow system mode.
+                    addStyle(
+                        style = SpanStyle(color = if (darkMode) Color.White else Color.Black),
+                        start = 0,
+                        end = newsItem.contentString.length
+                    )
+                    // Adjust for detected link.
+                    newsItem.links?.forEach {
+                        addStringAnnotation(
+                            tag = it.position!!.toString(),
+                            annotation = it.url!!,
+                            start = it.position,
+                            end = it.position + it.text!!.length
+                        )
+                        addStyle(
+                            style = SpanStyle(color = Color(0xff64B5F6)),
+                            start = it.position,
+                            end = it.position + it.text.length
+                        )
+                    }
+                }
+            }
+            SelectionContainer {
+                ClickableText(
+                    text = annotatedString,
+                    style = MaterialTheme.typography.bodyLarge,
+                    onClick = {
+                        try {
+                            newsItem.links?.forEach { item ->
+                                annotatedString
+                                    .getStringAnnotations(item.position!!.toString(), it, it)
+                                    .firstOrNull()
+                                    ?.let { url ->
+                                        var urlTemp = url.item
+                                        urlTemp =
+                                            urlTemp.replace(
+                                                "http://",
+                                                "http://",
+                                                ignoreCase = true
+                                            )
+                                        urlTemp = urlTemp.replace(
+                                            "https://",
+                                            "https://",
+                                            ignoreCase = true
+                                        )
+                                        linkClicked?.let { it(urlTemp) }
+                                    }
+                            }
+                        } catch (_: Exception) {
+                            // TODO: Exception for can't open link here!
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NewsDetailBody_NewsSubject(
+    darkMode: Boolean = false,
+    padding: PaddingValues,
+    newsItem: NewsSubjectItem,
+    linkClicked: ((String) -> Unit)? = null
+) {
     val optionsScrollState = rememberScrollState()
     Box(
         modifier = Modifier
@@ -58,25 +178,29 @@ fun NewsDetailsSubject(
             Text(
                 text = String.format(
                     "Subject news from %s",
-                    news.lecturerName
+                    newsItem.lecturerName
                 ),
                 style = MaterialTheme.typography.headlineMedium
             )
-            Spacer(modifier = Modifier.size(10.dp))
             Text(
                 text = "⏱ ${
                     CustomDateUtils.dateToString(
-                        news.date,
+                        newsItem.date,
                         "dd/MM/yyyy",
                         "UTC"
                     )
-                } (${CustomDateUtils.unixToDuration(news.date)})",
+                } (${CustomDateUtils.unixToDuration(newsItem.date)})",
                 style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(vertical = 10.dp)
             )
             // Affecting classrooms.
-            Spacer(modifier = Modifier.size(10.dp))
             var affectedClassrooms = ""
-            news.affectedClass.forEach { className ->
+            newsItem.affectedClass.forEach { className ->
                 if (affectedClassrooms.isEmpty()) {
                     affectedClassrooms = "\n- ${className.subjectName}"
                 } else {
@@ -99,20 +223,24 @@ fun NewsDetailsSubject(
                     "Applied to: %s",
                     affectedClassrooms
                 ),
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.bodyLarge,
             )
-            CustomDivider()
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = Color.Gray,
+                modifier = Modifier.padding(vertical = 10.dp)
+            )
             // Affecting lessons, hour, room.
             if (arrayListOf(
                     LessonStatus.Leaving,
                     LessonStatus.MakeUp
-                ).contains(news.lessonStatus)
+                ).contains(newsItem.lessonStatus)
             ) {
                 Text(
                     text =
                     String.format(
                         "Status: %s",
-                        when (news.lessonStatus) {
+                        when (newsItem.lessonStatus) {
                             LessonStatus.Leaving -> "Leaving"
                             LessonStatus.MakeUp -> "Make up"
                             else -> "(unknown)"
@@ -123,12 +251,12 @@ fun NewsDetailsSubject(
                 Spacer(modifier = Modifier.size(5.dp))
                 Text(
                     text = String.format(
-                        when (news.lessonStatus) {
+                        when (newsItem.lessonStatus) {
                             LessonStatus.Leaving -> "Lesson will leave: %s"
                             LessonStatus.MakeUp -> "Lesson will make up: %s"
                             else -> "Lesson will leave: %s"
                         },
-                        news.affectedLesson
+                        newsItem.affectedLesson
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                 )
@@ -136,34 +264,34 @@ fun NewsDetailsSubject(
                 Text(
                     text = String.format(
                         "Date: %s",
-                        CustomDateUtils.dateToString(news.affectedDate, "dd/MM/yyyy", "UTC")
+                        CustomDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy", "UTC")
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                 )
-                if (news.lessonStatus == LessonStatus.MakeUp) {
+                if (newsItem.lessonStatus == LessonStatus.MakeUp) {
                     Spacer(modifier = Modifier.size(5.dp))
                     Text(
                         text =
                         String.format(
                             "Make up in room: %s",
-                            news.affectedRoom
+                            newsItem.affectedRoom
                         ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
             } else {
                 val annotatedString = buildAnnotatedString {
-                    if (news.contentString != null) {
+                    if (newsItem.contentString != null) {
                         // Parse all string to annotated string.
-                        append(news.contentString)
+                        append(newsItem.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (isDarkMode) Color.White else Color.Black),
+                            style = SpanStyle(color = if (darkMode) Color.White else Color.Black),
                             start = 0,
-                            end = news.contentString.length
+                            end = newsItem.contentString.length
                         )
                         // Adjust for detected link.
-                        news.links?.forEach {
+                        newsItem.links?.forEach {
                             addStringAnnotation(
                                 tag = it.position!!.toString(),
                                 annotation = it.url!!,
@@ -184,7 +312,7 @@ fun NewsDetailsSubject(
                         style = MaterialTheme.typography.bodyLarge,
                         onClick = {
                             try {
-                                news.links?.forEach { item ->
+                                newsItem.links?.forEach { item ->
                                     annotatedString
                                         .getStringAnnotations(
                                             item.position!!.toString(),
@@ -205,7 +333,7 @@ fun NewsDetailsSubject(
                                                 "https://",
                                                 ignoreCase = true
                                             )
-                                            linkClicked(urlTemp)
+                                            linkClicked?.let { it(urlTemp) }
                                         }
                                 }
                             } catch (_: Exception) {

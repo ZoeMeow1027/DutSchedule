@@ -42,6 +42,7 @@ abstract class BaseActivity: ComponentActivity() {
     }
     private lateinit var snackbarHostState: SnackbarHostState
     private lateinit var snackbarScope: CoroutineScope
+    private val loadScriptAtStartup = mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,15 +51,14 @@ abstract class BaseActivity: ComponentActivity() {
         setContent {
             snackbarHostState = remember { SnackbarHostState() }
             snackbarScope = rememberCoroutineScope()
-            val loadScriptAtStartup = remember { mutableStateOf(true) }
 
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
             }
 
             if (loadScriptAtStartup.value) {
-                OnPreloadOnce()
                 loadScriptAtStartup.value = false
+                OnPreloadOnce()
             }
 
             DutScheduleTheme(

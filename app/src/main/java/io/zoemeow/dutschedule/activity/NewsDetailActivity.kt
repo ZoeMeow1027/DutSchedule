@@ -19,18 +19,16 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
+import io.dutwrapperlib.dutwrapper.objects.enums.NewsType
 import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
 import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
-import io.zoemeow.dutschedule.ui.component.news.NewsDetailsGlobal
-import io.zoemeow.dutschedule.ui.component.news.NewsDetailsSubject
+import io.zoemeow.dutschedule.ui.component.news.NewsDetailScreen
 import io.zoemeow.dutschedule.util.OpenLink
 
 @AndroidEntryPoint
 class NewsDetailActivity: BaseActivity() {
     @Composable
-    override fun OnPreloadOnce() {
-
-    }
+    override fun OnPreloadOnce() { }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -65,10 +63,10 @@ class NewsDetailActivity: BaseActivity() {
             content = {
                 when (newsType) {
                     "news_global" -> {
-                        NewsDetailsGlobal(
+                        NewsDetailScreen(
                             padding = it,
-                            isDarkMode = isAppInDarkMode(),
-                            news = Gson().fromJson(newsData, object : TypeToken<NewsGlobalItem>() {}.type),
+                            newsItem = Gson().fromJson(newsData, object : TypeToken<NewsGlobalItem>() {}.type),
+                            newsType = NewsType.Global,
                             linkClicked = { link ->
                                 OpenLink(
                                     url = link,
@@ -79,10 +77,10 @@ class NewsDetailActivity: BaseActivity() {
                         )
                     }
                     "news_subject" -> {
-                        NewsDetailsSubject(
+                        NewsDetailScreen(
                             padding = it,
-                            isDarkMode = isAppInDarkMode(),
-                            news = Gson().fromJson(newsData, object : TypeToken<NewsSubjectItem>() {}.type),
+                            newsItem = Gson().fromJson(newsData, object : TypeToken<NewsSubjectItem>() {}.type) as NewsGlobalItem,
+                            newsType = NewsType.Subject,
                             linkClicked = { link ->
                                 OpenLink(
                                     url = link,
@@ -92,9 +90,7 @@ class NewsDetailActivity: BaseActivity() {
                             }
                         )
                     }
-                    else -> {
-                        val padding = it
-                    }
+                    else -> { }
                 }
             }
         )
