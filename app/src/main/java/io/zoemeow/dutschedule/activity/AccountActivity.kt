@@ -374,22 +374,6 @@ class AccountActivity: BaseActivity() {
                 }
             }
         )
-
-        val hasRun = remember { mutableStateOf(false) }
-        run {
-            if (!hasRun.value) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    getMainViewModel().accountLogin(
-                        after = {
-                            if (it) {
-                                getMainViewModel().accountGetInformation()
-                            }
-                        }
-                    )
-                }
-                hasRun.value = true
-            }
-        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -603,21 +587,5 @@ class AccountActivity: BaseActivity() {
                 }
             }
         )
-
-        val hasRun = remember { mutableStateOf(false) }
-        run {
-            if (!hasRun.value) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    getMainViewModel().accountLogin(
-                        after = {
-                            if (it) {
-                                getMainViewModel().accountGetInformation()
-                            }
-                        }
-                    )
-                }
-                hasRun.value = true
-            }
-        }
     }
 }

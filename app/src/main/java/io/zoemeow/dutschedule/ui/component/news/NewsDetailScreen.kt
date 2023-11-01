@@ -100,7 +100,7 @@ private fun NewsDetailBody_NewsGlobal(
                     append(newsItem.contentString)
                     // Adjust color for annotated string to follow system mode.
                     addStyle(
-                        style = SpanStyle(color = if (darkMode) Color.White else Color.Black),
+                        style = SpanStyle(color = MaterialTheme.colorScheme.inverseSurface),
                         start = 0,
                         end = newsItem.contentString.length
                     )
@@ -286,7 +286,7 @@ private fun NewsDetailBody_NewsSubject(
                         append(newsItem.contentString)
                         // Adjust color for annotated string to follow system mode.
                         addStyle(
-                            style = SpanStyle(color = if (darkMode) Color.White else Color.Black),
+                            style = SpanStyle(color = MaterialTheme.colorScheme.inverseSurface),
                             start = 0,
                             end = newsItem.contentString.length
                         )

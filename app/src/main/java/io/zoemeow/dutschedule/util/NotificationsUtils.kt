@@ -27,8 +27,7 @@ class NotificationsUtils {
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channel = NotificationChannel(id, name, NotificationManager.IMPORTANCE_DEFAULT)
-                if (description != null)
-                    channel.description = description
+                description?.let { channel.description = it }
                 val service =
                     activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 service.createNotificationChannel(channel)
@@ -45,8 +44,7 @@ class NotificationsUtils {
                 val channel = NotificationChannel(id, name, NotificationManager.IMPORTANCE_NONE)
                 channel.enableVibration(false)
                 channel.lockscreenVisibility = Notification.VISIBILITY_SECRET
-                if (description != null)
-                    channel.description = description
+                description?.let { channel.description = it }
                 val service =
                     activity.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 service.createNotificationChannel(channel)
@@ -63,7 +61,7 @@ class NotificationsUtils {
                 return
             }
 
-            createNotificationChannelWithSilentSettings(
+            createNotificationChannelWithDefaultSettings(
                 activity = activity,
                 id = "notification.id.announcement",
                 name = "Announcement",
@@ -84,7 +82,7 @@ class NotificationsUtils {
             createNotificationChannelWithSilentSettings(
                 activity = activity,
                 id = "notification.id.service",
-                name = "Service",
+                name = "News Background Update Service",
                 description = "This will ensure this service will able to run in background. You can turn off this notification."
             )
         }

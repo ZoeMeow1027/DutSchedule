@@ -14,8 +14,8 @@ android {
         applicationId "io.zoemeow.dutschedule"
         minSdk 21
         targetSdkVersion 34
-        versionCode 651
-        versionName "2.0-draft5"
+        versionCode 660
+        versionName "2.0-draft6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -69,7 +69,7 @@ dependencies {
     debugImplementation "androidx.compose.ui:ui-tooling:1.6.0-alpha08"
     debugImplementation "androidx.compose.ui:ui-test-manifest:1.6.0-alpha08"
 
-    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
+    // implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // https://mvnrepository.com/artifact/androidx.navigation/navigation-compose
     implementation 'androidx.navigation:navigation-compose:2.7.4'
@@ -86,7 +86,7 @@ dependencies {
     runtimeOnly 'androidx.compose.material3:material3:1.2.0-alpha10'
 
     // AlarmManager for restart service after closed
-    // Required to avoid crash on Android 12 API 31
+    // Required to avoid crash on Android 12 - API 31
     implementation 'androidx.work:work-runtime-ktx:2.8.1'
 
     // https://mvnrepository.com/artifact/androidx.compose.material/material-icons-extended
@@ -109,9 +109,6 @@ dependencies {
 
     // Accompanist - Drawable Painter
     // implementation 'com.google.accompanist:accompanist-drawablepainter:0.23.1'
-
-    // Accompanist - FlowLayout - https://mvnrepository.com/artifact/com.google.accompanist/accompanist-flowlayout
-    runtimeOnly 'com.google.accompanist:accompanist-flowlayout:0.33.2-alpha'
 
     // Jsoup HTML parser library - https://mvnrepository.com/artifact/org.jsoup/jsoup
     implementation 'org.jsoup:jsoup:1.16.1'

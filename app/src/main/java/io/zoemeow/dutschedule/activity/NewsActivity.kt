@@ -50,18 +50,7 @@ import kotlinx.coroutines.withContext
 class NewsActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
-        run {
-            CoroutineScope(Dispatchers.Main).launch {
-                withContext(Dispatchers.IO) {
-                    getMainViewModel().fetchNewsGlobal(
-                        newsPageType = 1
-                    )
-                    getMainViewModel().fetchNewsSubject(
-                        newsPageType = 1
-                    )
-                }
-            }
-        }
+
     }
 
     @Composable

@@ -2,6 +2,10 @@ package io.zoemeow.dutschedule.repository
 
 import android.content.Context
 import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonPrimitive
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
 import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
 import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
@@ -9,6 +13,7 @@ import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import java.io.File
+
 
 class FileModuleRepository(
     context: Context
@@ -20,7 +25,7 @@ class FileModuleRepository(
     private val PATH_APPSETTINGS = "${context.filesDir.path}/settings.json"
     private val PATH_ACCOUNT = "${context.filesDir.path}/account.json"
     private val PATH_CACHE_ACCOUNT = "${context.filesDir.path}/cache_account.json"
-
+    
     fun saveAppSettings(
         appSettings: AppSettings
     ) {

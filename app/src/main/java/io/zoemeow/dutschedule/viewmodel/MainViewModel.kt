@@ -415,12 +415,29 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    init {
+    private val runOnStartupEnabled = mutableStateOf(true)
+    private fun runOnStartup() {
+        if (!runOnStartupEnabled.value)
+            return
+
+        runOnStartupEnabled.value = false
+
         appSettings.value = fileModuleRepository.getAppSettings()
         accountSession.value = VariableTimestamp(
             timestamp = 0,
             data = fileModuleRepository.getAccountSession()
         )
+
         loadNewsCache()
+    }
+
+    init {
+        runOnStartup()
+
+        launchOnScope(script = {
+            fetchNewsGlobal(newsPageType = 1)
+            fetchNewsSubject(newsPageType = 1)
+            accountLogin(after = { if (it) { accountGetInformation() } })
+        })
     }
 }

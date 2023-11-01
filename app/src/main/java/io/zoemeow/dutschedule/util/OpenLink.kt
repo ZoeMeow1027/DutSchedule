@@ -13,7 +13,10 @@ fun OpenLink(
 ) {
     when (customTab) {
         false -> {
-            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
         }
 
         true -> {

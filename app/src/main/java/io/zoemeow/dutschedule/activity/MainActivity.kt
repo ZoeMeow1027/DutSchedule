@@ -25,21 +25,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
-import io.zoemeow.dutschedule.service.BaseService
-import io.zoemeow.dutschedule.service.NewsService
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.main.SummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.NotificationsUtils
+import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,22 +47,13 @@ import kotlinx.coroutines.launch
 class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
-        applicationContext.run {
-            CoroutineScope(Dispatchers.IO).launch {
-                NotificationsUtils.initializeNotificationChannel(this@MainActivity)
-//                BaseService.startService(
-//                    context = applicationContext,
-//                    intent = Intent(applicationContext, NewsService::class.java).apply {
-//                        action = "news.service.action.fetchall"
-//                    }
-//                )
-            }
-        }
+
     }
 
     @Composable
     override fun OnMainView(padding: PaddingValues) {
         // A surface container using the 'background' color from the theme
+        val context = LocalContext.current
         MainView(
             newsClicked = {
                 this.startActivity(Intent(this, NewsActivity::class.java))
@@ -77,34 +67,37 @@ class MainActivity : BaseActivity() {
             content = {
                 SummaryItem(
                     padding = PaddingValues(15.dp),
-                    title = "Today schedule",
+                    title = "Your Schedule",
                     content = "You have already done your subjects today! Good job!",
                     clicked = { },
                 )
                 SummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
                     title = "Affected lessons by announcement",
-                    content = "ie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12",
+                    content = "Your lessons were affected by school announcements in next 7 days:\n\n" +
+                    "ie1i0921d - i029di12\nie1i0921d - i029di12\nie1i0921d - i029di12\n" +
+                            "ie1i0921d - i029di12\nie1i0921d - i029di12",
                     clicked = {},
                 )
                 SummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "News from sv.dut.udn.vn",
-                    content = "Tap here to open news.\n\n" +
-                            "7 new announcements today\n" +
-                            "40 announcements on 7 days before",
-                    clicked = {},
+                    title = "School news",
+                    content = "Tap here to open news.\n\n7 new global announcements today.\n3 new subject announcements based on your filter.",
+                    clicked = {
+                        context.startActivity(Intent(context, NewsActivity::class.java))
+                    },
                 )
                 SummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Update available",
-                    content = "Tap here to update with Google Play Store.\n" +
-                            "Latest version: 1.0",
-                    clicked = {},
+                    title = "Update is available",
+                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft6",
+                    clicked = {
+                        OpenLink(
+                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
+                            context = context,
+                            customTab = false,
+                        )
+                    },
                 )
             }
         )

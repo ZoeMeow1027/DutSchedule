@@ -21,6 +21,19 @@
         android:theme="@style/Theme.DutSchedule"
         android:usesCleartextTraffic="true"
         tools:targetApi="tiramisu">
+
+        <!-- Trigger Google Play services to install the backported photo picker module. -->
+        <!--suppress AndroidDomInspection -->
+        <service android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false"
+            tools:ignore="MissingClass">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data android:name="photopicker_activity:0:required" android:value="" />
+        </service>
+
         <activity
             android:name=".activity.NewsActivity"
             android:exported="false"
@@ -66,10 +79,10 @@
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
         <service
-            android:name=".service.NewsService"
+            android:name=".service.NewsBackgroundUpdateService"
             android:enabled="true"
             android:exported="true"
-            android:label="DutSchedule - News Service" />
+            android:label="DutSchedule - News Background Update Service" />
     </application>
 
 </manifest>

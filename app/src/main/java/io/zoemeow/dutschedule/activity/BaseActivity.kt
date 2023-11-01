@@ -71,17 +71,17 @@ abstract class BaseActivity: ComponentActivity() {
                 content = {
                     val context = LocalContext.current
 
-                    var draw: Bitmap? = null
-                    when (mainViewModel.appSettings.value.backgroundImage) {
-                        BackgroundImageOption.YourWallpaper -> draw = BackgroundImageUtils.getCurrentWallpaperBackground(context)
-                        else -> { }
+                    var draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
+                        BackgroundImageOption.None -> null
+                        BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtils.getCurrentWallpaperBackground(context)
+                        BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtils.getImageFromAppData(context)
                     }
                     if (draw != null) {
                         Image(
                             modifier = Modifier.fillMaxSize(),
                             bitmap = draw.asImageBitmap(),
                             contentDescription = "background_image",
-                            contentScale = ContentScale.FillBounds
+                            contentScale = ContentScale.Crop
                         )
                     }
                     Scaffold(
@@ -94,10 +94,10 @@ abstract class BaseActivity: ComponentActivity() {
                                 }
                                 false -> MaterialTheme.colorScheme.background
                             }
-                            BackgroundImageOption.YourWallpaper -> MaterialTheme.colorScheme.background.copy(
+                            BackgroundImageOption.YourCurrentWallpaper -> MaterialTheme.colorScheme.background.copy(
                                 alpha = getMainViewModel().appSettings.value.backgroundImageOpacity
                             )
-                            BackgroundImageOption.ChooseFromFile -> MaterialTheme.colorScheme.background.copy(
+                            BackgroundImageOption.PickFileFromMedia -> MaterialTheme.colorScheme.background.copy(
                                 alpha = getMainViewModel().appSettings.value.backgroundImageOpacity
                             )
                         },

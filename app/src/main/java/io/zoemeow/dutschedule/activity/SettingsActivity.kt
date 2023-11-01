@@ -4,21 +4,21 @@ import io.zoemeow.dutschedule.BuildConfig
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -26,10 +26,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,7 +35,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +58,7 @@ import io.zoemeow.dutschedule.ui.component.settings.DividerItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionHeaderItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionSwitchItem
+import io.zoemeow.dutschedule.util.BackgroundImageUtils
 import io.zoemeow.dutschedule.util.OpenLink
 
 @AndroidEntryPoint
@@ -68,6 +66,22 @@ class SettingsActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
 
+    }
+
+    // When active
+    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        // Callback is invoked after the user selects a media item or closes the photo picker.
+        if (uri != null) {
+            Log.d("PhotoPicker", "Selected URI: $uri")
+            BackgroundImageUtils.saveImageToAppData(this, uri)
+            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                backgroundImage = BackgroundImageOption.PickFileFromMedia
+            )
+            getMainViewModel().saveSettings()
+            Log.d("PhotoPicker", "Copied!")
+        } else {
+            Log.d("PhotoPicker", "No media selected")
+        }
     }
 
     @Composable
@@ -186,8 +200,8 @@ class SettingsActivity : BaseActivity() {
                             title = "Background image",
                             description = when (getMainViewModel().appSettings.value.backgroundImage) {
                                 BackgroundImageOption.None -> "None"
-                                BackgroundImageOption.YourWallpaper -> "Your current wallpaper"
-                                BackgroundImageOption.ChooseFromFile -> "Pick a file"
+                                BackgroundImageOption.YourCurrentWallpaper -> "Your current wallpaper"
+                                BackgroundImageOption.PickFileFromMedia -> "Your picked image"
                             },
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = { dialogBackground.value = true }
@@ -199,7 +213,7 @@ class SettingsActivity : BaseActivity() {
                         )
                         OptionItem(
                             title = "Application permissions",
-                            description = "Did you change your mind to great permission? Just click here to open them.",
+                            description = "Click here for allow and manage app permissions you granted.",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = {
                                 context.startActivity(Intent(context, PermissionRequestActivity::class.java))
@@ -236,8 +250,8 @@ class SettingsActivity : BaseActivity() {
                             padding = PaddingValues(horizontal = 20.dp),
                         )
                         OptionItem(
-                            title = "Version (click to check update)",
-                            description = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                            title = "Version",
+                            description = "Current version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nClick here to check for update",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                         )
                         OptionItem(
@@ -300,7 +314,7 @@ class SettingsActivity : BaseActivity() {
                             backgroundImage = it
                         )
                     }
-                    BackgroundImageOption.YourWallpaper -> {
+                    BackgroundImageOption.YourCurrentWallpaper -> {
                         // When active
                         if (PermissionRequestActivity.isPermissionGranted(
                                 PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
@@ -311,7 +325,10 @@ class SettingsActivity : BaseActivity() {
                             )
                         }
                     }
-                    else -> { }
+                    BackgroundImageOption.PickFileFromMedia -> {
+                        // Launch the photo picker and let the user choose only images.
+                        pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }
                 }
                 dialogBackground.value = false
                 saveSettings()
@@ -496,8 +513,13 @@ class SettingsActivity : BaseActivity() {
                     )
                     DialogRadioButton(
                         title = "Your current wallpaper${if (!manageStorageGranted) "\n(You might need to grant access all file permission)" else ""}",
-                        selected = backgroundValue == BackgroundImageOption.YourWallpaper,
-                        onClick = { onValueClicked?.let { it(BackgroundImageOption.YourWallpaper) } }
+                        selected = backgroundValue == BackgroundImageOption.YourCurrentWallpaper,
+                        onClick = { onValueClicked?.let { it(BackgroundImageOption.YourCurrentWallpaper) } }
+                    )
+                    DialogRadioButton(
+                        title = "Choose a image from media",
+                        selected = backgroundValue == BackgroundImageOption.PickFileFromMedia,
+                        onClick = { onValueClicked?.let { it(BackgroundImageOption.PickFileFromMedia) } }
                     )
                 }
             },

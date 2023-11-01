@@ -1,13 +1,9 @@
 package io.zoemeow.dutschedule.service
 
 import android.content.Intent
-import com.google.gson.Gson
 import io.dutwrapperlib.dutwrapper.objects.enums.LessonStatus
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.model.ProcessState
-import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
@@ -17,7 +13,7 @@ import io.zoemeow.dutschedule.util.AppUtils
 import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.NotificationsUtils
 
-class NewsService : BaseService(
+class NewsBackgroundUpdateService : BaseService(
     nNotifyId = "notification.id.service",
     nTitle = "News service is running",
     nContent = "A task is running to get news list from sv.dut.udn.vn..."
@@ -46,9 +42,6 @@ class NewsService : BaseService(
         val fetchFullNews = intent?.getBooleanExtra("news.service.variable.fetchfullnews", false)
 
         when (intent?.action) {
-            "news.service.action.getnewscache" -> {
-                getNewsCache()
-            }
             "news.service.action.fetchglobal" -> {
                 fetchNewsGlobal(
                     newsPageType = fetchType ?: 0,
@@ -75,25 +68,8 @@ class NewsService : BaseService(
 
     private fun getNewsCache() {
         try {
-            sendBroadcast(
-                processState = ProcessState.Successful,
-                dataType = "news.global",
-                data = file.getCacheNewsGlobal().newsListByDate,
-                pageSet = file.getCacheNewsGlobal().pageCurrent
-            )
-            sendBroadcast(
-                processState = ProcessState.Successful,
-                dataType = "news.subject",
-                data = file.getCacheNewsSubject().newsListByDate,
-                pageSet = file.getCacheNewsSubject().pageCurrent
-            )
+
         } catch (_: Exception) {
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsGlobalItem>>>(
-                processState = ProcessState.Failed
-            )
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsSubjectItem>>>(
-                processState = ProcessState.Failed
-            )
         }
     }
 
@@ -103,12 +79,6 @@ class NewsService : BaseService(
         page: Int = 1
     ) {
         try {
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsGlobalItem>>>(
-                processState = ProcessState.Running,
-                dataType = "news.global",
-                data = null
-            )
-
             // Get news cache
             val newsCache = file.getCacheNewsGlobal()
 
@@ -171,18 +141,7 @@ class NewsService : BaseService(
                     data = newsItem
                 )
             }
-
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsGlobalItem>>>(
-                processState = ProcessState.Successful,
-                dataType = "news.global",
-                data = null
-            )
         } catch (_: Exception) {
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsGlobalItem>>>(
-                processState = ProcessState.Failed,
-                dataType = "news.global",
-                data = null
-            )
         }
     }
 
@@ -192,12 +151,6 @@ class NewsService : BaseService(
         page: Int = 1
     ) {
         try {
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsSubjectItem>>>(
-                processState = ProcessState.Running,
-                dataType = "news.subject",
-                data = null
-            )
-
             // Get news cache
             val newsCache = file.getCacheNewsSubject()
 
@@ -252,12 +205,12 @@ class NewsService : BaseService(
 
             newsDiff.forEach { newsItem ->
                 // Default value is false.
-                var notify = false
+                var notifyRequired = false
                 // If enabled news filter, do following.
 
                 // If filter was empty -> Not set -> All news -> Enable notify.
                 if (settings.newsFilterList.isEmpty()) {
-                    notify = true
+                    notifyRequired = true
                 }
                 // If a news in filter list -> Enable notify.
                 else if (settings.newsFilterList.any { source ->
@@ -273,10 +226,10 @@ class NewsService : BaseService(
                             }
                         }
                     }
-                ) notify = true
+                ) notifyRequired = true
 
-                // If no notify, continue with return@forEach.
-                if (!notify)
+                // If no notify/notify settings is off, continue with return@forEach.
+                if (!notifyRequired || !notify)
                     return@forEach
 
                 val notifyTitle = when (newsItem.lessonStatus) {
@@ -380,37 +333,7 @@ class NewsService : BaseService(
                     data = newsItem
                 )
             }
-
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsSubjectItem>>>(
-                processState = ProcessState.Successful,
-                dataType = "news.subject",
-                data = null
-            )
         } catch (_: Exception) {
-            sendBroadcast<ArrayList<NewsGroupByDate<NewsSubjectItem>>>(
-                processState = ProcessState.Failed,
-                dataType = "news.subject",
-                data = null
-            )
-        }
-    }
-
-    private fun <T> sendBroadcast(
-        processState: ProcessState,
-        dataType: String? = null,
-        data: T? = null,
-        pageSet: Int = 1
-    ) {
-        Intent("news.receiver").apply {
-            this.putExtra("news.receiver.status", processState.value)
-            this.putExtra("news.receiver.datatype", dataType)
-            this.putExtra(
-                "news.receiver.data",
-                data?.let { Gson().toJson(it) } ?: (null as String?)
-            )
-            this.putExtra("news.receiver.pageset", pageSet)
-        }.also {
-
         }
     }
 

@@ -3,6 +3,14 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft6 (660)
+- [New] Background Image from file you chose (note: this option will access only image you choosed).
+- [Changed] Removed unnecessary repositories and update to latest.
+- [Changed] Now preload data from MainViewModel instead of activities.
+- [Changed] Changed some enum name in Model. This might require you to CLEAR APP DATA if current is crashed.
+- [Changed] News service is now News Background Update Service (this will run task on background if app isn't run on foreground).
+
+
 ## 2.0-draft5 (651)
 - [Changed] News: Handle end of list for load next page.
 - [Changed] Settings: Added a option to quickly navigate to Android notification settings.
