@@ -39,20 +39,18 @@ import io.zoemeow.dutschedule.ui.component.main.SummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.NotificationsUtils
 import io.zoemeow.dutschedule.util.OpenLink
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
-
+        NotificationsUtils.initializeNotificationChannel(this)
     }
 
     @Composable
     override fun OnMainView(padding: PaddingValues) {
         // A surface container using the 'background' color from the theme
+
         val context = LocalContext.current
         MainView(
             newsClicked = {

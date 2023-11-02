@@ -37,14 +37,14 @@
         <activity
             android:name=".activity.NewsActivity"
             android:exported="false"
-            android:label="@string/title_activity_news"
+            android:label="DutSchedule - News"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activity.NewsDetailActivity"
             android:exported="false"
-            android:label="NewsDetailActivity"
+            android:label="DutSchedule - News detail"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
         <activity
@@ -63,26 +63,28 @@
         <activity
             android:name=".activity.AccountActivity"
             android:exported="false"
+            android:label="DutSchedule - Account"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activity.PermissionRequestActivity"
             android:exported="false"
+            android:label="DutSchedule - Permission Request"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule"
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".activity.SettingsActivity"
             android:exported="false"
-            android:label="Settings"
+            android:label="DutSchedule - Settings"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
         <service
-            android:name=".service.NewsBackgroundUpdateService"
+            android:name=".service.NewsUpdateService"
             android:enabled="true"
             android:exported="true"
-            android:label="DutSchedule - News Background Update Service" />
+            android:label="DutSchedule - News Update Service" />
     </application>
 
 </manifest>

@@ -72,12 +72,12 @@ dependencies {
     // implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // https://mvnrepository.com/artifact/androidx.navigation/navigation-compose
-    implementation 'androidx.navigation:navigation-compose:2.7.4'
+    implementation 'androidx.navigation:navigation-compose:2.7.5'
 
     // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-viewmodel-ktx
-    runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0-alpha03'
+    runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0-beta01'
     // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-viewmodel-compose
-    runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-alpha03'
+    runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-beta01'
 
     // https://mvnrepository.com/artifact/androidx.fragment/fragment-ktx
     runtimeOnly 'androidx.fragment:fragment-ktx:1.7.0-alpha06'
@@ -117,7 +117,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Android Browser (use WebView in app) - https://mvnrepository.com/artifact/androidx.browser/browser
-    implementation 'androidx.browser:browser:1.7.0-beta01'
+    implementation 'androidx.browser:browser:1.7.0-rc01'
 
     implementation files('libs/dutwrapper_java-1.7.5.jar')
 

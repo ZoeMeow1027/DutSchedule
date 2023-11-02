@@ -433,7 +433,7 @@ class MainViewModel @Inject constructor(
 
     init {
         runOnStartup()
-
+        
         launchOnScope(script = {
             fetchNewsGlobal(newsPageType = 1)
             fetchNewsSubject(newsPageType = 1)

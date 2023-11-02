@@ -13,7 +13,7 @@ import io.zoemeow.dutschedule.util.AppUtils
 import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.NotificationsUtils
 
-class NewsBackgroundUpdateService : BaseService(
+class NewsUpdateService : BaseService(
     nNotifyId = "notification.id.service",
     nTitle = "News service is running",
     nContent = "A task is running to get news list from sv.dut.udn.vn..."
@@ -63,13 +63,6 @@ class NewsBackgroundUpdateService : BaseService(
                 fetchNewsSubject(notify = true)
             }
             else -> {}
-        }
-    }
-
-    private fun getNewsCache() {
-        try {
-
-        } catch (_: Exception) {
         }
     }
 
@@ -341,7 +334,5 @@ class NewsBackgroundUpdateService : BaseService(
         stopSelf()
     }
 
-    override fun onDestroying() {
-
-    }
+    override fun onDestroying() { }
 }

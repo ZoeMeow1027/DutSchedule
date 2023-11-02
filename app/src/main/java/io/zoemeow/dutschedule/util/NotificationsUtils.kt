@@ -82,8 +82,8 @@ class NotificationsUtils {
             createNotificationChannelWithSilentSettings(
                 activity = activity,
                 id = "notification.id.service",
-                name = "News Background Update Service",
-                description = "This will ensure this service will able to run in background. You can turn off this notification."
+                name = "News Update Service",
+                description = "This will ensure this service will able to run in background. You can turn off this notification if you don't want show them."
             )
         }
 
