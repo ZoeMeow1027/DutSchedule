@@ -1,6 +1,5 @@
 package io.zoemeow.dutschedule.activity
 
-import io.zoemeow.dutschedule.BuildConfig
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -36,6 +35,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,18 +46,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
+import io.zoemeow.dutschedule.BuildConfig
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
+import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
-import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterAddManually
-import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterClearAll
-import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterCurrentFilter
 import io.zoemeow.dutschedule.ui.component.settings.DividerItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionHeaderItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionSwitchItem
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterAddManually
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterClearAll
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterCurrentFilter
 import io.zoemeow.dutschedule.util.BackgroundImageUtils
 import io.zoemeow.dutschedule.util.OpenLink
 
@@ -69,20 +71,21 @@ class SettingsActivity : BaseActivity() {
     }
 
     // When active
-    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
-        // Callback is invoked after the user selects a media item or closes the photo picker.
-        if (uri != null) {
-            Log.d("PhotoPicker", "Selected URI: $uri")
-            BackgroundImageUtils.saveImageToAppData(this, uri)
-            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                backgroundImage = BackgroundImageOption.PickFileFromMedia
-            )
-            getMainViewModel().saveSettings()
-            Log.d("PhotoPicker", "Copied!")
-        } else {
-            Log.d("PhotoPicker", "No media selected")
+    private val pickMedia =
+        registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+            // Callback is invoked after the user selects a media item or closes the photo picker.
+            if (uri != null) {
+                Log.d("PhotoPicker", "Selected URI: $uri")
+                BackgroundImageUtils.saveImageToAppData(this, uri)
+                getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                    backgroundImage = BackgroundImageOption.PickFileFromMedia
+                )
+                getMainViewModel().saveSettings()
+                Log.d("PhotoPicker", "Copied!")
+            } else {
+                Log.d("PhotoPicker", "No media selected")
+            }
         }
-    }
 
     @Composable
     override fun OnMainView(padding: PaddingValues) {
@@ -90,6 +93,7 @@ class SettingsActivity : BaseActivity() {
             "news_filter" -> {
                 NewsFilterSettingsView()
             }
+
             else -> {
                 MainView()
             }
@@ -216,7 +220,12 @@ class SettingsActivity : BaseActivity() {
                             description = "Click here for allow and manage app permissions you granted.",
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
                             clicked = {
-                                context.startActivity(Intent(context, PermissionRequestActivity::class.java))
+                                context.startActivity(
+                                    Intent(
+                                        context,
+                                        PermissionRequestActivity::class.java
+                                    )
+                                )
                             }
                         )
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -310,21 +319,26 @@ class SettingsActivity : BaseActivity() {
             onValueClicked = {
                 when (it) {
                     BackgroundImageOption.None -> {
-                        getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                            backgroundImage = it
-                        )
+                        getMainViewModel().appSettings.value =
+                            getMainViewModel().appSettings.value.clone(
+                                backgroundImage = it
+                            )
                     }
+
                     BackgroundImageOption.YourCurrentWallpaper -> {
                         // When active
                         if (PermissionRequestActivity.isPermissionGranted(
                                 PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
                                 context = context
-                            )) {
-                            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                                backgroundImage = it
                             )
+                        ) {
+                            getMainViewModel().appSettings.value =
+                                getMainViewModel().appSettings.value.clone(
+                                    backgroundImage = it
+                                )
                         }
                     }
+
                     BackgroundImageOption.PickFileFromMedia -> {
                         // Launch the photo picker and let the user choose only images.
                         pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -346,6 +360,42 @@ class SettingsActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun NewsFilterSettingsView() {
+        val tempFilterList = remember {
+            mutableStateListOf<SubjectCode>().also {
+                it.addAll(getMainViewModel().appSettings.value.newsFilterList)
+            }
+        }
+        val modified = remember { mutableStateOf(false) }
+        val exitWithoutSavingDialog = remember { mutableStateOf(false) }
+
+        fun saveChanges(exit: Boolean = false) {
+            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                newsFilterList = getMainViewModel().appSettings.value.newsFilterList.also {
+                    it.clear()
+                    it.addAll(tempFilterList.toList())
+                }
+            )
+            getMainViewModel().saveSettings()
+            modified.value = false
+
+            if (!exit) {
+                showSnackBar(
+                    text = "Saved changes!",
+                    clearPrevious = true
+                )
+            } else {
+                tempFilterList.clear()
+                setResult(RESULT_OK)
+                finish()
+            }
+        }
+
+        fun discardChangesAndExit() {
+            tempFilterList.clear()
+            setResult(RESULT_CANCELED)
+            finish()
+        }
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
@@ -356,8 +406,11 @@ class SettingsActivity : BaseActivity() {
                     navigationIcon = {
                         IconButton(
                             onClick = {
-                                setResult(RESULT_OK)
-                                finish()
+                                if (!modified.value) {
+                                    discardChangesAndExit()
+                                } else {
+                                    exitWithoutSavingDialog.value = true
+                                }
                             },
                             content = {
                                 Icon(
@@ -371,7 +424,7 @@ class SettingsActivity : BaseActivity() {
                     actions = {
                         IconButton(
                             onClick = {
-
+                                saveChanges()
                             },
                             content = {
                                 Icon(
@@ -390,17 +443,105 @@ class SettingsActivity : BaseActivity() {
                 Column(
                     modifier = Modifier.padding(it),
                     content = {
-                        NewsFilterCurrentFilter()
+                        NewsFilterCurrentFilter(
+                            selectedSubjects = tempFilterList,
+                            onRemoveRequested = { subjectCode ->
+                                tempFilterList.remove(subjectCode)
+                                modified.value = true
+                                showSnackBar(
+                                    text = "Removed $subjectCode. Save changes to apply your settings.",
+                                    clearPrevious = true
+                                )
+                            }
+                        )
                         NewsFilterAddManually(
                             expanded = tabIndex.intValue == 1,
-                            onExpanded = { tabIndex.intValue = 1 }
+                            onExpanded = { tabIndex.intValue = 1 },
+                            onSubmit = { schoolYearItem, classItem ->
+                                tempFilterList.add(
+                                    SubjectCode(
+                                        studentYearId = schoolYearItem,
+                                        classId = classItem
+                                    )
+                                )
+                                modified.value = true
+                                showSnackBar(
+                                    text = "Added ${schoolYearItem}.${classItem}. Save changes to apply your settings.",
+                                    clearPrevious = true
+                                )
+                            }
                         )
                         NewsFilterClearAll(
                             expanded = tabIndex.intValue == 2,
-                            onExpanded = { tabIndex.intValue = 2 }
+                            onExpanded = { tabIndex.intValue = 2 },
+                            onSubmit = {
+                                if (tempFilterList.isNotEmpty()) {
+                                    tempFilterList.clear()
+                                    modified.value = true
+                                    showSnackBar(
+                                        text = "Cleared! Remember to save changes to apply your settings.",
+                                        clearPrevious = true
+                                    )
+                                } else {
+                                    showSnackBar(
+                                        text = "Nothing to clear!",
+                                        clearPrevious = true
+                                    )
+                                }
+                            }
                         )
                     }
                 )
+            }
+        )
+        // TODO: Ask before exit with modified settings.
+        DialogBase(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(25.dp),
+            canDismiss = false,
+            isTitleCentered = true,
+            title = "Exit without saving?",
+            isVisible = exitWithoutSavingDialog.value,
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("You have modified changes. Save them now?\n\n- Yes: Save changes and exit\n- No: Discard changes and exit\n- Cancel: Just close this dialog.")
+                }
+            },
+            actionButtons = {
+                TextButton(
+                    onClick = {
+                        exitWithoutSavingDialog.value = false
+                        saveChanges(exit = true)
+                    },
+                    content = { Text("Yes") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                TextButton(
+                    onClick = {
+                        exitWithoutSavingDialog.value = false
+                        discardChangesAndExit()
+                    },
+                    content = { Text("No") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                TextButton(
+                    onClick = {
+                        exitWithoutSavingDialog.value = false
+                    },
+                    content = { Text("Cancel") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+        )
+        BackHandler(
+            enabled = modified.value,
+            onBack = {
+                exitWithoutSavingDialog.value = true
             }
         )
     }
@@ -433,17 +574,38 @@ class SettingsActivity : BaseActivity() {
                     DialogRadioButton(
                         title = "Follow device theme",
                         selected = themeModeValue == ThemeMode.FollowDeviceTheme,
-                        onClick = { onValueClicked?.let { it(ThemeMode.FollowDeviceTheme, dynamicColorEnabled) } }
+                        onClick = {
+                            onValueClicked?.let {
+                                it(
+                                    ThemeMode.FollowDeviceTheme,
+                                    dynamicColorEnabled
+                                )
+                            }
+                        }
                     )
                     DialogRadioButton(
                         title = "Light mode",
                         selected = themeModeValue == ThemeMode.LightMode,
-                        onClick = { onValueClicked?.let { it(ThemeMode.LightMode, dynamicColorEnabled) } }
+                        onClick = {
+                            onValueClicked?.let {
+                                it(
+                                    ThemeMode.LightMode,
+                                    dynamicColorEnabled
+                                )
+                            }
+                        }
                     )
                     DialogRadioButton(
                         title = "Dark mode",
                         selected = themeModeValue == ThemeMode.DarkMode,
-                        onClick = { onValueClicked?.let { it(ThemeMode.DarkMode, dynamicColorEnabled) } }
+                        onClick = {
+                            onValueClicked?.let {
+                                it(
+                                    ThemeMode.DarkMode,
+                                    dynamicColorEnabled
+                                )
+                            }
+                        }
                     )
                     DialogCheckBoxButton(
                         title = "Dynamic color",

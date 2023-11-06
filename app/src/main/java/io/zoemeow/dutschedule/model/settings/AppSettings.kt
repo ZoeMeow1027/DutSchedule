@@ -23,7 +23,7 @@ data class AppSettings(
     val openLinkInsideApp: Boolean = true,
 
     @SerializedName("appsettings.newsfilterlist")
-    val newsFilterList: List<SubjectCode> = listOf()
+    val newsFilterList: ArrayList<SubjectCode> = arrayListOf()
 ): Serializable {
     fun clone(
         themeMode: ThemeMode? = null,
@@ -31,7 +31,7 @@ data class AppSettings(
         blackBackground: Boolean? = null,
         backgroundImage: BackgroundImageOption? = null,
         openLinkInsideApp: Boolean? = null,
-        newsFilterList: List<SubjectCode>? = null,
+        newsFilterList: ArrayList<SubjectCode>? = null,
         backgroundImageOpacity: Float? = null
     ): AppSettings {
         return AppSettings(

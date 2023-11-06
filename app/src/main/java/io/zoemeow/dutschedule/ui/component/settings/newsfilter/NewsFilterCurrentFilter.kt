@@ -18,7 +18,7 @@ import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun NewsFilterCurrentFilter(
-    selectedSubjects: ArrayList<SubjectCode>? = null,
+    selectedSubjects: List<SubjectCode>? = null,
     onRemoveRequested: ((SubjectCode) -> Unit)? = null
 ) {
     NewsFilterSurface {
