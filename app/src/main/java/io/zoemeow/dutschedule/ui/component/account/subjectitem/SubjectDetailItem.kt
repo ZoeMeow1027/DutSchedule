@@ -3,7 +3,6 @@ package io.zoemeow.dutschedule.ui.component.account.subjectitem
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
+import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
@@ -26,10 +26,13 @@ import io.zoemeow.dutschedule.util.CustomDateUtils
 fun SubjectDetailItem(
     item: SubjectScheduleItem? = null,
     isVisible: Boolean = false,
+    onAddToFilterRequested: ((SubjectCode) -> Unit)? = null,
     dismissClicked: (() -> Unit)? = null
 ) {
     DialogBase(
-        modifier = Modifier.fillMaxWidth().padding(25.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(25.dp),
         title = "${item?.name ?: "(unknown)"}\n${item?.lecturer ?: "(unknown)"}",
         isVisible = isVisible,
         isTitleCentered = true,
@@ -83,7 +86,8 @@ fun SubjectDetailItem(
                                         if (item.subjectExam.isGlobal) " (global exam)" else ""
                             )
                             CustomText(
-                                "Date: ${CustomDateUtils.dateToString(
+                                "Date: ${
+                                    CustomDateUtils.dateToString(
                                         item.subjectExam.date,
                                         "dd/MM/yyyy HH:mm",
                                         "GMT+7"
@@ -100,6 +104,23 @@ fun SubjectDetailItem(
             }
         },
         actionButtons = {
+            TextButton(
+                onClick = {
+                    onAddToFilterRequested?.let { callBack ->
+                        item?.let {  item ->
+                            callBack(
+                                SubjectCode(
+                                    studentYearId = item.id.studentYearId,
+                                    classId = item.id.classId,
+                                    subjectName = item.name
+                                )
+                            )
+                        }
+                    }
+                },
+                content = { Text("Add to news filter") },
+                modifier = Modifier.padding(start = 8.dp),
+            )
             TextButton(
                 onClick = { dismissClicked?.let { it() } },
                 content = { Text("OK") },

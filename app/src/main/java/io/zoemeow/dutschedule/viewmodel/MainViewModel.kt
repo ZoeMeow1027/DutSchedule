@@ -152,10 +152,11 @@ class MainViewModel @Inject constructor(
 
     fun accountGetSubjectSchedule(
         before: (() -> Unit)? = null,
-        after: ((Boolean) -> Unit)? = null
+        after: ((Boolean) -> Unit)? = null,
+        force: Boolean = false
     ) {
         // If current process is running, ignore this run.
-        if (subjectSchedule.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectSchedule.value.timestamp)) {
+        if (subjectSchedule.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectSchedule.value.timestamp) && !force) {
             // After run
             after?.let { it(true) }
 
@@ -189,10 +190,11 @@ class MainViewModel @Inject constructor(
 
     fun accountGetSubjectFee(
         before: (() -> Unit)? = null,
-        after: ((Boolean) -> Unit)? = null
+        after: ((Boolean) -> Unit)? = null,
+        force: Boolean = false
     ) {
         // If current process is running, ignore this run.
-        if (subjectFee.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectFee.value.timestamp)) {
+        if (subjectFee.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(subjectFee.value.timestamp) && !force) {
             // After run
             after?.let { it(true) }
 
@@ -226,10 +228,11 @@ class MainViewModel @Inject constructor(
 
     fun accountGetInformation(
         before: (() -> Unit)? = null,
-        after: ((Boolean) -> Unit)? = null
+        after: ((Boolean) -> Unit)? = null,
+        force: Boolean = false
     ) {
         // If current process is running, ignore this run.
-        if (accountInformation.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountInformation.value.timestamp)) {
+        if (accountInformation.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountInformation.value.timestamp) && !force) {
             // After run
             after?.let { it(true) }
 

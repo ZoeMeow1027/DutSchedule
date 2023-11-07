@@ -78,41 +78,11 @@ fun NewsListPage(
                                 modifier = Modifier.padding(bottom = 5.dp)
                             )
                             it.itemList.forEach { newsGroupSubItem ->
-                                Surface(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 5.dp)
-                                        // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
-                                        .clip(RoundedCornerShape(10.dp))
-                                        //.background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 1.0f))
-                                        .clickable {
-                                            itemClicked?.let { it(newsGroupSubItem) }
-                                        },
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    content = {
-                                        Column(
-                                            modifier = Modifier.padding(
-                                                horizontal = 15.dp,
-                                                vertical = 10.dp
-                                            ),
-                                            horizontalAlignment = Alignment.Start,
-                                            verticalArrangement = Arrangement.Center,
-                                            content = {
-                                                // https://stackoverflow.com/questions/2891361/how-to-set-time-zone-of-a-java-util-date
-                                                Text(
-                                                    text = newsGroupSubItem.title ?: "",
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                )
-                                                Spacer(modifier = Modifier.size(15.dp))
-                                                Text(
-                                                    text = newsGroupSubItem.contentString ?: "",
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    // https://stackoverflow.com/a/65736376
-                                                    maxLines = 3,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                )
-                                            }
-                                        )
+                                NewsListItem(
+                                    title = newsGroupSubItem.title ?: "",
+                                    description = newsGroupSubItem.contentString ?: "",
+                                    onClick = {
+                                        itemClicked?.let { it(newsGroupSubItem) }
                                     }
                                 )
                             }

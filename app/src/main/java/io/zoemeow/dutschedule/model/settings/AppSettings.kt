@@ -23,7 +23,10 @@ data class AppSettings(
     val openLinkInsideApp: Boolean = true,
 
     @SerializedName("appsettings.newsfilterlist")
-    val newsFilterList: ArrayList<SubjectCode> = arrayListOf()
+    val newsFilterList: ArrayList<SubjectCode> = arrayListOf(),
+
+    @SerializedName("appsettings.fetchnewsinbackground.duration")
+    val fetchNewsBackgroundDuration: Int = 0
 ): Serializable {
     fun clone(
         themeMode: ThemeMode? = null,
@@ -32,7 +35,8 @@ data class AppSettings(
         backgroundImage: BackgroundImageOption? = null,
         openLinkInsideApp: Boolean? = null,
         newsFilterList: ArrayList<SubjectCode>? = null,
-        backgroundImageOpacity: Float? = null
+        backgroundImageOpacity: Float? = null,
+        fetchNewsBackgroundDuration: Int? = null
     ): AppSettings {
         return AppSettings(
             themeMode = themeMode ?: this.themeMode,
@@ -41,7 +45,12 @@ data class AppSettings(
             backgroundImage = backgroundImage ?: this.backgroundImage,
             openLinkInsideApp = openLinkInsideApp ?: this.openLinkInsideApp,
             newsFilterList = newsFilterList ?: this.newsFilterList,
-            backgroundImageOpacity = backgroundImageOpacity ?: this.backgroundImageOpacity
+            backgroundImageOpacity = backgroundImageOpacity ?: this.backgroundImageOpacity,
+            fetchNewsBackgroundDuration = when (fetchNewsBackgroundDuration) {
+                null -> this.fetchNewsBackgroundDuration
+                0 -> 0
+                else -> if (fetchNewsBackgroundDuration >= 5) fetchNewsBackgroundDuration else 5
+            }
         )
     }
 }

@@ -3,6 +3,13 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft7 (672)
+- [New] Fetch news background duration (just a option, not working yet).
+- [New] News filter settings (just a option, not working yet).
+- [Changed] Add refresh button in Subject Schedule, Subject Fee and Account Information (in Account activity).
+- [Changed] Implement dependencies to latest version.
+- [Changed] Optimized code usages and reduct code weight.
+
 ## 2.0-draft6 (660)
 - [New] Background Image from file you chose (note: this option will access only image you choosed).
 - [Changed] Removed unnecessary repositories and update to latest.
@@ -10,17 +17,16 @@
 - [Changed] Changed some enum name in Model. This might require you to CLEAR APP DATA if current is crashed.
 - [Changed] News service is now News Background Update Service (this will run task on background if app isn't run on foreground).
 
-
 ## 2.0-draft5 (651)
+- [New] News filter settings (not functionally yet).
 - [Changed] News: Handle end of list for load next page.
 - [Changed] Settings: Added a option to quickly navigate to Android notification settings.
-- [New] News filter settings (not functionally yet).
-- Imporve app performance.
+- [Changed] Imporved app performance.
 
 ## 2.0-draft4 (640)
-- Improve app performance.
 - News activity works (but not fully functionally yet).
 - News service (just test, not ready yet).
+- Improved app performance.
 
 ## 2.0-draft3 (604)
 - Improve app performance.

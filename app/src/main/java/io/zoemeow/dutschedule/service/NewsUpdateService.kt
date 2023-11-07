@@ -212,7 +212,8 @@ class NewsUpdateService : BaseService(
                                 source.isEquals(
                                     SubjectCode(
                                         target.studentYearId,
-                                        target.classId
+                                        target.classId,
+                                        targetGroup.subjectName
                                     )
                                 )
                             }

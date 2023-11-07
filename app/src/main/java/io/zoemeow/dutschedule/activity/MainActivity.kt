@@ -72,7 +72,7 @@ class MainActivity : BaseActivity() {
                 SummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
                     title = "Affected lessons by announcement",
-                    content = "Your lessons were affected by school announcements in next 7 days:\n\n" +
+                    content = "Your lessons will be affected by school announcements in next 7 days:\n\n" +
                     "ie1i0921d - i029di12\nie1i0921d - i029di12\nie1i0921d - i029di12\n" +
                             "ie1i0921d - i029di12\nie1i0921d - i029di12",
                     clicked = {},

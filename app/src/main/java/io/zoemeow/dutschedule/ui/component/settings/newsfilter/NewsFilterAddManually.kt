@@ -23,10 +23,11 @@ import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 fun NewsFilterAddManually(
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
-    onSubmit: ((String, String) -> Unit)? = null
+    onSubmit: ((String, String, String) -> Unit)? = null
 ) {
     val studentYearId = remember { mutableStateOf("") }
     val classId = remember { mutableStateOf("") }
+    val subjectName = remember { mutableStateOf("") }
 
     NewsFilterSurface {
         ContentExpandable(
@@ -35,7 +36,7 @@ fun NewsFilterAddManually(
             onExpanded = { onExpanded?.let { it() } },
             content = {
                 Text(
-                    text = "Enter your subject filter (you can view templates in sv.dut.udn.vn) and tap \"Add\" to add to filter above.\n\nExample:\n - 19 | 01\n - xx | 94A\n\nNote:\n- You need to enter carefully, otherwise you won\'t received notifications exactly.",
+                    text = "Enter your subject filter (you can view templates in sv.dut.udn.vn) and tap \"Add\" to add to filter above.\n\nExample:\n - 19 | 01 | Subject A\n - xx | 94A | Subject B\n\nNote:\n- You need to enter carefully, otherwise you won\'t received notifications exactly.",
                     modifier = Modifier.padding(bottom = 5.dp)
                 )
                 Column(
@@ -73,11 +74,26 @@ fun NewsFilterAddManually(
                                 .weight(0.5f)
                         )
                     }
+                    Spacer(modifier = Modifier.size(5.dp))
+                    OutlinedTextField(
+                        value = subjectName.value,
+                        onValueChange = { subjectName.value = it },
+                        label = { Text("Subject name") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Spacer(modifier = Modifier.size(10.dp))
                     Button(
                         content = { Text("Add") },
                         onClick = {
-                                  onSubmit?.let { it(studentYearId.value, classId.value) }
+                            if (studentYearId.value.length >= 2 && classId.value.length >= 2 && subjectName.value.length >= 3) {
+                                onSubmit?.let {
+                                    it(
+                                        studentYearId.value,
+                                        classId.value,
+                                        subjectName.value
+                                    )
+                                }
+                            }
                         },
                     )
                 }

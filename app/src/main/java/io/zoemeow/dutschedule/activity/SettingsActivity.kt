@@ -27,12 +27,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -66,9 +68,7 @@ import io.zoemeow.dutschedule.util.OpenLink
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity() {
     @Composable
-    override fun OnPreloadOnce() {
-
-    }
+    override fun OnPreloadOnce() { }
 
     // When active
     private val pickMedia =
@@ -105,6 +105,7 @@ class SettingsActivity : BaseActivity() {
     private fun MainView() {
         val dialogAppTheme: MutableState<Boolean> = remember { mutableStateOf(false) }
         val dialogBackground: MutableState<Boolean> = remember { mutableStateOf(false) }
+        val dialogFetchNews: MutableState<Boolean> = remember { mutableStateOf(false) }
         val context = LocalContext.current
 
         Scaffold(
@@ -145,13 +146,20 @@ class SettingsActivity : BaseActivity() {
                                 end = 20.dp
                             ),
                         )
-                        OptionSwitchItem(
-                            title = "Load news in background",
-                            description = "Update news list in background.",
-                            switchChecked = false,
+                        OptionItem(
+                            title = "Fetch news in background",
+                            description = when {
+                                (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) ->
+                                    String.format(
+                                        "Enabled, every %d minute%s",
+                                        getMainViewModel().appSettings.value.fetchNewsBackgroundDuration,
+                                        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration != 1) "s" else ""
+                                    )
+                                else -> "Disabled"
+                            },
                             padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
-                            onValueChanged = { value ->
-
+                            clicked = {
+                                dialogFetchNews.value = true
                             }
                         )
                         OptionItem(
@@ -348,11 +356,25 @@ class SettingsActivity : BaseActivity() {
                 saveSettings()
             }
         )
+        DialogFetchNewsInBackground(
+            isVisible = dialogFetchNews.value,
+            dismissRequested = { dialogFetchNews.value = false },
+            baseValue = getMainViewModel().appSettings.value.fetchNewsBackgroundDuration,
+            onSubmit = {
+                dialogFetchNews.value = false
+                getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                    fetchNewsBackgroundDuration = it
+                )
+                getMainViewModel().saveSettings()
+                // TODO: Check if news service is scheduled.
+            }
+        )
         BackHandler(
-            enabled = dialogAppTheme.value || dialogBackground.value,
+            enabled = dialogAppTheme.value || dialogBackground.value || dialogFetchNews.value,
             onBack = {
                 dialogAppTheme.value = false
                 dialogBackground.value = false
+                dialogFetchNews.value = false
             }
         )
     }
@@ -441,7 +463,9 @@ class SettingsActivity : BaseActivity() {
                 val tabIndex = remember { mutableIntStateOf(1) }
 
                 Column(
-                    modifier = Modifier.padding(it),
+                    modifier = Modifier
+                        .padding(it)
+                        .verticalScroll(rememberScrollState()),
                     content = {
                         NewsFilterCurrentFilter(
                             selectedSubjects = tempFilterList,
@@ -457,11 +481,12 @@ class SettingsActivity : BaseActivity() {
                         NewsFilterAddManually(
                             expanded = tabIndex.intValue == 1,
                             onExpanded = { tabIndex.intValue = 1 },
-                            onSubmit = { schoolYearItem, classItem ->
+                            onSubmit = { schoolYearItem, classItem, subjectName ->
                                 tempFilterList.add(
                                     SubjectCode(
                                         studentYearId = schoolYearItem,
-                                        classId = classItem
+                                        classId = classItem,
+                                        subjectName = subjectName
                                     )
                                 )
                                 modified.value = true
@@ -766,6 +791,74 @@ class SettingsActivity : BaseActivity() {
                             Text(title)
                         }
                     }
+                )
+            }
+        )
+    }
+
+    @Composable
+    private fun DialogFetchNewsInBackground(
+        isVisible: Boolean = false,
+        baseValue: Int = 0,
+        dismissRequested: (() -> Unit)? = null,
+        onSubmit: ((Int) -> Unit)? = null
+    ) {
+        val duration = remember { mutableIntStateOf(0) }
+
+        LaunchedEffect(isVisible) {
+            duration.intValue = baseValue
+        }
+
+        DialogBase(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(25.dp),
+            title = "Fetch news in background",
+            isVisible = isVisible,
+            canDismiss = true,
+            isTitleCentered = true,
+            dismissClicked = {
+                dismissRequested?.let { it() }
+            },
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        "Drag slider below to adjust news background duration." +
+                                "\n - Drag slider to 0 to disable this function." +
+                                "\n - If you set this value below than 5 minutes, this will automatically adjust back to 5 minutes.",
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    Slider(
+                        valueRange = 0f..240f,
+                        steps = 241,
+                        value = duration.intValue.toFloat(),
+                        onValueChange = {
+                            duration.intValue = it.toInt()
+                        }
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        content = {
+                            Text("${duration.intValue} minute${if (duration.intValue != 1) "s" else ""}")
+                        }
+                    )
+                }
+            },
+            actionButtons = {
+                TextButton(
+                    onClick = { onSubmit?.let { it(duration.intValue) } },
+                    content = { Text("Save") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                TextButton(
+                    onClick = { dismissRequested?.let { it() } },
+                    content = { Text("Cancel") },
+                    modifier = Modifier.padding(start = 8.dp),
                 )
             }
         )

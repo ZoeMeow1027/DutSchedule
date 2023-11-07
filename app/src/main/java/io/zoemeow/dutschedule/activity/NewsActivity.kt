@@ -55,7 +55,10 @@ class NewsActivity : BaseActivity() {
 
     @Composable
     override fun OnMainView(padding: PaddingValues) {
-        MainView()
+        when (intent.action) {
+            "search" -> SearchView()
+            else -> MainView()
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -249,5 +252,10 @@ class NewsActivity : BaseActivity() {
                 }
             }
         )
+    }
+
+    @Composable
+    private fun SearchView() {
+
     }
 }

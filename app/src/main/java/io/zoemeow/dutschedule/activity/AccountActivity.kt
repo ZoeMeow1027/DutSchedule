@@ -15,8 +15,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -105,6 +107,24 @@ class AccountActivity: BaseActivity() {
                     },
                 )
             },
+            floatingActionButton = {
+                if (getMainViewModel().subjectSchedule.value.processState != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) { getMainViewModel().accountGetSubjectSchedule(force = true) }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
+            },
             content = { padding ->
                 when (getMainViewModel().subjectSchedule.value.processState) {
                     ProcessState.NotRunYet,
@@ -159,6 +179,25 @@ class AccountActivity: BaseActivity() {
             isVisible = subjectDetailVisible.value,
             dismissClicked = {
                 subjectDetailVisible.value = false
+            },
+            onAddToFilterRequested = { item ->
+                if (getMainViewModel().appSettings.value.newsFilterList.any { it.isEquals(item) }) {
+                    showSnackBar(
+                        text = "This subject has already exist in your news filter list!",
+                        clearPrevious = true
+                    )
+                } else {
+                    getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                        newsFilterList = getMainViewModel().appSettings.value.newsFilterList.also {
+                            it.add(item)
+                        }
+                    )
+                    getMainViewModel().saveSettings()
+                    showSnackBar(
+                        text = "Successfully added $item to your news filter list!",
+                        clearPrevious = true
+                    )
+                }
             }
         )
 
@@ -205,6 +244,26 @@ class AccountActivity: BaseActivity() {
                         )
                     },
                 )
+            },
+            floatingActionButton = {
+                if (getMainViewModel().subjectFee.value.processState != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) {
+                                            getMainViewModel().accountGetSubjectFee(force = true)
+                                        }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
             },
             content = { padding ->
                 when (getMainViewModel().subjectFee.value.processState) {
@@ -295,6 +354,26 @@ class AccountActivity: BaseActivity() {
                         )
                     },
                 )
+            },
+            floatingActionButton = {
+                if (getMainViewModel().accountInformation.value.processState != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) {
+                                            getMainViewModel().accountGetInformation(force = true)
+                                        }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
             },
             content = { padding ->
                 val data = getMainViewModel().accountInformation.value.data

@@ -191,12 +191,12 @@ private fun NewsDetailBody_NewsSubject(
                     )
                 } (${CustomDateUtils.unixToDuration(newsItem.date)})",
                 style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(vertical = 10.dp)
+                modifier = Modifier.padding(vertical = 7.dp)
             )
             HorizontalDivider(
                 thickness = 1.dp,
                 color = Color.Gray,
-                modifier = Modifier.padding(vertical = 10.dp)
+                modifier = Modifier.padding(bottom = 10.dp)
             )
             // Affecting classrooms.
             var affectedClassrooms = ""
@@ -224,11 +224,12 @@ private fun NewsDetailBody_NewsSubject(
                     affectedClassrooms
                 ),
                 style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
             HorizontalDivider(
                 thickness = 1.dp,
                 color = Color.Gray,
-                modifier = Modifier.padding(vertical = 10.dp)
+                modifier = Modifier.padding(bottom = 10.dp)
             )
             // Affecting lessons, hour, room.
             if (arrayListOf(
