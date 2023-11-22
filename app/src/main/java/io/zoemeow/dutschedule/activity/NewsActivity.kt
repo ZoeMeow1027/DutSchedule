@@ -35,7 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate

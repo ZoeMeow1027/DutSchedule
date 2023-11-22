@@ -1,7 +1,7 @@
 package io.zoemeow.dutschedule.service
 
 import android.content.Intent
-import io.dutwrapperlib.dutwrapper.objects.enums.LessonStatus
+import io.dutwrapperlib.dutwrapper.model.enums.LessonStatus
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList

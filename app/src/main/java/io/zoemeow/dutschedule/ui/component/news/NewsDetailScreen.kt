@@ -22,10 +22,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import io.dutwrapperlib.dutwrapper.objects.enums.LessonStatus
-import io.dutwrapperlib.dutwrapper.objects.enums.NewsType
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
+import io.dutwrapperlib.dutwrapper.model.enums.LessonStatus
+import io.dutwrapperlib.dutwrapper.model.enums.NewsType
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable

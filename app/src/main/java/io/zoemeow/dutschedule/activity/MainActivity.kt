@@ -1,7 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -41,17 +40,13 @@ import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.NotificationsUtils
-import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.ExperimentalTime
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -99,18 +94,18 @@ class MainActivity : BaseActivity() {
                     },
                     isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
                 )
-                SummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Update is available",
-                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft8",
-                    clicked = {
-                        OpenLink(
-                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
-                            context = context,
-                            customTab = false,
-                        )
-                    },
-                )
+//                SummaryItem(
+//                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+//                    title = "Update is available",
+//                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft8",
+//                    clicked = {
+//                        OpenLink(
+//                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
+//                            context = context,
+//                            customTab = false,
+//                        )
+//                    },
+//                )
             }
         )
     }

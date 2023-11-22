@@ -5,11 +5,12 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.dutwrapperlib.dutwrapper.objects.accounts.AccountInformation
-import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectFeeItem
-import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
+import io.dutwrapperlib.dutwrapper.model.accounts.AccountInformation
+import io.dutwrapperlib.dutwrapper.model.accounts.SubjectFeeItem
+import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapperlib.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.VariableTimestamp
 import io.zoemeow.dutschedule.model.account.AccountAuth
@@ -52,6 +53,9 @@ class MainViewModel @Inject constructor(
         VariableTimestamp(data = null)
     )
     val accountInformation: MutableState<VariableTimestamp<AccountInformation?>> = mutableStateOf(
+        VariableTimestamp(data = null)
+    )
+    val accountTrainingStatus: MutableState<VariableTimestamp<AccountTrainingStatus?>> = mutableStateOf(
         VariableTimestamp(data = null)
     )
 
@@ -403,6 +407,43 @@ class MainViewModel @Inject constructor(
                 )
             }
         )
+    }
+
+    fun fetchAccountTrainingStatus(
+        before: (() -> Unit)? = null,
+        after: ((Boolean) -> Unit)? = null,
+        force: Boolean = false
+    ) {
+        // If current process is running, ignore this run.
+        if (accountTrainingStatus.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountInformation.value.timestamp) && !force) {
+            // After run
+            after?.let { it(true) }
+
+            return
+        }
+
+        // Before run
+        before?.let { it() }
+
+        accountTrainingStatus.value = accountTrainingStatus.value.clone(
+            processState = ProcessState.Running
+        )
+
+        // Get data
+        val response = dutAccountRepository.getAccountTrainingStatus(
+            accountSession.value.data
+        )
+        accountTrainingStatus.value = accountTrainingStatus.value.clone(
+            data = response,
+            processState = if (response != null) ProcessState.Successful else ProcessState.Failed,
+            timestamp = GlobalVariables.currentTimestampInMilliseconds()
+        )
+
+        // Save settings
+        saveSettings()
+
+        // After run
+        after?.let { it(response != null) }
     }
 
     private fun launchOnScope(

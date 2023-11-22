@@ -1,9 +1,10 @@
 package io.zoemeow.dutschedule.repository
 
 import io.dutwrapperlib.dutwrapper.Account
-import io.dutwrapperlib.dutwrapper.objects.accounts.AccountInformation
-import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectFeeItem
-import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
+import io.dutwrapperlib.dutwrapper.model.accounts.AccountInformation
+import io.dutwrapperlib.dutwrapper.model.accounts.SubjectFeeItem
+import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapperlib.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.util.GlobalVariables
@@ -136,6 +137,20 @@ class DutAccountRepository {
         return try {
             if (Account.isLoggedIn(accountSession.sessionId)) {
                 Account.getAccountInformation(accountSession.sessionId)
+            }
+            else null
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            null
+        }
+    }
+
+    fun getAccountTrainingStatus(
+        accountSession: AccountSession
+    ): AccountTrainingStatus? {
+        return try {
+            if (Account.isLoggedIn(accountSession.sessionId)) {
+                Account.getAccountTrainingStatus(accountSession.sessionId)
             }
             else null
         } catch (ex: Exception) {

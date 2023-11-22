@@ -25,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -37,7 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.objects.accounts.SubjectScheduleItem
+import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
@@ -48,6 +47,7 @@ import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectDetailItem
 import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectSummaryItem
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
+import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -71,8 +71,218 @@ class AccountActivity: BaseActivity() {
             "acc_info" -> {
                 AccountInformationView()
             }
+            "acc_training_result" -> {
+                AccountTrainingResult()
+            }
             else -> {
                 MainView()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AccountTrainingResult() {
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Account Training Result") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_OK)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                )
+            },
+            floatingActionButton = {
+                if (getMainViewModel().accountTrainingStatus.value.processState != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) { getMainViewModel().fetchAccountTrainingStatus(force = true) }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
+            },
+            content = { padding ->
+                // TODO: Account training result screen
+
+                when (getMainViewModel().accountTrainingStatus.value.processState) {
+                    ProcessState.Running -> {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            content = {
+                                CircularProgressIndicator()
+                            }
+                        )
+                    }
+                    ProcessState.Successful -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(padding)
+                                .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.Start,
+                            content = {
+                                fun graduateStatus(): String {
+                                    val owned = ArrayList<String>()
+                                    val missing = ArrayList<String>()
+                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigGDTC == true) {
+                                        owned.add("GDTC certificate")
+                                    } else {
+                                        missing.add("GDTC certificate")
+                                    }
+                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigGDQP == true) {
+                                        owned.add("GDQP certificate")
+                                    } else {
+                                        missing.add("GDQP certificate")
+                                    }
+                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigEnglish == true) {
+                                        owned.add("English certificate")
+                                    } else {
+                                        missing.add("English certificate")
+                                    }
+                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigIT == true) {
+                                        owned.add("IT certificate")
+                                    } else {
+                                        missing.add("IT certificate")
+                                    }
+                                    val hasQualifiedGraduate = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasQualifiedGraduate == true
+
+                                    val result = "- Owned certificate(s): ${owned.joinToString(", ")}\n- Missing certificate(s): ${missing.joinToString(", ")}\n- Has qualified graduate: ${if (hasQualifiedGraduate) "Yes" else "No (check information below)"}"
+                                    owned.clear()
+                                    missing.clear()
+                                    return result
+                                }
+
+                                SimpleCardItem(
+                                    title = "Your training result",
+                                    isTitleCentered = true,
+                                    padding = PaddingValues(horizontal = 10.dp),
+                                    clicked = {},
+                                    content = {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 10.dp)
+                                                .padding(bottom = 10.dp),
+                                            content = {
+                                                OutlinedTextBox(
+                                                    title = "Score (point per 4)",
+                                                    value = "${getMainViewModel().accountTrainingStatus.value.data?.trainingSummary?.avgTrainingScore4 ?: "(unknown)"}",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                                OutlinedTextBox(
+                                                    title = "School year updated",
+                                                    value = getMainViewModel().accountTrainingStatus.value.data?.trainingSummary?.schoolYearCurrent ?: "(unknown)",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                                Spacer(modifier = Modifier.size(5.dp))
+                                SimpleCardItem(
+                                    title = "Graduate status",
+                                    isTitleCentered = true,
+                                    padding = PaddingValues(horizontal = 10.dp),
+                                    clicked = {},
+                                    content = {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 10.dp)
+                                                .padding(bottom = 10.dp),
+                                            content = {
+                                                OutlinedTextBox(
+                                                    title = "Certificate & graduate result",
+                                                    value = graduateStatus(),
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                                OutlinedTextBox(
+                                                    title = "Khen thuong",
+                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info1 ?: "(unknown)",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                                OutlinedTextBox(
+                                                    title = "Ky luat",
+                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info2 ?: "(unknown)",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                                OutlinedTextBox(
+                                                    title = "Thong tin xet do an tot nghiep",
+                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info3 ?: "(unknown)",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                                OutlinedTextBox(
+                                                    title = "Approved graduate process information",
+                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.approveGraduateProcessInfo ?: "(unknown)",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(bottom = 5.dp)
+                                                )
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                    }
+
+                    else -> {}
+                }
+            }
+        )
+
+        val hasRun = remember { mutableStateOf(false) }
+        run {
+            if (!hasRun.value) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    getMainViewModel().accountLogin(
+                        after = {
+                            if (it) {
+                                getMainViewModel().fetchAccountTrainingStatus()
+                            }
+                        }
+                    )
+                }
+                hasRun.value = true
             }
         }
     }
@@ -569,6 +779,20 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
+                                    content = { Text("Account training result") },
+                                    horizontalArrangement = Arrangement.Start,
+                                    isOutlinedButton = true,
+                                    clicked = {
+                                        val intent = Intent(context, AccountActivity::class.java)
+                                        intent.action = "acc_training_result"
+                                        context.startActivity(intent)
+                                    }
+                                )
+                                ButtonBase(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                                    modifierInside = Modifier.padding(vertical = 7.dp),
                                     content = { Text("Logout") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
@@ -606,11 +830,11 @@ class AccountActivity: BaseActivity() {
                                     true -> {
                                         loginDialogEnabled.value = true
                                         loginDialogVisible.value = false
-                                        getMainViewModel().accountGetInformation()
                                         showSnackBar(
                                             text = "Successfully logged in!",
                                             clearPrevious = true,
                                         )
+                                        getMainViewModel().accountGetInformation()
                                     }
                                     false -> {
                                         loginDialogEnabled.value = true
