@@ -1,8 +1,8 @@
 package io.zoemeow.dutschedule.repository
 
 import io.dutwrapperlib.dutwrapper.News
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 
 class DutNewsRepository {

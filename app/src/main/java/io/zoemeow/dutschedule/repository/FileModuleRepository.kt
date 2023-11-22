@@ -7,8 +7,8 @@ import com.google.gson.JsonPrimitive
 import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.settings.AppSettings

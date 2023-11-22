@@ -34,11 +34,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.NotificationsUtils
-import io.zoemeow.dutschedule.util.OpenLink
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Duration.Companion.days
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity() {
@@ -77,28 +85,55 @@ class MainActivity : BaseActivity() {
                             "ie1i0921d - i029di12\nie1i0921d - i029di12",
                     clicked = {},
                 )
-                SummaryItem(
+                SchoolNewsSummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "School news",
-                    content = "Tap here to open news.\n\n7 new global announcements today.\n3 new subject announcements based on your filter.",
+                    newsToday = getNews(false),
+                    newsThisWeek = getNews(true),
                     clicked = {
                         context.startActivity(Intent(context, NewsActivity::class.java))
                     },
+                    isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
                 )
-                SummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Update is available",
-                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft6",
-                    clicked = {
-                        OpenLink(
-                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
-                            context = context,
-                            customTab = false,
-                        )
-                    },
-                )
+//                SummaryItem(
+//                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+//                    title = "Update is available",
+//                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft8",
+//                    clicked = {
+//                        OpenLink(
+//                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
+//                            context = context,
+//                            customTab = false,
+//                        )
+//                    },
+//                )
             }
         )
+    }
+
+    private fun getNews(byWeek: Boolean = false): Int {
+        var data = 0
+        val today = LocalDateTime(
+            Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date,
+            LocalTime(0, 0, 0)
+        ).toInstant(TimeZone.UTC)
+        val before7Days = today.minus(7.days)
+
+        if (!byWeek) {
+            getMainViewModel().newsGlobal.value.data.newsListByDate.firstOrNull {
+                // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
+                it.date == today.toEpochMilliseconds()
+            }.also {
+                if (it != null) data = it.itemList.count()
+            }
+        } else {
+            getMainViewModel().newsGlobal.value.data.newsListByDate.forEach {
+                // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
+                if (it.date <= today.toEpochMilliseconds() && it.date >= before7Days.toEpochMilliseconds()) {
+                    data += it.itemList.count()
+                }
+            }
+        }
+        return data
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

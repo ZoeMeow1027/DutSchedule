@@ -19,9 +19,9 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.objects.enums.NewsType
-import io.dutwrapperlib.dutwrapper.objects.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.objects.news.NewsSubjectItem
+import io.dutwrapperlib.dutwrapper.model.enums.NewsType
+import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.ui.component.news.NewsDetailScreen
 import io.zoemeow.dutschedule.util.OpenLink
 

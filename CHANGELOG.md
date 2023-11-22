@@ -3,12 +3,17 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft8 (683)
+- [New] Account training status.
+- [Changed] Implement dependencies to latest version.
+- [Changed] Optimized code usages.
+
 ## 2.0-draft7 (672)
 - [New] Fetch news background duration (just a option, not working yet).
 - [New] News filter settings (just a option, not working yet).
 - [Changed] Add refresh button in Subject Schedule, Subject Fee and Account Information (in Account activity).
 - [Changed] Implement dependencies to latest version.
-- [Changed] Optimized code usages and reduct code weight.
+- [Changed] Optimized code usages and reduce code weight.
 
 ## 2.0-draft6 (660)
 - [New] Background Image from file you chose (note: this option will access only image you choosed).
