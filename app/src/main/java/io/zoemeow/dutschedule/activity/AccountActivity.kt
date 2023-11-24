@@ -178,7 +178,6 @@ class AccountActivity: BaseActivity() {
                                     missing.clear()
                                     return result
                                 }
-
                                 SimpleCardItem(
                                     title = "Your training result",
                                     isTitleCentered = true,

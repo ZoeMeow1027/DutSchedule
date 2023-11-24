@@ -3,6 +3,9 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft9 (692)
+- [New] News search (however, this's new feature, so maybe improve later).
+
 ## 2.0-draft8 (683)
 - [New] Account training status.
 - [Changed] Implement dependencies to latest version.

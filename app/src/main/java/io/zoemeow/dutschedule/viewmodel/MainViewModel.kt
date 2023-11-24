@@ -415,7 +415,7 @@ class MainViewModel @Inject constructor(
         force: Boolean = false
     ) {
         // If current process is running, ignore this run.
-        if (accountTrainingStatus.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountInformation.value.timestamp) && !force) {
+        if (accountTrainingStatus.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(accountTrainingStatus.value.timestamp) && !force) {
             // After run
             after?.let { it(true) }
 

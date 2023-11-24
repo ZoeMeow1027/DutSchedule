@@ -1,24 +1,33 @@
 package io.zoemeow.dutschedule.repository
 
 import io.dutwrapperlib.dutwrapper.News
+import io.dutwrapperlib.dutwrapper.model.enums.NewsSearchType
 import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 
 class DutNewsRepository {
     companion object {
-        fun getNewsGlobal(page: Int = 1): ArrayList<NewsGlobalItem> {
+        fun getNewsGlobal(
+            page: Int = 1,
+            searchType: NewsSearchType? = null,
+            searchQuery: String? = null
+        ): ArrayList<NewsGlobalItem> {
             return try {
-                News.getNewsGlobal(page)
+                News.getNewsGlobal(page, searchType, searchQuery)
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 arrayListOf()
             }
         }
 
-        fun getNewsSubject(page: Int = 1): ArrayList<NewsSubjectItem> {
+        fun getNewsSubject(
+            page: Int = 1,
+            searchType: NewsSearchType? = null,
+            searchQuery: String? = null
+        ): ArrayList<NewsSubjectItem> {
             return try {
-                News.getNewsSubject(page)
+                News.getNewsSubject(page, searchType, searchQuery)
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 arrayListOf()

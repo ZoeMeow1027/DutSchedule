@@ -14,8 +14,8 @@ android {
         applicationId "io.zoemeow.dutschedule"
         minSdk 21
         targetSdkVersion 34
-        versionCode 683
-        versionName "2.0-draft8"
+        versionCode 692
+        versionName "2.0-draft9"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -124,7 +124,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.4.1"
 
-    implementation 'com.github.dutwrapper:dutwrapper-java:62743dce5f'
+    implementation 'com.github.dutwrapper:dutwrapper-java:5275c20aba'
 }
 
 // Allow references to generated code

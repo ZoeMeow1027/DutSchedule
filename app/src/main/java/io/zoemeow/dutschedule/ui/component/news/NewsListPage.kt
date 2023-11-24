@@ -86,7 +86,7 @@ fun NewsListPage(
 }
 
 @Composable
-private fun NewsListPage_EndOfListHandler(
+fun NewsListPage_EndOfListHandler(
     listState: LazyListState,
     buffer: Int = 1,
     onLoadMore: () -> Unit
