@@ -62,8 +62,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.model.enums.NewsSearchType
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.enums.NewsSearchType
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
@@ -191,11 +191,6 @@ class NewsActivity : BaseActivity() {
                     }
                 )
             },
-//            floatingActionButton = {
-//                FloatingActionButton(onClick = { /*TODO*/ }) {
-//                    Icon(Icons.Default.Refresh, "")
-//                }
-//            },
             bottomBar = {
                 BottomAppBar(
                     actions = {
@@ -284,6 +279,7 @@ class NewsActivity : BaseActivity() {
 
                         1 -> {
                             getMainViewModel().newsSubject.apply {
+                                @Suppress("UNCHECKED_CAST")
                                 NewsListPage(
                                     newsList = this.value.data.newsListByDate as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
                                     processState = this.value.processState,

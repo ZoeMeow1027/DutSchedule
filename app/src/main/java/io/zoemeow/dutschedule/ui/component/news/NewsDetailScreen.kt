@@ -22,24 +22,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import io.dutwrapperlib.dutwrapper.model.enums.LessonStatus
-import io.dutwrapperlib.dutwrapper.model.enums.NewsType
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.model.enums.LessonStatus
+import io.dutwrapper.dutwrapper.model.enums.NewsType
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
 fun NewsDetailScreen(
     newsItem: NewsGlobalItem,
     newsType: NewsType,
-    darkMode: Boolean = false,
     padding: PaddingValues = PaddingValues(0.dp),
     linkClicked: ((String) -> Unit)? = null
 ) {
     when (newsType) {
         NewsType.Global -> {
             NewsDetailBody_NewsGlobal(
-                darkMode = darkMode,
                 padding = padding,
                 newsItem = newsItem,
                 linkClicked = linkClicked
@@ -47,7 +45,6 @@ fun NewsDetailScreen(
         }
         NewsType.Subject -> {
             NewsDetailBody_NewsSubject(
-                darkMode = darkMode,
                 padding = padding,
                 newsItem = newsItem as NewsSubjectItem,
                 linkClicked = linkClicked
@@ -58,7 +55,6 @@ fun NewsDetailScreen(
 
 @Composable
 private fun NewsDetailBody_NewsGlobal(
-    darkMode: Boolean = false,
     padding: PaddingValues,
     newsItem: NewsGlobalItem,
     linkClicked: ((String) -> Unit)? = null
@@ -158,7 +154,6 @@ private fun NewsDetailBody_NewsGlobal(
 
 @Composable
 private fun NewsDetailBody_NewsSubject(
-    darkMode: Boolean = false,
     padding: PaddingValues,
     newsItem: NewsSubjectItem,
     linkClicked: ((String) -> Unit)? = null

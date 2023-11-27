@@ -24,6 +24,7 @@ fun ContentExpandable(
     onExpanded: () -> Unit,
     title: String,
     titleModifier: Modifier = Modifier,
+    titleCentered: Boolean = true,
     contentModifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -39,12 +40,12 @@ fun ContentExpandable(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .clickable { onExpanded() },
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = if (titleCentered) Arrangement.Center else Arrangement.Start
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center,
+                textAlign = if (titleCentered) TextAlign.Center else TextAlign.Start,
                 modifier = titleModifier.padding(15.dp)
             )
         }

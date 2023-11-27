@@ -36,7 +36,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.trainingresult.SubjectResult
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
@@ -46,8 +47,10 @@ import io.zoemeow.dutschedule.ui.component.account.LogoutDialog
 import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectDetailItem
 import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectSummaryItem
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
 import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
+import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterSurface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,8 +77,209 @@ class AccountActivity: BaseActivity() {
             "acc_training_result" -> {
                 AccountTrainingResult()
             }
+            "acc_training_result_subjectresult" -> {
+                AccountTrainingResult_SubjectResult()
+            }
             else -> {
                 MainView()
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AccountTrainingResult_SubjectResult() {
+        val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
+        // TODO: Subject search
+        @Suppress("UNUSED_VARIABLE") val filterQuery = remember { mutableStateOf("") }
+
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = { Text("Your training details") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_OK)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                )
+            },
+            floatingActionButton = {
+                if (getMainViewModel().accountTrainingStatus.value.processState != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) { getMainViewModel().fetchAccountTrainingStatus(force = true) }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
+            },
+            content = { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(padding)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = if (
+                        getMainViewModel().accountTrainingStatus.value.data != null &&
+                        getMainViewModel().accountTrainingStatus.value.processState != ProcessState.Running
+                        ) Arrangement.Top else Arrangement.Center,
+                    content = {
+                        when (getMainViewModel().accountTrainingStatus.value.processState) {
+                            ProcessState.Running -> {
+                                CircularProgressIndicator()
+                            }
+                            ProcessState.Successful -> {
+                                getMainViewModel().accountTrainingStatus.value.data?.subjectResultList?.forEach { subjectItem ->
+                                    NewsFilterSurface {
+                                        ContentExpandable(
+                                            title = String.format(
+                                                "%s (%s)",
+                                                subjectItem.name,
+                                                if (subjectItem.resultT4 != null) String.format("%.2f", subjectItem.resultT4) else "unscored"
+                                            ),
+                                            titleCentered = false,
+                                            expanded = selectedSubject.value?.id == subjectItem.id,
+                                            onExpanded = {
+                                                selectedSubject.value = subjectItem
+                                            },
+                                            content = {
+                                                OutlinedTextBox(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    title = "Subject year",
+                                                    value = subjectItem.schoolYear ?: "(unknown)"
+                                                )
+                                                OutlinedTextBox(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    title = "Subject code",
+                                                    value = subjectItem.id ?: "(unknown)"
+                                                )
+                                                OutlinedTextBox(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    title = "Credit",
+                                                    value = subjectItem.credit.toString()
+                                                )
+                                                OutlinedTextBox(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    title = "Point formula",
+                                                    value = subjectItem.pointFormula ?: "(unknown)"
+                                                )
+                                                if (subjectItem.pointBT != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "BT",
+                                                        value = subjectItem.pointBT.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointBV != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "BV",
+                                                        value = subjectItem.pointBV.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointCC != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "CC",
+                                                        value = subjectItem.pointCC.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointCK != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "CK",
+                                                        value = subjectItem.pointCK.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointGK != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "GK",
+                                                        value = subjectItem.pointGK.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointQT != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "QT",
+                                                        value = subjectItem.pointQT.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointTH != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "TH",
+                                                        value = subjectItem.pointTH.toString()
+                                                    )
+                                                }
+                                                if (subjectItem.pointTH != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = "TH",
+                                                        value = subjectItem.pointTH.toString()
+                                                    )
+                                                }
+                                                OutlinedTextBox(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    title = "Point (T10 - T4 - By point char)",
+                                                    value = String.format(
+                                                        "%s - %s - %s",
+                                                        if (subjectItem.resultT10 != null) String.format("%.2f", subjectItem.resultT10) else "unscored",
+                                                        if (subjectItem.resultT4 != null) String.format("%.2f", subjectItem.resultT4) else "unscored",
+                                                        if (subjectItem.resultByCharacter.isNullOrEmpty()) "(unscored)" else subjectItem.resultByCharacter
+                                                    )
+                                                )
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            else -> {
+
+                            }
+                        }
+                    }
+                )
+            }
+        )
+
+        val hasRun = remember { mutableStateOf(false) }
+        run {
+            if (!hasRun.value) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    getMainViewModel().accountLogin(
+                        after = {
+                            if (it) {
+                                getMainViewModel().fetchAccountTrainingStatus()
+                            }
+                        }
+                    )
+                }
+                hasRun.value = true
             }
         }
     }
@@ -126,8 +330,7 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                // TODO: Account training result screen
-
+                val context = LocalContext.current
                 when (getMainViewModel().accountTrainingStatus.value.processState) {
                     ProcessState.Running -> {
                         Column(
@@ -204,6 +407,20 @@ class AccountActivity: BaseActivity() {
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
+                                                ButtonBase(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 5.dp),
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    content = {
+                                                        Text("View your training details")
+                                                    },
+                                                    clicked = {
+                                                        val intent = Intent(context, AccountActivity::class.java)
+                                                        intent.action = "acc_training_result_subjectresult"
+                                                        context.startActivity(intent)
+                                                    }
+                                                )
                                             }
                                         )
                                     }
@@ -260,6 +477,7 @@ class AccountActivity: BaseActivity() {
                                         )
                                     }
                                 )
+                                Spacer(modifier = Modifier.size(5.dp))
                             }
                         )
                     }
@@ -337,9 +555,7 @@ class AccountActivity: BaseActivity() {
             content = { padding ->
                 when (getMainViewModel().subjectSchedule.value.processState) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier
@@ -477,9 +693,7 @@ class AccountActivity: BaseActivity() {
             content = { padding ->
                 when (getMainViewModel().subjectFee.value.processState) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier
@@ -606,10 +820,7 @@ class AccountActivity: BaseActivity() {
 
                 when (getMainViewModel().accountInformation.value.processState) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
-
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +21,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.util.CustomDateUtils
@@ -34,32 +35,23 @@ fun NewsListPage(
     itemClicked: ((NewsGlobalItem) -> Unit)? = null
 ) {
     val lazyListState = rememberLazyListState()
-    when {
-        (processState == ProcessState.Running && newsList.isEmpty()) -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
-        else -> {
-            NewsListPage_EndOfListHandler(
-                listState = lazyListState,
-                onLoadMore = { endOfListReached?.let { it() } }
-            )
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 20.dp, end = 20.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top,
-                state = lazyListState,
-                content = {
+    NewsListPage_EndOfListHandler(
+        listState = lazyListState,
+        onLoadMore = { endOfListReached?.let { it() } }
+    )
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(start = 20.dp, end = 20.dp),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = if (newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
+        state = lazyListState,
+        content = {
+            when {
+                (newsList.isNotEmpty()) -> {
                     items (newsList) {
                         Column(
-                            modifier = Modifier.padding(bottom = 10.dp),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center,
                         ) {
@@ -80,9 +72,17 @@ fun NewsListPage(
                         }
                     }
                 }
-            )
+                (processState == ProcessState.Running && newsList.isEmpty()) -> {
+                    item {
+                        CircularProgressIndicator()
+                    }
+                }
+                else -> {
+
+                }
+            }
         }
-    }
+    )
 }
 
 @Composable

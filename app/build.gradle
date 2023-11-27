@@ -14,8 +14,8 @@ android {
         applicationId "io.zoemeow.dutschedule"
         minSdk 21
         targetSdkVersion 34
-        versionCode 692
-        versionName "2.0-draft9"
+        versionCode 701
+        versionName "2.0-draft10"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -111,7 +111,7 @@ dependencies {
     // implementation 'com.google.accompanist:accompanist-drawablepainter:0.23.1'
 
     // Jsoup HTML parser library - https://mvnrepository.com/artifact/org.jsoup/jsoup
-    implementation 'org.jsoup:jsoup:1.16.1'
+    implementation 'org.jsoup:jsoup:1.16.2'
 
     // Google Gson - https://mvnrepository.com/artifact/com.google.code.gson/gson
     implementation 'com.google.code.gson:gson:2.10.1'
@@ -124,7 +124,7 @@ dependencies {
 
     implementation "org.jetbrains.kotlinx:kotlinx-datetime:0.4.1"
 
-    implementation 'com.github.dutwrapper:dutwrapper-java:5275c20aba'
+    implementation 'com.github.dutwrapper:dutwrapper-java:0565e7eb57'
 }
 
 // Allow references to generated code

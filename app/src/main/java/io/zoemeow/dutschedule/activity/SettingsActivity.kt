@@ -454,6 +454,7 @@ class SettingsActivity : BaseActivity() {
                 Column(
                     modifier = Modifier
                         .padding(it)
+                        .padding(horizontal = 7.dp)
                         .verticalScroll(rememberScrollState()),
                     content = {
                         NewsFilterCurrentFilter(
@@ -508,7 +509,6 @@ class SettingsActivity : BaseActivity() {
                 )
             }
         )
-        // TODO: Ask before exit with modified settings.
         DialogBase(
             modifier = Modifier
                 .fillMaxWidth()

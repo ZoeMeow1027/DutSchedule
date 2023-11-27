@@ -1,9 +1,9 @@
 package io.zoemeow.dutschedule.repository
 
-import io.dutwrapperlib.dutwrapper.News
-import io.dutwrapperlib.dutwrapper.model.enums.NewsSearchType
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.News
+import io.dutwrapper.dutwrapper.model.enums.NewsSearchType
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 
 class DutNewsRepository {
@@ -46,7 +46,15 @@ class DutNewsRepository {
             // - If news group with date exist, news exist but different.
             target.forEach { targetItem ->
                 val newsGroupFound =
-                    source.firstOrNull { newsGroupItem -> newsGroupItem.date == targetItem.date }
+                    source.firstOrNull { newsGroupItem ->
+                        newsGroupItem.date == targetItem.date &&
+                                newsGroupItem.itemList.any {
+                                    it.title == targetItem.title &&
+                                            it.date == targetItem.date &&
+                                            it.contentString == targetItem.contentString
+                                }
+                    }
+
                 if (newsGroupFound == null)
                     result.add(targetItem)
                 else if (newsGroupFound.itemList.firstOrNull { newsItem ->

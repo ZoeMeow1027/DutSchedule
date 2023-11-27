@@ -9,4 +9,12 @@ data class NewsGroupByDate<T>(
 
     @SerializedName("date")
     val date: Long = 0,
-): Serializable
+): Serializable {
+    fun addAll(newsList: List<T>) {
+        itemList.addAll(newsList)
+    }
+
+    fun add(newsItem: T) {
+        itemList.add(newsItem)
+    }
+}

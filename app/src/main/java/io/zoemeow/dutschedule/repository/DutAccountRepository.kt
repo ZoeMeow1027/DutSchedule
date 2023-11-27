@@ -1,10 +1,10 @@
 package io.zoemeow.dutschedule.repository
 
-import io.dutwrapperlib.dutwrapper.Account
-import io.dutwrapperlib.dutwrapper.model.accounts.AccountInformation
-import io.dutwrapperlib.dutwrapper.model.accounts.SubjectFeeItem
-import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
-import io.dutwrapperlib.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
+import io.dutwrapper.dutwrapper.Account
+import io.dutwrapper.dutwrapper.model.accounts.AccountInformation
+import io.dutwrapper.dutwrapper.model.accounts.SubjectFeeItem
+import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.util.GlobalVariables

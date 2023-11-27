@@ -71,7 +71,7 @@ abstract class BaseActivity: ComponentActivity() {
                 content = {
                     val context = LocalContext.current
 
-                    var draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
+                    val draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
                         BackgroundImageOption.None -> null
                         BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtils.getCurrentWallpaperBackground(context)
                         BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtils.getImageFromAppData(context)

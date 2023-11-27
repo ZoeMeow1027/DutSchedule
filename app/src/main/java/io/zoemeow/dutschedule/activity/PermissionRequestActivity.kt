@@ -41,10 +41,16 @@ import io.zoemeow.dutschedule.ui.component.permissionrequest.PermissionInformati
 
 class PermissionRequestActivity : BaseActivity() {
     private val recentPermissionRequestList = mutableStateListOf<Pair<String, Boolean>>()
+    private val permissionStatusList = mutableStateListOf<PermissionInfo>()
 
     @Composable
     override fun OnPreloadOnce() {
+        reloadPermissionStatus()
+    }
 
+    private fun reloadPermissionStatus() {
+        permissionStatusList.clear()
+        permissionStatusList.addAll(PermissionList.getAllRequiredPermissions())
     }
 
     @Composable
@@ -82,7 +88,8 @@ class PermissionRequestActivity : BaseActivity() {
         permissionExtraAction: ((Intent) -> Unit)? = null
     ) {
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
+                .padding(padding),
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
@@ -134,7 +141,7 @@ class PermissionRequestActivity : BaseActivity() {
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState()),
                             content = {
-                                PermissionList.getAllRequiredPermissions().forEach { item ->
+                                permissionStatusList.forEach { item ->
                                     PermissionInformation(
                                         title = "${item.name}${if (!item.required) " (optimal)" else ""}",
                                         description = "${item.code}\n\n${item.description}",
@@ -171,6 +178,8 @@ class PermissionRequestActivity : BaseActivity() {
 
         recentPermissionRequestList.clear()
         recentPermissionRequestList.addAll(permissionResultList)
+
+        reloadPermissionStatus()
     }
 
     companion object {
