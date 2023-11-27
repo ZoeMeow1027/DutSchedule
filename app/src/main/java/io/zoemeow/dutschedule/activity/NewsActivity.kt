@@ -397,9 +397,8 @@ class NewsActivity : BaseActivity() {
                                     focusManager.clearFocus(force = true)
                                     invokeSearch(searchOver = true)
                                 }
-                            ),
-
                             )
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {

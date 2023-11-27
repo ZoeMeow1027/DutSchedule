@@ -40,8 +40,8 @@ abstract class BaseActivity: ComponentActivity() {
             return ::mainViewModel.isInitialized
         }
     }
-    private lateinit var snackbarHostState: SnackbarHostState
-    private lateinit var snackbarScope: CoroutineScope
+    private lateinit var snackBarHostState: SnackbarHostState
+    private lateinit var snackBarScope: CoroutineScope
     private val loadScriptAtStartup = mutableStateOf(true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,8 +49,8 @@ abstract class BaseActivity: ComponentActivity() {
         permitAllPolicy()
 
         setContent {
-            snackbarHostState = remember { SnackbarHostState() }
-            snackbarScope = rememberCoroutineScope()
+            snackBarHostState = remember { SnackbarHostState() }
+            snackBarScope = rememberCoroutineScope()
 
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
@@ -85,7 +85,7 @@ abstract class BaseActivity: ComponentActivity() {
                         )
                     }
                     Scaffold(
-                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+                        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
                         containerColor = when (mainViewModel.appSettings.value.backgroundImage) {
                             BackgroundImageOption.None -> when (mainViewModel.appSettings.value.blackBackground) {
                                 true -> when (mainViewModel.appSettings.value.backgroundImage) {
@@ -140,11 +140,11 @@ abstract class BaseActivity: ComponentActivity() {
         text: String,
         clearPrevious: Boolean = false,
     ) {
-        snackbarScope.launch {
+        snackBarScope.launch {
             if (clearPrevious) {
-                snackbarHostState.currentSnackbarData?.dismiss()
+                snackBarHostState.currentSnackbarData?.dismiss()
             }
-            snackbarHostState
+            snackBarHostState
                 .showSnackbar(
                     message = text,
                     withDismissAction = false,

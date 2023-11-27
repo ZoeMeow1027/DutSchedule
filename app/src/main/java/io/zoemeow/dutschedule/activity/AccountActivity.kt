@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.activity
 
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,15 +13,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,8 +37,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
@@ -51,6 +60,7 @@ import io.zoemeow.dutschedule.ui.component.base.ContentExpandable
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
 import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
 import io.zoemeow.dutschedule.ui.component.settings.newsfilter.NewsFilterSurface
+import io.zoemeow.dutschedule.util.toNonAccent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -91,20 +101,53 @@ class AccountActivity: BaseActivity() {
     private fun AccountTrainingResult_SubjectResult() {
         val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
         // TODO: Subject search
-        @Suppress("UNUSED_VARIABLE") val filterQuery = remember { mutableStateOf("") }
+        val searchQuery = remember { mutableStateOf("") }
+        val searchEnabled = remember { mutableStateOf(false) }
+
+        val focusManager = LocalFocusManager.current
+
+        fun dismissSearchBar(clearQuery: Boolean = false) {
+            focusManager.clearFocus(force = true)
+            if (clearQuery) {
+                searchQuery.value = ""
+            }
+            searchEnabled.value = false
+        }
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
-                    title = { Text("Your training details") },
+                    title = {
+                        if (!searchEnabled.value) {
+                            Text("Your training details")
+                        } else {
+                            OutlinedTextField(
+                                modifier = Modifier.fillMaxWidth().focusRequester(FocusRequester()),
+                                value = searchQuery.value,
+                                onValueChange = { searchQuery.value = it },
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        dismissSearchBar(clearQuery = false)
+                                    }
+                                )
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
-                                setResult(RESULT_OK)
-                                finish()
+                                if (searchEnabled.value) {
+                                    dismissSearchBar(clearQuery = true)
+                                } else {
+                                    setResult(RESULT_OK)
+                                    finish()
+                                }
                             },
                             content = {
                                 Icon(
@@ -115,6 +158,18 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    actions = {
+                        if (!searchEnabled.value) {
+                            IconButton(
+                                onClick = {
+                                    searchEnabled.value = true
+                                },
+                                content = {
+                                    Icon(Icons.Default.Search, "Search")
+                                }
+                            )
+                        }
+                    }
                 )
             },
             floatingActionButton = {
@@ -141,7 +196,8 @@ class AccountActivity: BaseActivity() {
                         .fillMaxWidth()
                         .padding(padding)
                         .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .clickable { dismissSearchBar(clearQuery = false) },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = if (
                         getMainViewModel().accountTrainingStatus.value.data != null &&
@@ -153,7 +209,10 @@ class AccountActivity: BaseActivity() {
                                 CircularProgressIndicator()
                             }
                             ProcessState.Successful -> {
-                                getMainViewModel().accountTrainingStatus.value.data?.subjectResultList?.forEach { subjectItem ->
+                                getMainViewModel().accountTrainingStatus.value.data?.subjectResultList?.filter {
+                                    p -> searchQuery.value.isEmpty()
+                                        || p.name.toNonAccent().lowercase().contains(searchQuery.value.toNonAccent().lowercase())
+                                }?.forEach { subjectItem ->
                                     NewsFilterSurface {
                                         ContentExpandable(
                                             title = String.format(
@@ -164,6 +223,7 @@ class AccountActivity: BaseActivity() {
                                             titleCentered = false,
                                             expanded = selectedSubject.value?.id == subjectItem.id,
                                             onExpanded = {
+                                                dismissSearchBar(clearQuery = false)
                                                 selectedSubject.value = subjectItem
                                             },
                                             content = {
@@ -264,6 +324,13 @@ class AccountActivity: BaseActivity() {
                         }
                     }
                 )
+            }
+        )
+
+        BackHandler(
+            enabled = searchEnabled.value,
+            onBack = {
+                dismissSearchBar(clearQuery = true)
             }
         )
 
