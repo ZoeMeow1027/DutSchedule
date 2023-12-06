@@ -4,12 +4,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.dutwrapper.dutwrapper.Utils
 import io.dutwrapper.dutwrapper.model.accounts.AccountInformation
 import io.dutwrapper.dutwrapper.model.accounts.SubjectFeeItem
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.dutwrapper.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.VariableTimestamp
 import io.zoemeow.dutschedule.model.account.AccountAuth
@@ -60,6 +62,11 @@ class MainViewModel @Inject constructor(
         mutableStateOf(
             VariableTimestamp(data = null)
         )
+    val currentSchoolWeek: MutableState<VariableTimestamp<DutSchoolYearItem?>> = mutableStateOf(
+        VariableTimestamp(
+        data = null
+    )
+    )
 
     fun accountLogin(
         data: AccountAuth? = null,
@@ -514,6 +521,28 @@ class MainViewModel @Inject constructor(
         after?.let { it(response != null) }
     }
 
+    private fun fetchCurrentSchoolWeek() {
+        try {
+            // If current process is running, ignore this run.
+            if (currentSchoolWeek.value.processState == ProcessState.Successful && !GlobalVariables.isExpired(currentSchoolWeek.value.timestamp)) {
+                return
+            }
+
+            currentSchoolWeek.value =
+                currentSchoolWeek.value.clone(processState = ProcessState.Running)
+
+            currentSchoolWeek.value = currentSchoolWeek.value.clone(
+                data = Utils.getCurrentSchoolWeek(),
+                processState = ProcessState.Successful
+            )
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            currentSchoolWeek.value = currentSchoolWeek.value.clone(
+                processState = ProcessState.Failed
+            )
+        }
+    }
+
     fun saveSettings() {
         launchOnScope(
             script = {
@@ -572,6 +601,7 @@ class MainViewModel @Inject constructor(
     init {
         runOnStartup(
             invokeOnCompleted = {
+                fetchCurrentSchoolWeek()
                 loadNewsCache()
                 launchOnScope(script = {
                     fetchNewsGlobal(fetchType = NewsFetchType.FirstPage)

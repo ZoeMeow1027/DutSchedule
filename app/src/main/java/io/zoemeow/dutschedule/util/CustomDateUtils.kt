@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 class CustomDateUtils {
@@ -42,6 +43,10 @@ class CustomDateUtils {
                     else -> throw Exception("Invalid value: Must between 0 and 6!")
                 }
             }
+        }
+
+        fun getCurrentDateAndTimeToString(format: String = "yyyy-MM-dd HH:mm:ss"): String {
+            return SimpleDateFormat(format, Locale.getDefault()).format(Date())
         }
 
         fun unixToDuration(

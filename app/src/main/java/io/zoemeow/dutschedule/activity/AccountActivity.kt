@@ -100,7 +100,6 @@ class AccountActivity: BaseActivity() {
     @Composable
     private fun AccountTrainingResult_SubjectResult() {
         val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
-        // TODO: Subject search
         val searchQuery = remember { mutableStateOf("") }
         val searchEnabled = remember { mutableStateOf(false) }
 
@@ -451,7 +450,7 @@ class AccountActivity: BaseActivity() {
                                 SimpleCardItem(
                                     title = "Your training result",
                                     isTitleCentered = true,
-                                    padding = PaddingValues(horizontal = 10.dp),
+                                    padding = PaddingValues(start = 10.dp, end = 10.dp, bottom = 7.dp),
                                     clicked = {},
                                     content = {
                                         Column(

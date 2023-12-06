@@ -1,11 +1,15 @@
 package io.zoemeow.dutschedule.activity
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -59,6 +63,31 @@ class NewsDetailActivity: BaseActivity() {
                         )
                     },
                 )
+            },
+            floatingActionButton = {
+                if (newsType == "news_subject") {
+                    ExtendedFloatingActionButton(
+                        content = {
+                            Row {
+                                Icon(Icons.Default.Add, "Add to news filter")
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text("Add to news filter")
+                            }
+                        },
+                        onClick = {
+                            try {
+//                                (Gson().fromJson<NewsSubjectItem>(newsData, object : TypeToken<NewsSubjectItem>() {}.type).also {
+//                                    getMainViewModel().appSettings.value.newsFilterList.add()
+//                                }
+                                // TODO: Develop a add news filter function for news subject detail.
+                                showSnackBar("This function is in development. Check back soon.")
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                                showSnackBar("We can't add this subject in this news to your filter! You can instead add manually them.")
+                            }
+                        }
+                    )
+                }
             },
             content = {
                 when (newsType) {

@@ -22,7 +22,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="tiramisu">
 
-        <!-- Trigger Google Play services to install the backported photo picker module. -->
+        <!-- Trigger Google Play services to install the backport photo picker module. -->
         <!--suppress AndroidDomInspection -->
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"
             android:enabled="false"

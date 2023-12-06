@@ -23,11 +23,9 @@ fun SchoolNewsSummaryItem(
         content = {
             Text(
                 text = String.format(
-                    "Tap here to open news.\n\n%s new global announcement%s today.\n%s new subject announcement%s last 7 days.",
+                    "Tap here to open news.\nNews global: %s new today, %s new last 7 days.",
                     if (newsToday == 0) "No" else newsToday.toString(),
-                    if (newsToday != 1) "s" else "",
-                    if (newsThisWeek == 0) "No" else newsThisWeek.toString(),
-                    if (newsThisWeek != 1) "s" else ""
+                    if (newsThisWeek == 0) "No" else newsThisWeek.toString()
                 ),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 15.dp).padding(bottom = 10.dp),

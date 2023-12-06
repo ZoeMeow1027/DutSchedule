@@ -8,43 +8,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
-import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.DUTLesson
 
 @Composable
 fun LessonTodaySummaryItem(
     hasLoggedIn: Boolean = false,
     isLoading: Boolean = false,
-    affectedList: ArrayList<SubjectScheduleItem> = arrayListOf(),
+    affectedList: List<SubjectScheduleItem> = listOf(),
     padding: PaddingValues = PaddingValues(),
     clicked: () -> Unit,
 ) {
     fun affectedListStringBuilder(): String {
-        var result = ""
-
-        val currentDayOfWeek = CustomDateUtils.getCurrentDayOfWeek()
-        val currentLesson = DUTLesson.getCurrentLesson()
-
+        val result = arrayListOf<String>()
+        val currentLesson = DUTLesson.getCurrentLesson().toDUTLesson()
         affectedList.forEach { item ->
-            val lessonAffected = item.subjectStudy.scheduleList.filter {
-                // TODO: Wait for library update
-                (it.dayOfWeek + 1) == currentDayOfWeek && (
-                        it.lesson.start < currentLesson.toDUTLesson() ||
-                                (it.lesson.start >= currentLesson.toDUTLesson() && it.lesson.end < currentLesson.toDUTLesson())
-                        )
-            }.joinToString(
-                separator = ", ",
-                transform = { it.lesson.toString()}
-            )
+            // TODO: Wait for library update
             val childResult = String.format(
                 "%s (%s)",
                 item.name,
-                lessonAffected
+                item.subjectStudy.scheduleList.filter { it.lesson.end >= currentLesson }.joinToString(
+                    separator = ", ",
+                    transform = { String.format("%d-%d", it.lesson.start, it.lesson.end) }
+                )
             )
-            result = result.plus(String.format("%s\n", childResult))
+            result.add(childResult)
         }
 
-        return result
+        return result.joinToString(separator = "\n")
     }
 
     fun summaryStringBuilder(): String {
@@ -56,8 +46,12 @@ fun LessonTodaySummaryItem(
             String.format(
                 "%s\n\n%s",
                 String.format(
-                    "You have %d lesson%s today:",
+                    "You have %d%s lesson%s today:",
                     affectedList.size,
+                    when (DUTLesson.getCurrentLesson().toDUTLesson()) {
+                        -3, -2 -> ""
+                        else -> " remaining"
+                    },
                     if (affectedList.size != 1) "s" else ""
                 ),
                 affectedListStringBuilder()

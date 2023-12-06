@@ -37,10 +37,13 @@ import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.main.AffectedLessonsSummaryItem
+import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
+import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.util.DUTLesson
 import io.zoemeow.dutschedule.util.NotificationsUtils
 import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.datetime.Clock
@@ -74,22 +77,48 @@ class MainActivity : BaseActivity() {
                 this.startActivity(Intent(this, SettingsActivity::class.java))
             },
             content = {
+                DateAndTimeSummaryItem(
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+                    isLoading = getMainViewModel().currentSchoolWeek.value.processState == ProcessState.Running,
+                    currentSchoolWeek = getMainViewModel().currentSchoolWeek.value.data
+                )
                 LessonTodaySummaryItem(
-                    padding = PaddingValues(15.dp),
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
                     isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
-                    clicked = { },
-                    affectedList = arrayListOf()
+                    clicked = {
+                        getMainViewModel().accountLogin(
+                            after = {
+                                if (it) {
+                                    val intent = Intent(context, AccountActivity::class.java)
+                                    intent.action = "subject_schedule"
+                                    context.startActivity(intent)
+                                }
+                            }
+                        )
+                    },
+                    affectedList = getMainViewModel().subjectSchedule.value.data?.filter { subSch ->
+                        subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtils.getCurrentDayOfWeek() } &&
+                                subSch.subjectStudy.scheduleList.any { schItem ->
+                                    schItem.lesson.end >= when (DUTLesson.getCurrentLesson().toDUTLesson()) {
+                                        -3 -> -99.0
+                                        -2 -> -99.0
+                                        -1 -> 5.5
+                                        0 -> 99.0
+                                        else -> DUTLesson.getCurrentLesson().toDUTLesson().toDouble()
+                                    }
+                                }
+                    }?.toList() ?: listOf()
                 )
                 AffectedLessonsSummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
                     isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
                     clicked = {},
                     affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12")
                 )
                 SchoolNewsSummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     newsToday = getNews(false),
                     newsThisWeek = getNews(true),
                     clicked = {
@@ -98,7 +127,7 @@ class MainActivity : BaseActivity() {
                     isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
                 )
                 UpdateAvailableSummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     isLoading = false,
                     updateAvailable = false,
                     latestVersionString = "",
@@ -231,7 +260,9 @@ class MainActivity : BaseActivity() {
                     color = Color.Transparent,
                     content = {
                         Column(
-                            modifier = Modifier.verticalScroll(rememberScrollState()),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
                             content = {
                                 content?.let { it() }
                             },
