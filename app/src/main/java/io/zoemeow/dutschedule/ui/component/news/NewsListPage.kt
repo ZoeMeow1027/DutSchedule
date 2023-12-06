@@ -1,8 +1,6 @@
 package io.zoemeow.dutschedule.ui.component.news
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -105,11 +101,6 @@ fun NewsListPage_EndOfListHandler(
                 val layoutInfo = listState.layoutInfo
                 val totalItemsNumber = layoutInfo.totalItemsCount
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.last().index + 1
-
-                Log.d(
-                    "LoadMoreInfo",
-                    String.format("Total: %d, Current Index: %d", totalItemsNumber, lastVisibleItemIndex)
-                )
 
                 lastVisibleItemIndex > (totalItemsNumber - buffer)
             } catch (ex: Exception) {

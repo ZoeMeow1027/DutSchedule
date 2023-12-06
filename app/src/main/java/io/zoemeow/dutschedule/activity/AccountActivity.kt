@@ -608,7 +608,7 @@ class AccountActivity: BaseActivity() {
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
-                                        if (it) { getMainViewModel().accountGetSubjectSchedule(force = true) }
+                                        if (it) { getMainViewModel().fetchAccountSubjectSchedule(force = true) }
                                     }
                                 )
                             }
@@ -700,7 +700,7 @@ class AccountActivity: BaseActivity() {
                     getMainViewModel().accountLogin(
                         after = {
                             if (it) {
-                                getMainViewModel().accountGetSubjectSchedule()
+                                getMainViewModel().fetchAccountSubjectSchedule()
                             }
                         }
                     )
@@ -745,7 +745,7 @@ class AccountActivity: BaseActivity() {
                                 getMainViewModel().accountLogin(
                                     after = {
                                         if (it) {
-                                            getMainViewModel().accountGetSubjectFee(force = true)
+                                            getMainViewModel().fetchAccountSubjectFee(force = true)
                                         }
                                     }
                                 )
@@ -808,7 +808,7 @@ class AccountActivity: BaseActivity() {
                     getMainViewModel().accountLogin(
                         after = {
                             if (it) {
-                                getMainViewModel().accountGetSubjectFee()
+                                getMainViewModel().fetchAccountSubjectFee()
                             }
                         }
                     )
@@ -853,7 +853,7 @@ class AccountActivity: BaseActivity() {
                                 getMainViewModel().accountLogin(
                                     after = {
                                         if (it) {
-                                            getMainViewModel().accountGetInformation(force = true)
+                                            getMainViewModel().fetchAccountInformation(force = true)
                                         }
                                     }
                                 )
@@ -1111,7 +1111,7 @@ class AccountActivity: BaseActivity() {
                                             text = "Successfully logged in!",
                                             clearPrevious = true,
                                         )
-                                        getMainViewModel().accountGetInformation()
+                                        getMainViewModel().fetchAccountInformation()
                                     }
                                     false -> {
                                         loginDialogEnabled.value = true
