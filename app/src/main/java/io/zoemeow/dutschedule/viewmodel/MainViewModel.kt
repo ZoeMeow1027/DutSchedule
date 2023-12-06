@@ -17,6 +17,8 @@ import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.model.news.NewsCache
+import io.zoemeow.dutschedule.model.news.NewsFetchType
+import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.repository.DutAccountRepository
 import io.zoemeow.dutschedule.repository.DutNewsRepository
@@ -293,10 +295,7 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    fun fetchNewsGlobal(
-        newsPageType: Int = 0,
-        page: Int = 1
-    ) {
+    fun fetchNewsGlobal(fetchType: NewsFetchType = NewsFetchType.NextPage) {
         launchOnScope(
             script = {
                 newsGlobal.value = newsGlobal.value.clone(
@@ -305,39 +304,54 @@ class MainViewModel @Inject constructor(
 
                 // Get news from internet
                 val newsFromInternet = DutNewsRepository.getNewsGlobal(
-                    page = when (newsPageType) {
-                        0 -> newsGlobal.value.data.pageCurrent
-                        2 -> page
-                        1, 3 -> 1
-                        else -> 1
+                    page = when (fetchType) {
+                        NewsFetchType.NextPage -> newsGlobal.value.data.pageCurrent
+                        NewsFetchType.FirstPage -> 1
+                        NewsFetchType.ClearAndFirstPage -> 1
                     }
                 )
 
                 // If requested, clear cache
-                if (newsPageType == 3) {
+                if (fetchType == NewsFetchType.ClearAndFirstPage) {
                     newsGlobal.value.data.newsListByDate.clear()
                 }
 
-                val newsDiff = DutNewsRepository.getNewsGlobalDiff(
-                    source = newsGlobal.value.data.newsListByDate,
-                    target = newsFromInternet,
-                )
+                for (newsItem in newsFromInternet) {
+                    val anyMatch = newsGlobal.value.data.newsListByDate.any { group ->
+                        group.itemList.any {
+                            item -> item.title == newsItem.title && item.date == newsItem.date && item.contentString == newsItem.contentString
+                        }
+                    }
 
-                DutNewsRepository.addAndCheckDuplicateNewsGlobal(
-                    source = newsGlobal.value.data.newsListByDate,
-                    target = newsDiff,
-                    addItemToTop = newsPageType != 0
-                )
+                    if (!anyMatch) {
+                        if (newsGlobal.value.data.newsListByDate.any { group -> group.date == newsItem.date }) {
+                            if (fetchType == NewsFetchType.FirstPage) {
+                                newsGlobal.value.data.newsListByDate.first { group -> group.date == newsItem.date }
+                                    .itemList.add(0, newsItem)
+                            } else {
+                                newsGlobal.value.data.newsListByDate.first { group -> group.date == newsItem.date }
+                                    .itemList.add(newsItem)
+                            }
+                        } else {
+                            val newsGroup = NewsGroupByDate(
+                                date = newsItem.date,
+                                itemList = arrayListOf(newsItem)
+                            )
+                            newsGlobal.value.data.newsListByDate.add(newsGroup)
+                        }
+                    }
+                }
+                newsGlobal.value.data.newsListByDate.sortByDescending { group -> group.date }
 
-                when (newsPageType) {
-                    0 -> {
+                when (fetchType) {
+                    NewsFetchType.NextPage -> {
                         newsGlobal.value.data.pageCurrent += 1
                     }
-                    1 -> {
+                    NewsFetchType.FirstPage -> {
                         if (newsGlobal.value.data.pageCurrent <= 1)
                             newsGlobal.value.data.pageCurrent += 1
                     }
-                    3 -> {
+                    NewsFetchType.ClearAndFirstPage -> {
                         newsGlobal.value.data.pageCurrent = 2
                     }
                 }
@@ -351,10 +365,7 @@ class MainViewModel @Inject constructor(
         )
     }
 
-    fun fetchNewsSubject(
-        newsPageType: Int = 0,
-        page: Int = 1
-    ) {
+    fun fetchNewsSubject(fetchType: NewsFetchType = NewsFetchType.NextPage) {
         launchOnScope(
             script = {
                 newsSubject.value = newsSubject.value.clone(
@@ -362,40 +373,60 @@ class MainViewModel @Inject constructor(
                 )
 
                 // Get news from internet
-                val newsFromInternet = DutNewsRepository.getNewsSubject(
-                    page = when (newsPageType) {
-                        0 -> newsSubject.value.data.pageCurrent
-                        2 -> page
-                        1, 3 -> 1
-                        else -> 1
+                val newsFromInternet = DutNewsRepository.getNewsSubjectGroupByDate(
+                    page = when (fetchType) {
+                        NewsFetchType.NextPage -> newsSubject.value.data.pageCurrent
+                        NewsFetchType.FirstPage -> 1
+                        NewsFetchType.ClearAndFirstPage -> 1
                     }
                 )
 
                 // If requested, clear cache
-                if (newsPageType == 3) {
+                if (fetchType == NewsFetchType.ClearAndFirstPage) {
                     newsSubject.value.data.newsListByDate.clear()
                 }
 
-                val newsDiff = DutNewsRepository.getNewsSubjectDiff(
-                    source = newsSubject.value.data.newsListByDate,
-                    target = newsFromInternet,
-                )
+                newsFromInternet.forEach { newsGroup ->
+                    var itemIndex = 0
+                    newsGroup.data.forEach { newsItem ->
+                        val anyMatch = newsSubject.value.data.newsListByDate.any { group ->
+                            group.itemList.any {
+                                    item -> item.title == newsItem.title && item.date == newsItem.date && item.contentString == newsItem.contentString
+                            }
+                        }
 
-                DutNewsRepository.addAndCheckDuplicateNewsSubject(
-                    source = newsSubject.value.data.newsListByDate,
-                    target = newsDiff,
-                    addItemToTop = newsPageType != 0
-                )
+                        if (!anyMatch) {
+                            if (newsSubject.value.data.newsListByDate.any { group -> group.date == newsItem.date }) {
+                                if (fetchType == NewsFetchType.FirstPage) {
+                                    newsSubject.value.data.newsListByDate.first { group -> group.date == newsItem.date }
+                                        .itemList.add(itemIndex, newsItem as NewsSubjectItem)
+                                } else {
+                                    newsSubject.value.data.newsListByDate.first { group -> group.date == newsItem.date }
+                                        .itemList.add(newsItem as NewsSubjectItem)
+                                }
+                            } else {
+                                val newsGroupNew = NewsGroupByDate(
+                                    date = newsItem.date,
+                                    itemList = arrayListOf(newsItem as NewsSubjectItem)
+                                )
+                                newsSubject.value.data.newsListByDate.add(newsGroupNew)
+                            }
+                        }
 
-                when (newsPageType) {
-                    0 -> {
+                        itemIndex += 1
+                    }
+                }
+                newsSubject.value.data.newsListByDate.sortByDescending { group -> group.date }
+
+                when (fetchType) {
+                    NewsFetchType.NextPage -> {
                         newsSubject.value.data.pageCurrent += 1
                     }
-                    1 -> {
+                    NewsFetchType.FirstPage -> {
                         if (newsSubject.value.data.pageCurrent <= 1)
                             newsSubject.value.data.pageCurrent += 1
                     }
-                    3 -> {
+                    NewsFetchType.ClearAndFirstPage -> {
                         newsSubject.value.data.pageCurrent = 2
                     }
                 }
@@ -460,7 +491,7 @@ class MainViewModel @Inject constructor(
     }
 
     private val runOnStartupEnabled = mutableStateOf(true)
-    private fun runOnStartup() {
+    private fun runOnStartup(invokeOnCompleted: (() -> Unit)? = null) {
         if (!runOnStartupEnabled.value)
             return
 
@@ -472,16 +503,19 @@ class MainViewModel @Inject constructor(
             data = fileModuleRepository.getAccountSession()
         )
 
-        loadNewsCache()
+        invokeOnCompleted?.let { it() }
     }
 
     init {
-        runOnStartup()
-        
-        launchOnScope(script = {
-            fetchNewsGlobal(newsPageType = 1)
-            fetchNewsSubject(newsPageType = 1)
-            accountLogin(after = { if (it) { accountGetInformation() } })
-        })
+        runOnStartup(
+            invokeOnCompleted = {
+                loadNewsCache()
+                launchOnScope(script = {
+                    fetchNewsGlobal(fetchType = NewsFetchType.FirstPage)
+                    fetchNewsSubject(fetchType = NewsFetchType.FirstPage)
+                    accountLogin(after = { if (it) { accountGetInformation() } })
+                })
+            }
+        )
     }
 }

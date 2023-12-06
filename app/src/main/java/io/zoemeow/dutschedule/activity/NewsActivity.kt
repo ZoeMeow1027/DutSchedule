@@ -66,6 +66,7 @@ import io.dutwrapper.dutwrapper.model.enums.NewsSearchType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
@@ -141,13 +142,13 @@ class NewsActivity : BaseActivity() {
                                 when (pagerState.currentPage) {
                                     0 -> {
                                         getMainViewModel().fetchNewsGlobal(
-                                            newsPageType = 3
+                                            fetchType = NewsFetchType.ClearAndFirstPage
                                         )
                                     }
 
                                     1 -> {
                                         getMainViewModel().fetchNewsSubject(
-                                            newsPageType = 3
+                                            fetchType = NewsFetchType.ClearAndFirstPage
                                         )
                                     }
 
@@ -250,60 +251,56 @@ class NewsActivity : BaseActivity() {
                 ) { pageIndex ->
                     when (pageIndex) {
                         0 -> {
-                            getMainViewModel().newsGlobal.apply {
-                                NewsListPage(
-                                    newsList = this.value.data.newsListByDate,
-                                    processState = this.value.processState,
-                                    itemClicked = { newsItem ->
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                NewsDetailActivity::class.java
-                                            ).also {
-                                                it.action = "news_global"
-                                                it.putExtra("data", Gson().toJson(newsItem))
-                                            })
-                                    },
-                                    endOfListReached = {
-                                        CoroutineScope(Dispatchers.Main).launch {
-                                            withContext(Dispatchers.IO) {
-                                                getMainViewModel().fetchNewsGlobal(
-                                                    newsPageType = 0
-                                                )
-                                            }
+                            NewsListPage(
+                                newsList = getMainViewModel().newsGlobal.value.data.newsListByDate,
+                                processState = getMainViewModel().newsGlobal.value.processState,
+                                itemClicked = { newsItem ->
+                                    context.startActivity(
+                                        Intent(
+                                            context,
+                                            NewsDetailActivity::class.java
+                                        ).also {
+                                            it.action = "news_global"
+                                            it.putExtra("data", Gson().toJson(newsItem))
+                                        })
+                                },
+                                endOfListReached = {
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        withContext(Dispatchers.IO) {
+                                            getMainViewModel().fetchNewsGlobal(
+                                                fetchType = NewsFetchType.NextPage
+                                            )
                                         }
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
 
                         1 -> {
-                            getMainViewModel().newsSubject.apply {
-                                @Suppress("UNCHECKED_CAST")
-                                NewsListPage(
-                                    newsList = this.value.data.newsListByDate as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
-                                    processState = this.value.processState,
-                                    itemClicked = { newsItem ->
-                                        context.startActivity(
-                                            Intent(
-                                                context,
-                                                NewsDetailActivity::class.java
-                                            ).also {
-                                                it.action = "news_subject"
-                                                it.putExtra("data", Gson().toJson(newsItem))
-                                            })
-                                    },
-                                    endOfListReached = {
-                                        CoroutineScope(Dispatchers.Main).launch {
-                                            withContext(Dispatchers.IO) {
-                                                getMainViewModel().fetchNewsSubject(
-                                                    newsPageType = 0
-                                                )
-                                            }
+                            @Suppress("UNCHECKED_CAST")
+                            NewsListPage(
+                                newsList = getMainViewModel().newsSubject.value.data.newsListByDate as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
+                                processState = getMainViewModel().newsSubject.value.processState,
+                                itemClicked = { newsItem ->
+                                    context.startActivity(
+                                        Intent(
+                                            context,
+                                            NewsDetailActivity::class.java
+                                        ).also {
+                                            it.action = "news_subject"
+                                            it.putExtra("data", Gson().toJson(newsItem))
+                                        })
+                                },
+                                endOfListReached = {
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        withContext(Dispatchers.IO) {
+                                            getMainViewModel().fetchNewsSubject(
+                                                fetchType = NewsFetchType.NextPage
+                                            )
                                         }
                                     }
-                                )
-                            }
+                                }
+                            )
                         }
                     }
                 }

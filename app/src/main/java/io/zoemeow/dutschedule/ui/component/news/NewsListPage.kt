@@ -1,7 +1,9 @@
 package io.zoemeow.dutschedule.ui.component.news
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +18,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -32,13 +36,9 @@ fun NewsListPage(
     newsList: List<NewsGroupByDate<NewsGlobalItem>> = listOf(),
     processState: ProcessState = ProcessState.NotRunYet,
     endOfListReached: (() -> Unit)? = null,
-    itemClicked: ((NewsGlobalItem) -> Unit)? = null
+    itemClicked: ((NewsGlobalItem) -> Unit)? = null,
+    lazyListState: LazyListState = rememberLazyListState()
 ) {
-    val lazyListState = rememberLazyListState()
-    NewsListPage_EndOfListHandler(
-        listState = lazyListState,
-        onLoadMore = { endOfListReached?.let { it() } }
-    )
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -49,25 +49,29 @@ fun NewsListPage(
         content = {
             when {
                 (newsList.isNotEmpty()) -> {
-                    items (newsList) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                text = CustomDateUtils.dateToString(it.date, "dd/MM/yyyy"),
-                                modifier = Modifier.padding(bottom = 5.dp)
+                    newsList.forEach { newsGroup ->
+                        item {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center,
+                                content = {
+                                    Text(
+                                        text = CustomDateUtils.dateToString(newsGroup.date, "dd/MM/yyyy"),
+                                        modifier = Modifier.padding(bottom = 5.dp)
+                                    )
+                                }
                             )
-                            it.itemList.forEach { newsGroupSubItem ->
-                                NewsListItem(
-                                    title = newsGroupSubItem.title ?: "",
-                                    description = newsGroupSubItem.contentString ?: "",
-                                    onClick = {
-                                        itemClicked?.let { it(newsGroupSubItem) }
-                                    }
-                                )
-                            }
+                        }
+                        items (newsGroup.itemList) { newsItem ->
+                            NewsListItem(
+                                title = newsItem.title ?: "",
+                                description = newsItem.contentString ?: "",
+                                onClick = {
+                                    itemClicked?.let { it(newsItem) }
+                                }
+                            )
+                        }
+                        item {
                             Spacer(modifier = Modifier.size(10.dp))
                         }
                     }
@@ -83,6 +87,10 @@ fun NewsListPage(
             }
         }
     )
+    NewsListPage_EndOfListHandler(
+        listState = lazyListState,
+        onLoadMore = { endOfListReached?.let { it() } }
+    )
 }
 
 @Composable
@@ -93,12 +101,20 @@ fun NewsListPage_EndOfListHandler(
 ) {
     val loadMore = remember {
         derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val totalItemsNumber = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex =
-                (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+            try {
+                val layoutInfo = listState.layoutInfo
+                val totalItemsNumber = layoutInfo.totalItemsCount
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.last().index + 1
 
-            lastVisibleItemIndex > (totalItemsNumber - buffer)
+                Log.d(
+                    "LoadMoreInfo",
+                    String.format("Total: %d, Current Index: %d", totalItemsNumber, lastVisibleItemIndex)
+                )
+
+                lastVisibleItemIndex > (totalItemsNumber - buffer)
+            } catch (ex: Exception) {
+                false
+            }
         }
     }
 
