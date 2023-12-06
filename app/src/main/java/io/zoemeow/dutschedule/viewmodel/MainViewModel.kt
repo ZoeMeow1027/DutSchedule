@@ -578,6 +578,7 @@ class MainViewModel @Inject constructor(
                     fetchNewsSubject(fetchType = NewsFetchType.FirstPage)
                     accountLogin(after = {
                         if (it) {
+                            fetchAccountSubjectSchedule()
                             fetchAccountInformation()
                         }
                     })

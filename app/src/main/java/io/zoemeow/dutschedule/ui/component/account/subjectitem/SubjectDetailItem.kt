@@ -58,7 +58,8 @@ fun SubjectDetailItem(
                             schList = it.subjectStudy.scheduleList.joinToString(
                                 separator = "; ",
                                 transform = { item1 ->
-                                    "${CustomDateUtils.dayOfWeekToString(item1.dayOfWeek)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
+                                    // TODO: Notify for library updates
+                                    "${CustomDateUtils.dayOfWeekInString(item1.dayOfWeek + 1)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
                                 }
                             )
                         }

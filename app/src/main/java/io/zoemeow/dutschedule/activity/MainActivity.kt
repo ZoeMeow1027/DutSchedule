@@ -36,10 +36,13 @@ import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.main.AffectedLessonsSummaryItem
+import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
-import io.zoemeow.dutschedule.ui.component.main.SummaryItem
+import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.NotificationsUtils
+import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -71,19 +74,19 @@ class MainActivity : BaseActivity() {
                 this.startActivity(Intent(this, SettingsActivity::class.java))
             },
             content = {
-                SummaryItem(
+                LessonTodaySummaryItem(
                     padding = PaddingValues(15.dp),
-                    title = "Your Schedule",
-                    content = "You have already done your subjects today! Good job!",
+                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
+                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
                     clicked = { },
+                    affectedList = arrayListOf()
                 )
-                SummaryItem(
+                AffectedLessonsSummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Affected lessons by announcement",
-                    content = "Your lessons will be affected by school announcements in next 7 days:\n\n" +
-                    "ie1i0921d - i029di12\nie1i0921d - i029di12\nie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12\nie1i0921d - i029di12",
+                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
+                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
                     clicked = {},
+                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12")
                 )
                 SchoolNewsSummaryItem(
                     padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
@@ -94,18 +97,19 @@ class MainActivity : BaseActivity() {
                     },
                     isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
                 )
-//                SummaryItem(
-//                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-//                    title = "Update is available",
-//                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft8",
-//                    clicked = {
-//                        OpenLink(
-//                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
-//                            context = context,
-//                            customTab = false,
-//                        )
-//                    },
-//                )
+                UpdateAvailableSummaryItem(
+                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+                    isLoading = false,
+                    updateAvailable = false,
+                    latestVersionString = "",
+                    clicked = {
+                        OpenLink(
+                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
+                            context = context,
+                            customTab = false,
+                        )
+                    }
+                )
             }
         )
     }
