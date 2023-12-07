@@ -87,6 +87,7 @@ dependencies {
 
     // AlarmManager for restart service after closed
     // Required to avoid crash on Android 12 - API 31
+    implementation 'androidx.work:work-runtime:2.9.0'
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
 
     // https://mvnrepository.com/artifact/androidx.compose.material/material-icons-extended

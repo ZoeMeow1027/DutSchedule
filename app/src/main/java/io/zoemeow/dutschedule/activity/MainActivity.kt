@@ -35,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.service.BaseService
+import io.zoemeow.dutschedule.service.NewsUpdateService
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.main.AffectedLessonsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
@@ -59,6 +61,7 @@ class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
         NotificationsUtils.initializeNotificationChannel(this)
+        NewsUpdateService.cancelSchedule(this)
     }
 
     @Composable
@@ -271,6 +274,44 @@ class MainActivity : BaseActivity() {
                 )
             }
         )
+    }
+
+    override fun onPause() {
+        NewsUpdateService.cancelSchedule(this)
+        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) {
+            BaseService.startService(
+                context = this,
+                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
+                    it.action = "news.service.action.fetchallpage1background"
+//                putExtra("news.service.variable.fetchtype", 1)
+                }
+            )
+        }
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        NewsUpdateService.cancelSchedule(this)
+        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) {
+            BaseService.startService(
+                context = this,
+                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
+                    it.action = "news.service.action.fetchallpage1background"
+//                putExtra("news.service.variable.fetchtype", 1)
+                }
+            )
+        }
+        super.onDestroy()
+    }
+
+    override fun onResume() {
+        NewsUpdateService.cancelSchedule(this)
+        super.onResume()
+    }
+
+    override fun onRestart() {
+        NewsUpdateService.cancelSchedule(this)
+        super.onRestart()
     }
 
     @Preview(showBackground = true)

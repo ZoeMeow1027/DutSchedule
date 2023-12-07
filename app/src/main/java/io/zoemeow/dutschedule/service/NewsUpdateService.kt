@@ -1,9 +1,19 @@
 package io.zoemeow.dutschedule.service
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.Log
+import com.google.gson.Gson
 import io.dutwrapper.dutwrapper.model.enums.LessonStatus
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsFetchType
+import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
@@ -30,46 +40,83 @@ class NewsUpdateService : BaseService(
         // Fetch action:
         // - 0: Fetch current news by page number and plus 1.
         // - 1: Get page 1 but keep cache and current page number.
-        // - 2: Get specific page by page number (in page) and keep cache and current page number.
-        // - 3: Clear cache, reset and fetch page 1.
+        // - 2: Clear cache, reset and fetch page 1.
         // Apply for fetchglobal and fetchsubject.
         val fetchType = intent?.getIntExtra("news.service.variable.fetchtype", 0)
         // Page to fetch news.
         // Apply for fetchglobal and fetchsubject with fetch action 1, 2.
-        val page = intent?.getIntExtra("news.service.variable.page", 1)
+        // val page = intent?.getIntExtra("news.service.variable.page", 1)
         // Fetch full news?
         // Apply for fetchglobal, fetchsubject, fetchall and fetchallinbackground.
-        val fetchFullNews = intent?.getBooleanExtra("news.service.variable.fetchfullnews", false)
+        // val fetchFullNews = intent?.getBooleanExtra("news.service.variable.fetchfullnews", false)
+
+        // Schedule for next run
+        // Apply for fetchglobal and fetchsubject with fetch action 1
+        // val schedule = intent?.getBooleanExtra("news.service.variable.schedulenextrun", false) ?: false
+        val schedule = settings.fetchNewsBackgroundDuration > 0
 
         when (intent?.action) {
             "news.service.action.fetchglobal" -> {
                 fetchNewsGlobal(
-                    newsPageType = fetchType ?: 0,
-                    page = page ?: 1
+                    notify = true,
+                    fetchType = when (fetchType) {
+                        0 -> NewsFetchType.NextPage
+                        1 -> NewsFetchType.FirstPage
+                        2 -> NewsFetchType.ClearAndFirstPage
+                        else -> NewsFetchType.NextPage
+                    }
                 )
             }
             "news.service.action.fetchsubject" -> {
                 fetchNewsSubject(
-                    newsPageType = fetchType ?: 0,
-                    page = page ?: 1
+                    notify = true,
+                    fetchType = when (fetchType) {
+                        0 -> NewsFetchType.NextPage
+                        1 -> NewsFetchType.FirstPage
+                        2 -> NewsFetchType.ClearAndFirstPage
+                        else -> NewsFetchType.NextPage
+                    }
                 )
             }
             "news.service.action.fetchall" -> {
-                fetchNewsGlobal()
-                fetchNewsSubject()
+                fetchNewsGlobal(
+                    fetchType = when (fetchType) {
+                        0 -> NewsFetchType.NextPage
+                        1 -> NewsFetchType.FirstPage
+                        2 -> NewsFetchType.ClearAndFirstPage
+                        else -> NewsFetchType.NextPage
+                    }
+                )
+                fetchNewsSubject(
+                    fetchType = when (fetchType) {
+                        0 -> NewsFetchType.NextPage
+                        1 -> NewsFetchType.FirstPage
+                        2 -> NewsFetchType.ClearAndFirstPage
+                        else -> NewsFetchType.NextPage
+                    }
+                )
             }
-            "news.service.action.fetchallinbackground" -> {
-                fetchNewsGlobal(notify = true)
-                fetchNewsSubject(notify = true)
+            "news.service.action.fetchallpage1background" -> {
+                fetchNewsGlobal(
+                    notify = true,
+                    fetchType = NewsFetchType.FirstPage
+                )
+                fetchNewsSubject(
+                    notify = true,
+                    fetchType = NewsFetchType.FirstPage
+                )
             }
             else -> {}
+        }
+        if (schedule) {
+            Log.d("NewsService", "Triggered next run")
+            scheduleNextRun()
         }
     }
 
     private fun fetchNewsGlobal(
         notify: Boolean = false,
-        newsPageType: Int = 0,
-        page: Int = 1
+        fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
             // Get news cache
@@ -77,60 +124,115 @@ class NewsUpdateService : BaseService(
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsGlobal(
-                page = when (newsPageType) {
-                    0 -> newsCache.pageCurrent
-                    2 -> page
-                    1, 3 -> 1
-                    else -> 1
+                page = when (fetchType) {
+                    NewsFetchType.NextPage -> newsCache.pageCurrent
+                    NewsFetchType.FirstPage -> 1
+                    NewsFetchType.ClearAndFirstPage -> 1
                 }
             )
 
             // If requested, clear cache
-            if (newsPageType == 3) {
+            if (fetchType == NewsFetchType.ClearAndFirstPage) {
                 newsCache.newsListByDate.clear()
             }
 
-            // TODO: Processing news global here
+            // Remove duplicate news to new list
+            val newsFiltered = arrayListOf<NewsGroupByDate<NewsGlobalItem>>()
+            newsFromInternet.forEach { newsItem ->
+                val anyMatch = newsCache.newsListByDate.any { newsSourceGroup ->
+                    newsSourceGroup.itemList.any { newsSourceItem ->
+                        newsSourceItem.date == newsItem.date
+                                && newsSourceItem.title == newsItem.title
+                                && newsSourceItem.contentString == newsItem.contentString
+                    }
+                }
 
-            when (newsPageType) {
-                0 -> {
+                if (!anyMatch) {
+                    // Check if date group exist
+                    val groupExist =
+                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
+                    if (!groupExist) {
+                        val newsGroupNew = NewsGroupByDate(
+                            date = newsItem.date,
+                            itemList = arrayListOf(newsItem)
+                        )
+                        newsFiltered.add(newsGroupNew)
+                    } else {
+                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
+                            .add(newsItem)
+                    }
+                }
+            }
+
+            // Add to current cache
+            newsFiltered.forEach { newsGroup ->
+                var itemIndex = 0
+                newsGroup.itemList.forEach { newsItem ->
+                    if (newsCache.newsListByDate.any { group -> group.date == newsItem.date }) {
+                        if (fetchType == NewsFetchType.FirstPage) {
+                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
+                                .itemList.add(itemIndex, newsItem)
+                            itemIndex += 1
+                        } else {
+                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
+                                .itemList.add(newsItem)
+                        }
+                    } else {
+                        val newsGroupNew = NewsGroupByDate(
+                            date = newsItem.date,
+                            itemList = arrayListOf(newsItem)
+                        )
+                        newsCache.newsListByDate.add(newsGroupNew)
+                    }
+                }
+            }
+            newsCache.newsListByDate.sortByDescending { group -> group.date }
+
+            when (fetchType) {
+                NewsFetchType.NextPage -> {
                     newsCache.pageCurrent += 1
                 }
-                1 -> {
+                NewsFetchType.FirstPage -> {
                     if (newsCache.pageCurrent <= 1)
                         newsCache.pageCurrent += 1
                 }
-                3 -> {
+                NewsFetchType.ClearAndFirstPage -> {
                     newsCache.pageCurrent = 2
                 }
             }
             file.saveCacheNewsGlobal(newsCache)
 
-            // TODO: Check if any news need to be notify here.
-
-            // If no notifications, aborting...
+            // Check if any news need to be notify here using newsFiltered!
+            // If no notification permission, aborting...
             if (!PermissionRequestActivity.isPermissionGranted(PermissionList.PERMISSION_NOTIFICATION, this)) {
                 return
             }
 
-            // TODO: Processing news global notifications for notify here!
+            // If no need to notify, aborting...
+            if (!notify) {
+                return
+            }
 
-//            NotificationsUtils.showNewsNotification(
-//                context = this,
-//                channel_id = "notification.id.news.global",
-//                news_md5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
-//                news_title = "News Global",
-//                news_description = newsItem.title,
-//                data = newsItem
-//            )
+            // Processing news global notifications for notify here!
+            newsFiltered.forEach { newsGroup ->
+                newsGroup.itemList.forEach { newsItem ->
+                    NotificationsUtils.showNewsNotification(
+                        context = this,
+                        channelId = "notification.id.news.global",
+                        newsMD5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
+                        newsTitle = "News Global",
+                        newsDescription = newsItem.title,
+                        jsonData = Gson().toJson(newsItem)
+                    )
+                }
+            }
         } catch (_: Exception) {
         }
     }
 
     private fun fetchNewsSubject(
         notify: Boolean = false,
-        newsPageType: Int = 0,
-        page: Int = 1
+        fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
             // Get news cache
@@ -138,52 +240,224 @@ class NewsUpdateService : BaseService(
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsSubject(
-                page = when (newsPageType) {
-                    0 -> newsCache.pageCurrent
-                    2 -> page
-                    1, 3 -> 1
-                    else -> 1
+                page = when (fetchType) {
+                    NewsFetchType.NextPage -> newsCache.pageCurrent
+                    NewsFetchType.FirstPage -> 1
+                    NewsFetchType.ClearAndFirstPage -> 1
                 }
             )
 
             // If requested, clear cache
-            if (newsPageType == 3) {
+            if (fetchType == NewsFetchType.ClearAndFirstPage) {
                 newsCache.newsListByDate.clear()
             }
 
-            // TODO: Get and fetch news subject here!
+            // Remove duplicate news to new list
+            val newsFiltered = arrayListOf<NewsGroupByDate<NewsSubjectItem>>()
+            newsFromInternet.forEach { newsItem ->
+                val anyMatch = newsCache.newsListByDate.any { newsSourceGroup ->
+                    newsSourceGroup.itemList.any { newsSourceItem ->
+                        newsSourceItem.date == newsItem.date
+                                && newsSourceItem.title == newsItem.title
+                                && newsSourceItem.contentString == newsItem.contentString
+                    }
+                }
 
-            when (newsPageType) {
-                0 -> {
+                if (!anyMatch) {
+                    // Check if date group exist
+                    val groupExist =
+                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
+                    if (!groupExist) {
+                        val newsGroupNew = NewsGroupByDate(
+                            date = newsItem.date,
+                            itemList = arrayListOf(newsItem)
+                        )
+                        newsFiltered.add(newsGroupNew)
+                    } else {
+                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
+                            .add(newsItem)
+                    }
+                }
+            }
+
+            // Add to current cache
+            newsFiltered.forEach { newsGroup ->
+                var itemIndex = 0
+                newsGroup.itemList.forEach { newsItem ->
+                    if (newsCache.newsListByDate.any { group -> group.date == newsItem.date }) {
+                        if (fetchType == NewsFetchType.FirstPage) {
+                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
+                                .itemList.add(itemIndex, newsItem)
+                            itemIndex += 1
+                        } else {
+                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
+                                .itemList.add(newsItem)
+                        }
+                    } else {
+                        val newsGroupNew = NewsGroupByDate(
+                            date = newsItem.date,
+                            itemList = arrayListOf(newsItem)
+                        )
+                        newsCache.newsListByDate.add(newsGroupNew)
+                    }
+                }
+            }
+            newsCache.newsListByDate.sortByDescending { group -> group.date }
+
+            when (fetchType) {
+                NewsFetchType.NextPage -> {
                     newsCache.pageCurrent += 1
                 }
-                1 -> {
+                NewsFetchType.FirstPage -> {
                     if (newsCache.pageCurrent <= 1)
                         newsCache.pageCurrent += 1
                 }
-                3 -> {
+                NewsFetchType.ClearAndFirstPage -> {
                     newsCache.pageCurrent = 2
                 }
             }
             file.saveCacheNewsSubject(newsCache)
 
-            // TODO: Check if any news need to be notify here.
-
-            // If no notifications, aborting...
+            // Check if any news need to be notify here using newsFiltered!
+            // If no notification permission, aborting...
             if (!PermissionRequestActivity.isPermissionGranted(PermissionList.PERMISSION_NOTIFICATION, this)) {
                 return
             }
 
-            // TODO: Processing news subject notifications for notify here!
+            // If no need to notify, aborting...
+            if (!notify) {
+                return
+            }
 
-//            NotificationsUtils.showNewsNotification(
-//                context = this,
-//                channel_id = "notification.id.news.subject",
-//                news_md5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
-//                news_title = notifyTitle,
-//                news_description = notifyContentList.joinToString("\n"),
-//                data = newsItem
-//            )
+            // TODO: Processing news subject notifications for notify here!
+            newsFiltered.forEach newsGroupForEach@ { newsGroup ->
+                newsGroup.itemList.forEach newsItemForEach@ { newsItem ->
+                    // Default value is false.
+                    var notifyRequired = false
+                    // If enabled news filter, do following.
+
+                    // If filter was empty -> Not set -> All news -> Enable notify.
+                    if (settings.newsFilterList.isEmpty()) {
+                        notifyRequired = true
+                    }
+                    // If a news in filter list -> Enable notify.
+                    else if (settings.newsFilterList.any { source ->
+                            newsItem.affectedClass.any { targetGroup ->
+                                targetGroup.codeList.any { target ->
+                                    source.isEquals(
+                                        SubjectCode(
+                                            target.studentYearId,
+                                            target.classId,
+                                            targetGroup.subjectName
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    ) notifyRequired = true
+
+                    // If no notify/notify settings is off, continue with return@forEach.
+                    if (!notifyRequired || !notify) {
+                        return@newsItemForEach
+                    }
+
+                    val notifyTitle = when (newsItem.lessonStatus) {
+                        LessonStatus.Leaving -> {
+                            String.format(
+                                "New %s notification from %s",
+                                "Leaving",
+                                newsItem.lecturerName
+                            )
+                        }
+                        LessonStatus.MakeUp -> {
+                            String.format(
+                                "New %s notification from %s",
+                                "Make up",
+                                newsItem.lecturerName
+                            )
+                        }
+                        else -> {
+                            String.format(
+                                "New notification from %s",
+                                newsItem.lecturerName
+                            )
+                        }
+                    }
+
+                    // Affected classrooms
+                    var affectedClassrooms = ""
+                    newsItem.affectedClass.forEach { className ->
+                        if (affectedClassrooms.isEmpty()) {
+                            affectedClassrooms = className.subjectName
+                        } else {
+                            affectedClassrooms += ", ${className.subjectName}"
+                        }
+                        var first = true
+                        for (item in className.codeList) {
+                            if (first) {
+                                affectedClassrooms += " ("
+                                first = false
+                            } else {
+                                affectedClassrooms += ", "
+                            }
+                            affectedClassrooms += "${item.studentYearId}.${item.classId}"
+                        }
+                        affectedClassrooms += ")"
+                    }
+
+                    val notifyContentList = arrayListOf<String>()
+                    // Affected classrooms
+                    notifyContentList.add(
+                        "${
+                            String.format(
+                                "Subject(s) affected: %s",
+                                affectedClassrooms
+                            )
+                        }\n"
+                    )
+                    // Date and lessons
+                    if (
+                        newsItem.lessonStatus == LessonStatus.Leaving ||
+                        newsItem.lessonStatus == LessonStatus.MakeUp
+                    ) {
+                        // Date
+                        notifyContentList.add(
+                            String.format(
+                                "Date affected: %s",
+                                CustomDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
+                            )
+                        )
+                        // Lessons
+                        notifyContentList.add(
+                            String.format(
+                                "Lesson(s) affected: %s",
+                                if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)",
+                            )
+                        )
+                        // Make-up room
+                        if (newsItem.lessonStatus == LessonStatus.MakeUp) {
+                            // Make up in room
+                            notifyContentList.add(
+                                String.format(
+                                    "Room will make up: %s",
+                                    newsItem.affectedRoom
+                                )
+                            )
+                        }
+                    } else {
+                        notifyContentList.add(newsItem.contentString)
+                    }
+
+                    NotificationsUtils.showNewsNotification(
+                        context = this,
+                        channelId = "notification.id.news.subject",
+                        newsMD5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
+                        newsTitle = notifyTitle,
+                        newsDescription = notifyContentList.joinToString("\n"),
+                        jsonData = Gson().toJson(newsItem)
+                    )
+                }
+            }
         } catch (_: Exception) {
         }
     }
@@ -193,4 +467,55 @@ class NewsUpdateService : BaseService(
     }
 
     override fun onDestroying() { }
+
+    private fun scheduleNextRun() {
+        val pendingIntent = getPendingIntentForBackground(this)
+        super.scheduleNextRun(
+            // intervalInMinute = settings.fetchNewsBackgroundDuration,
+            intervalInMinute = 1,
+            scheduleStart = null,
+            scheduleEnd = null,
+            pendingIntent = pendingIntent
+        )
+    }
+
+    companion object {
+        fun getPendingIntentForBackground(context: Context): PendingIntent {
+            val intent = Intent(context, NewsUpdateService::class.java).also {
+                it.action = "news.service.action.fetchallpage1background"
+            }
+            val pendingIntent: PendingIntent
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                pendingIntent = PendingIntent.getForegroundService(
+                    context,
+                    1234,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.FLAG_IMMUTABLE
+                    }
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            } else {
+                pendingIntent = PendingIntent.getService(
+                    context,
+                    1234,
+                    intent,
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.FLAG_IMMUTABLE
+                    }
+                    else PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            }
+
+            return pendingIntent
+        }
+
+        fun cancelSchedule(
+            context: Context
+        ) {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmManager.cancel(getPendingIntentForBackground(context))
+            Log.d("NewsService", "Cancelled run")
+        }
+    }
 }

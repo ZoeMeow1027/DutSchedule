@@ -26,6 +26,10 @@ data class DUTLesson(
         return String.format("%2d:%2d", hour, minute)
     }
 
+    fun isInRange(left: DUTLesson, right: DUTLesson): Boolean {
+        return (left <= this) && (this <= right)
+    }
+
     // Get current lesson by current time.
     // -3: Unknown
     // -2: Lesson not started

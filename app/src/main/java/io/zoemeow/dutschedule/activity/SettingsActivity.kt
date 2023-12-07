@@ -10,18 +10,33 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -785,6 +800,7 @@ class SettingsActivity : BaseActivity() {
         )
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun DialogFetchNewsInBackground(
         isVisible: Boolean = false,
@@ -834,6 +850,23 @@ class SettingsActivity : BaseActivity() {
                         horizontalArrangement = Arrangement.Center,
                         content = {
                             Text("${duration.intValue} minute${if (duration.intValue != 1) "s" else ""}")
+                        }
+                    )
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(top = 7.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        content = {
+                            listOf(0, 5, 15, 30, 60).forEach { min ->
+                                SuggestionChip(
+                                    modifier = Modifier.padding(horizontal = 5.dp),
+                                    onClick = {
+                                        duration.intValue = min
+                                    },
+                                    label = { Text(if (min == 0) "Turn off" else "$min min") }
+                                )
+                            }
                         }
                     )
                 }

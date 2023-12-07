@@ -7,6 +7,8 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".MainApplication"
@@ -84,6 +86,7 @@
             android:name=".service.NewsUpdateService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="shortService"
             android:label="DutSchedule - News Update Service" />
     </application>
 

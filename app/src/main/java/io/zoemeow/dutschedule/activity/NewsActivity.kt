@@ -89,7 +89,7 @@ class NewsActivity : BaseActivity() {
     override fun OnMainView(padding: PaddingValues) {
         val context = LocalContext.current
         when (intent.action) {
-            "view_search" -> {
+            "activity_search" -> {
                 SearchView()
             }
 
@@ -97,7 +97,7 @@ class NewsActivity : BaseActivity() {
                 MainView(
                     searchRequested = {
                         val intent = Intent(context, NewsActivity::class.java)
-                        intent.action = "view_search"
+                        intent.action = "activity_search"
                         context.startActivity(intent)
                     }
                 )

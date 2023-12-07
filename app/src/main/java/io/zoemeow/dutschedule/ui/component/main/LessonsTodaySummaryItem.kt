@@ -22,7 +22,6 @@ fun LessonTodaySummaryItem(
         val result = arrayListOf<String>()
         val currentLesson = DUTLesson.getCurrentLesson().toDUTLesson()
         affectedList.forEach { item ->
-            // TODO: Wait for library update
             val childResult = String.format(
                 "%s (%s)",
                 item.name,
