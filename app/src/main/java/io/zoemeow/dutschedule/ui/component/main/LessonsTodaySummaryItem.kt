@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
-import io.zoemeow.dutschedule.util.DUTLesson
+import io.zoemeow.dutschedule.model.CustomClock
 
 @Composable
 fun LessonTodaySummaryItem(
@@ -20,7 +20,7 @@ fun LessonTodaySummaryItem(
 ) {
     fun affectedListStringBuilder(): String {
         val result = arrayListOf<String>()
-        val currentLesson = DUTLesson.getCurrentLesson().toDUTLesson()
+        val currentLesson = CustomClock.getCurrent().toDUTLesson()
         affectedList.forEach { item ->
             val childResult = String.format(
                 "%s (%s)",
@@ -47,7 +47,7 @@ fun LessonTodaySummaryItem(
                 String.format(
                     "You have %d%s lesson%s today:",
                     affectedList.size,
-                    when (DUTLesson.getCurrentLesson().toDUTLesson()) {
+                    when (CustomClock.getCurrent().toDUTLesson()) {
                         -3, -2 -> ""
                         else -> " remaining"
                     },

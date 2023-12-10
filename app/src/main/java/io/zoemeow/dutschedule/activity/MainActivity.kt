@@ -34,7 +34,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.CustomClock
 import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.service.BaseService
 import io.zoemeow.dutschedule.service.NewsUpdateService
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
@@ -45,7 +47,6 @@ import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.CustomDateUtils
-import io.zoemeow.dutschedule.util.DUTLesson
 import io.zoemeow.dutschedule.util.NotificationsUtils
 import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.datetime.Clock
@@ -82,13 +83,13 @@ class MainActivity : BaseActivity() {
             content = {
                 DateAndTimeSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
-                    isLoading = getMainViewModel().currentSchoolWeek.value.processState == ProcessState.Running,
-                    currentSchoolWeek = getMainViewModel().currentSchoolWeek.value.data
+                    isLoading = getMainViewModel().currentSchoolWeek2.processState.value == ProcessState.Running,
+                    currentSchoolWeek = getMainViewModel().currentSchoolWeek2.data.value
                 )
                 LessonTodaySummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
-                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
+                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
                     clicked = {
                         getMainViewModel().accountLogin(
                             after = {
@@ -100,15 +101,15 @@ class MainActivity : BaseActivity() {
                             }
                         )
                     },
-                    affectedList = getMainViewModel().subjectSchedule.value.data?.filter { subSch ->
+                    affectedList = getMainViewModel().subjectSchedule2.data.value?.filter { subSch ->
                         subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtils.getCurrentDayOfWeek() } &&
                                 subSch.subjectStudy.scheduleList.any { schItem ->
-                                    schItem.lesson.end >= when (DUTLesson.getCurrentLesson().toDUTLesson()) {
+                                    schItem.lesson.end >= when (CustomClock.getCurrent().toDUTLesson()) {
                                         -3 -> -99.0
                                         -2 -> -99.0
                                         -1 -> 5.5
                                         0 -> 99.0
-                                        else -> DUTLesson.getCurrentLesson().toDUTLesson().toDouble()
+                                        else -> CustomClock.getCurrent().toDUTLesson().toDouble()
                                     }
                                 }
                     }?.toList() ?: listOf()
@@ -116,7 +117,7 @@ class MainActivity : BaseActivity() {
                 AffectedLessonsSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
-                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.value.processState == ProcessState.Running,
+                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
                     clicked = {},
                     affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12")
                 )
@@ -127,7 +128,7 @@ class MainActivity : BaseActivity() {
                     clicked = {
                         context.startActivity(Intent(context, NewsActivity::class.java))
                     },
-                    isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
+                    isLoading = getMainViewModel().newsGlobal2.processState.value == ProcessState.Running
                 )
                 UpdateAvailableSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
@@ -155,14 +156,14 @@ class MainActivity : BaseActivity() {
         val before7Days = today.minus(7.days)
 
         if (!byWeek) {
-            getMainViewModel().newsGlobal.value.data.newsListByDate.firstOrNull {
+            (getMainViewModel().newsGlobal2.data.value ?: NewsCache()).newsListByDate.firstOrNull {
                 // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
                 it.date == today.toEpochMilliseconds()
             }.also {
                 if (it != null) data = it.itemList.count()
             }
         } else {
-            getMainViewModel().newsGlobal.value.data.newsListByDate.forEach {
+            (getMainViewModel().newsGlobal2.data.value ?: NewsCache()).newsListByDate.forEach {
                 // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
                 if (it.date <= today.toEpochMilliseconds() && it.date >= before7Days.toEpochMilliseconds()) {
                     data += it.itemList.count()

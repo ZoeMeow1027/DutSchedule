@@ -19,9 +19,9 @@ import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
-import io.zoemeow.dutschedule.util.AppUtils
 import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.NotificationsUtils
+import io.zoemeow.dutschedule.util.calcMD5
 
 class NewsUpdateService : BaseService(
     nNotifyId = "notification.id.service",
@@ -219,7 +219,7 @@ class NewsUpdateService : BaseService(
                     NotificationsUtils.showNewsNotification(
                         context = this,
                         channelId = "notification.id.news.global",
-                        newsMD5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
+                        newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
                         newsTitle = "News Global",
                         newsDescription = newsItem.title,
                         jsonData = Gson().toJson(newsItem)
@@ -451,7 +451,7 @@ class NewsUpdateService : BaseService(
                     NotificationsUtils.showNewsNotification(
                         context = this,
                         channelId = "notification.id.news.subject",
-                        newsMD5 = AppUtils.getMD5("${newsItem.date}_${newsItem.title}"),
+                        newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
                         newsTitle = notifyTitle,
                         newsDescription = notifyContentList.joinToString("\n"),
                         jsonData = Gson().toJson(newsItem)

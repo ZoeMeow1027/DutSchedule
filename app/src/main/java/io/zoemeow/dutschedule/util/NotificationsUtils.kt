@@ -105,7 +105,7 @@ class NotificationsUtils {
 
             val pendingIntent = PendingIntent.getActivity(
                 context,
-                AppUtils.calcMD5CharValue(newsMD5),
+                newsMD5.calcToSumByCharArray(),
                 notificationIntent,
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                     (PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
@@ -125,7 +125,7 @@ class NotificationsUtils {
 
             with(NotificationManagerCompat.from(context)) {
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                    notify(AppUtils.calcMD5CharValue(newsMD5), builder.build())
+                    notify(newsMD5.calcToSumByCharArray(), builder.build())
                 }
             }
         }

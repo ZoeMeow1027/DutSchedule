@@ -141,14 +141,16 @@ class NewsActivity : BaseActivity() {
                             onClick = {
                                 when (pagerState.currentPage) {
                                     0 -> {
-                                        getMainViewModel().fetchNewsGlobal(
-                                            fetchType = NewsFetchType.ClearAndFirstPage
+                                        getMainViewModel().newsGlobal2.refreshData(
+                                            force = true,
+                                            args = mapOf("newsfetchtype" to NewsFetchType.ClearAndFirstPage.value.toString())
                                         )
                                     }
 
                                     1 -> {
-                                        getMainViewModel().fetchNewsSubject(
-                                            fetchType = NewsFetchType.ClearAndFirstPage
+                                        getMainViewModel().newsSubject2.refreshData(
+                                            force = true,
+                                            args = mapOf("newsfetchtype" to NewsFetchType.ClearAndFirstPage.value.toString())
                                         )
                                     }
 
@@ -157,18 +159,18 @@ class NewsActivity : BaseActivity() {
                             },
                             enabled = when (pagerState.currentPage) {
                                 0 -> {
-                                    getMainViewModel().newsGlobal.value.processState != ProcessState.Running
+                                    getMainViewModel().newsGlobal2.processState.value != ProcessState.Running
                                 }
 
                                 1 -> {
-                                    getMainViewModel().newsSubject.value.processState != ProcessState.Running
+                                    getMainViewModel().newsSubject2.processState.value != ProcessState.Running
                                 }
 
                                 else -> false
                             },
                             content = {
                                 when {
-                                    (pagerState.currentPage == 0 && getMainViewModel().newsGlobal.value.processState == ProcessState.Running) || (pagerState.currentPage == 1 && getMainViewModel().newsSubject.value.processState == ProcessState.Running) -> {
+                                    (pagerState.currentPage == 0 && getMainViewModel().newsGlobal2.processState.value == ProcessState.Running) || (pagerState.currentPage == 1 && getMainViewModel().newsSubject2.processState.value == ProcessState.Running) -> {
                                         CircularProgressIndicator(
                                             modifier = Modifier.size(25.dp),
                                             strokeWidth = 3.dp
@@ -252,8 +254,8 @@ class NewsActivity : BaseActivity() {
                     when (pageIndex) {
                         0 -> {
                             NewsListPage(
-                                newsList = getMainViewModel().newsGlobal.value.data.newsListByDate,
-                                processState = getMainViewModel().newsGlobal.value.processState,
+                                newsList = (getMainViewModel().newsGlobal2.data.value?.newsListByDate ?: arrayListOf()),
+                                processState = getMainViewModel().newsGlobal2.processState.value,
                                 itemClicked = { newsItem ->
                                     context.startActivity(
                                         Intent(
@@ -267,8 +269,9 @@ class NewsActivity : BaseActivity() {
                                 endOfListReached = {
                                     CoroutineScope(Dispatchers.Main).launch {
                                         withContext(Dispatchers.IO) {
-                                            getMainViewModel().fetchNewsGlobal(
-                                                fetchType = NewsFetchType.NextPage
+                                            getMainViewModel().newsGlobal2.refreshData(
+                                                force = true,
+                                                args = mapOf("newsfetchtype" to NewsFetchType.NextPage.value.toString())
                                             )
                                         }
                                     }
@@ -279,8 +282,8 @@ class NewsActivity : BaseActivity() {
                         1 -> {
                             @Suppress("UNCHECKED_CAST")
                             NewsListPage(
-                                newsList = getMainViewModel().newsSubject.value.data.newsListByDate as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
-                                processState = getMainViewModel().newsSubject.value.processState,
+                                newsList = (getMainViewModel().newsSubject2.data.value?.newsListByDate ?: arrayListOf()) as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
+                                processState = getMainViewModel().newsSubject2.processState.value,
                                 itemClicked = { newsItem ->
                                     context.startActivity(
                                         Intent(
@@ -294,8 +297,9 @@ class NewsActivity : BaseActivity() {
                                 endOfListReached = {
                                     CoroutineScope(Dispatchers.Main).launch {
                                         withContext(Dispatchers.IO) {
-                                            getMainViewModel().fetchNewsSubject(
-                                                fetchType = NewsFetchType.NextPage
+                                            getMainViewModel().newsSubject2.refreshData(
+                                                force = true,
+                                                args = mapOf("newsfetchtype" to NewsFetchType.NextPage.value.toString())
                                             )
                                         }
                                     }
