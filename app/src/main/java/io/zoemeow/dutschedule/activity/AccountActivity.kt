@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -41,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -301,11 +303,13 @@ class AccountActivity: BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AccountTrainingResult() {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Account Training Result") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -323,6 +327,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -523,12 +528,13 @@ class AccountActivity: BaseActivity() {
     private fun AccountSubjectScheduleView() {
         val subjectScheduleItem: MutableState<SubjectScheduleItem?> = remember { mutableStateOf(null) }
         val subjectDetailVisible = remember { mutableStateOf(false) }
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Subject schedule") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -546,6 +552,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -622,14 +629,14 @@ class AccountActivity: BaseActivity() {
                 subjectDetailVisible.value = false
             },
             onAddToFilterRequested = { item ->
-                if (getMainViewModel().appSettings.value.newsFilterList.any { it.isEquals(item) }) {
+                if (getMainViewModel().appSettings.value.newsBackgroundFilterList.any { it.isEquals(item) }) {
                     showSnackBar(
                         text = "This subject has already exist in your news filter list!",
                         clearPrevious = true
                     )
                 } else {
                     getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                        newsFilterList = getMainViewModel().appSettings.value.newsFilterList.also {
+                        newsFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList.also {
                             it.add(item)
                         }
                     )
@@ -662,11 +669,13 @@ class AccountActivity: BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AccountSubjectFeeView() {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Subject fee") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -684,6 +693,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -770,11 +780,13 @@ class AccountActivity: BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AccountInformationView() {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Basic Information") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -792,6 +804,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
@@ -897,13 +910,14 @@ class AccountActivity: BaseActivity() {
         val loginDialogVisible = remember { mutableStateOf(false) }
         val loginDialogEnabled = remember { mutableStateOf(true) }
         val logoutDialogVisible = remember { mutableStateOf(false) }
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
         val context = LocalContext.current
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Account") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -921,6 +935,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             content = {

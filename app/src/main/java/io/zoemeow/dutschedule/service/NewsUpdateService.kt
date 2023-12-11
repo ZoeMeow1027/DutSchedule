@@ -53,7 +53,7 @@ class NewsUpdateService : BaseService(
         // Schedule for next run
         // Apply for fetchglobal and fetchsubject with fetch action 1
         // val schedule = intent?.getBooleanExtra("news.service.variable.schedulenextrun", false) ?: false
-        val schedule = settings.fetchNewsBackgroundDuration > 0
+        val schedule = settings.newsBackgroundDuration > 0
 
         when (intent?.action) {
             "news.service.action.fetchglobal" -> {
@@ -337,11 +337,11 @@ class NewsUpdateService : BaseService(
                     // If enabled news filter, do following.
 
                     // If filter was empty -> Not set -> All news -> Enable notify.
-                    if (settings.newsFilterList.isEmpty()) {
+                    if (settings.newsBackgroundFilterList.isEmpty()) {
                         notifyRequired = true
                     }
                     // If a news in filter list -> Enable notify.
-                    else if (settings.newsFilterList.any { source ->
+                    else if (settings.newsBackgroundFilterList.any { source ->
                             newsItem.affectedClass.any { targetGroup ->
                                 targetGroup.codeList.any { target ->
                                     source.isEquals(
@@ -408,12 +408,10 @@ class NewsUpdateService : BaseService(
                     val notifyContentList = arrayListOf<String>()
                     // Affected classrooms
                     notifyContentList.add(
-                        "${
-                            String.format(
-                                "Subject(s) affected: %s",
-                                affectedClassrooms
-                            )
-                        }\n"
+                        String.format(
+                            "Subject(s) affected: %s",
+                            affectedClassrooms
+                        )
                     )
                     // Date and lessons
                     if (
@@ -453,7 +451,10 @@ class NewsUpdateService : BaseService(
                         channelId = "notification.id.news.subject",
                         newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
                         newsTitle = notifyTitle,
-                        newsDescription = notifyContentList.joinToString("\n"),
+                        newsDescription = when (settings.newsBackgroundParseNewsSubject) {
+                            true -> notifyContentList.joinToString("\n")
+                            false -> newsItem.contentString
+                        },
                         jsonData = Gson().toJson(newsItem)
                     )
                 }
@@ -471,7 +472,7 @@ class NewsUpdateService : BaseService(
     private fun scheduleNextRun() {
         val pendingIntent = getPendingIntentForBackground(this)
         super.scheduleNextRun(
-            intervalInMinute = settings.fetchNewsBackgroundDuration,
+            intervalInMinute = settings.newsBackgroundDuration,
             scheduleStart = null,
             scheduleEnd = null,
             pendingIntent = pendingIntent

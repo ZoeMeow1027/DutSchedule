@@ -35,10 +35,30 @@ class PermissionList {
             }
         )
 
+        val PERMISSION_SCHEDULE_EXACT_ALARM = PermissionInfo(
+            name = "Schedule Exact Alarm",
+            code = "android.permission.SCHEDULE_EXACT_ALARM",
+            minSdk = 31,
+            description = "Allow this app to schedule service to update news in background for you.",
+            required = false,
+            extraAction = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                    Uri.parse("package:${"io.zoemeow.dutschedule"}")
+                )
+            } else {
+                Intent(
+                    "android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS",
+                    Uri.parse("package:${"io.zoemeow.dutschedule"}")
+                )
+            }
+        )
+
         fun getAllRequiredPermissions(): List<PermissionInfo> {
             return listOf(
                 PERMISSION_NOTIFICATION,
-                PERMISSION_MANAGE_EXTERNAL_STORAGE
+                PERMISSION_MANAGE_EXTERNAL_STORAGE,
+                PERMISSION_SCHEDULE_EXACT_ALARM
             )
         }
     }

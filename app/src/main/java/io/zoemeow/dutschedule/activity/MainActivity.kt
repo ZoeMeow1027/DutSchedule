@@ -1,33 +1,33 @@
 package io.zoemeow.dutschedule.activity
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +39,6 @@ import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.service.BaseService
 import io.zoemeow.dutschedule.service.NewsUpdateService
-import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.main.AffectedLessonsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
@@ -181,80 +180,126 @@ class MainActivity : BaseActivity() {
         settingsClicked: (() -> Unit)? = null,
         content: (@Composable ColumnScope.() -> Unit)? = null,
     ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text(text = "DutSchedule") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    scrollBehavior = scrollBehavior
                 )
             },
             bottomBar = {
                 BottomAppBar(
                     actions = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .verticalScroll(rememberScrollState()),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
+                        IconButton(
+                            onClick = { newsClicked?.let { it() } },
                             content = {
-                                ButtonBase(
-                                    clicked = {
-                                        newsClicked?.let { it() }
-                                    },
-                                    content = {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
-                                            "News",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("News")
-                                    }
-                                )
-                                ButtonBase(
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    clicked = {
-                                        accountClicked?.let {
-                                            it()
-                                        }
-                                    },
-                                    content = {
-                                        Icon(
-                                            Icons.Outlined.AccountCircle,
-                                            "",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("Account")
-                                    }
-                                )
-                                ButtonBase(
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    clicked = {
-                                        settingsClicked?.let {
-                                            it()
-                                        }
-                                    },
-                                    content = {
-                                        Icon(
-                                            Icons.Default.Settings,
-                                            "",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("Settings")
-                                    }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.baseline_newspaper_24),
+                                    "News",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
                                 )
                             }
                         )
+                        IconButton(
+                            onClick = { accountClicked?.let { it() } },
+                            content = {
+                                Icon(
+                                    Icons.Outlined.AccountCircle,
+                                    "Account",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
+                                )
+                            }
+                        )
+                        IconButton(
+                            onClick = { settingsClicked?.let { it() } },
+                            content = {
+                                Icon(
+                                    Icons.Default.Settings,
+                                    "Settings",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
+                                )
+                            }
+                        )
+//                        Row(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .wrapContentHeight()
+//                                .verticalScroll(rememberScrollState()),
+//                            horizontalArrangement = Arrangement.Center,
+//                            verticalAlignment = Alignment.CenterVertically,
+//                            content = {
+//                                ButtonBase(
+//                                    clicked = {
+//                                        newsClicked?.let { it() }
+//                                    },
+//                                    content = {
+//                                        Icon(
+//                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
+//                                            "News",
+//                                            modifier = Modifier
+//                                                .size(30.dp)
+//                                                .padding(end = 7.dp),
+//                                        )
+//                                        Text("News")
+//                                    }
+//                                )
+//                                ButtonBase(
+//                                    modifier = Modifier.padding(start = 10.dp),
+//                                    clicked = {
+//                                        accountClicked?.let {
+//                                            it()
+//                                        }
+//                                    },
+//                                    content = {
+//                                        Icon(
+//                                            Icons.Outlined.AccountCircle,
+//                                            "",
+//                                            modifier = Modifier
+//                                                .size(30.dp)
+//                                                .padding(end = 7.dp),
+//                                        )
+//                                        Text("Account")
+//                                    }
+//                                )
+//                                ButtonBase(
+//                                    modifier = Modifier.padding(start = 10.dp),
+//                                    clicked = {
+//                                        settingsClicked?.let {
+//                                            it()
+//                                        }
+//                                    },
+//                                    content = {
+//                                        Icon(
+//                                            Icons.Default.Settings,
+//                                            "",
+//                                            modifier = Modifier
+//                                                .size(30.dp)
+//                                                .padding(end = 7.dp),
+//                                        )
+//                                        Text("Settings")
+//                                    }
+//                                )
+//                            }
+//                        )
                     },
+                    floatingActionButton = {
+                        ExtendedFloatingActionButton(
+                            text = { Text("Refresh") },
+                            icon = { Icon(Icons.Default.Refresh, "Refresh status") },
+                            onClick = { /*TODO*/ }
+                        )
+                    }
                 )
             },
             content = { padding ->
@@ -280,7 +325,7 @@ class MainActivity : BaseActivity() {
 
     override fun onPause() {
         NewsUpdateService.cancelSchedule(this)
-        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) {
+        if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
             BaseService.startService(
                 context = this,
                 intent = Intent(applicationContext, NewsUpdateService::class.java).also {
@@ -294,7 +339,7 @@ class MainActivity : BaseActivity() {
 
     override fun onDestroy() {
         NewsUpdateService.cancelSchedule(this)
-        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) {
+        if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
             BaseService.startService(
                 context = this,
                 intent = Intent(applicationContext, NewsUpdateService::class.java).also {

@@ -158,11 +158,11 @@ class SettingsActivity : BaseActivity() {
                         OptionItem(
                             title = "Fetch news in background",
                             description = when {
-                                (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration > 0) ->
+                                (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) ->
                                     String.format(
                                         "Enabled, every %d minute%s",
-                                        getMainViewModel().appSettings.value.fetchNewsBackgroundDuration,
-                                        if (getMainViewModel().appSettings.value.fetchNewsBackgroundDuration != 1) "s" else ""
+                                        getMainViewModel().appSettings.value.newsBackgroundDuration,
+                                        if (getMainViewModel().appSettings.value.newsBackgroundDuration != 1) "s" else ""
                                     )
                                 else -> "Disabled"
                             },
@@ -179,6 +179,17 @@ class SettingsActivity : BaseActivity() {
                                 val intent = Intent(context, SettingsActivity::class.java)
                                 intent.action = "news_filter"
                                 context.startActivity(intent)
+                            }
+                        )
+                        OptionItem(
+                            title = "Parse news subject",
+                            description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
+                                true -> "Enabled (special notification for news subject)"
+                                false -> "Disabled (regular notification)"
+                            },
+                            padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                            clicked = {
+
                             }
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
@@ -368,7 +379,7 @@ class SettingsActivity : BaseActivity() {
         DialogFetchNewsInBackground(
             isVisible = dialogFetchNews.value,
             dismissRequested = { dialogFetchNews.value = false },
-            baseValue = getMainViewModel().appSettings.value.fetchNewsBackgroundDuration,
+            baseValue = getMainViewModel().appSettings.value.newsBackgroundDuration,
             onSubmit = {
                 dialogFetchNews.value = false
                 getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
@@ -393,7 +404,7 @@ class SettingsActivity : BaseActivity() {
     private fun NewsFilterSettingsView() {
         val tempFilterList = remember {
             mutableStateListOf<SubjectCode>().also {
-                it.addAll(getMainViewModel().appSettings.value.newsFilterList)
+                it.addAll(getMainViewModel().appSettings.value.newsBackgroundFilterList)
             }
         }
         val modified = remember { mutableStateOf(false) }
@@ -401,7 +412,7 @@ class SettingsActivity : BaseActivity() {
 
         fun saveChanges(exit: Boolean = false) {
             getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                newsFilterList = getMainViewModel().appSettings.value.newsFilterList.also {
+                newsFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList.also {
                     it.clear()
                     it.addAll(tempFilterList.toList())
                 }
