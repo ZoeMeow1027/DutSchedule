@@ -4,7 +4,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -52,9 +52,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
@@ -331,7 +329,6 @@ class NewsActivity : BaseActivity() {
         val searchExpanded = remember { mutableStateOf(false) }
 
         val focusRequester = remember { FocusRequester() }
-        val focusManager = LocalFocusManager.current
 
         fun invokeSearch(searchOver: Boolean = false) {
             Log.d("DutSchedule", "Invoking search")
@@ -339,7 +336,6 @@ class NewsActivity : BaseActivity() {
                 if (newsProgress.value == ProcessState.Running) {
                     return@launch
                 }
-
                 if (searchQuery.value.isEmpty()) {
                     newsProgress.value = ProcessState.NotRunYet
                     return@launch
@@ -390,12 +386,9 @@ class NewsActivity : BaseActivity() {
                             value = searchQuery.value,
                             onValueChange = { searchQuery.value = it },
                             modifier = Modifier.focusRequester(focusRequester),
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Search
-                            ),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(
                                 onSearch = {
-                                    focusManager.clearFocus(force = true)
                                     invokeSearch(searchOver = true)
                                 }
                             )
@@ -419,13 +412,15 @@ class NewsActivity : BaseActivity() {
                     },
                     actions = {
                         Surface(
-                            modifier = Modifier.padding(start = 3.dp),
+                            modifier = Modifier
+                                .padding(start = 3.dp),
                             color = if (searchType.value == NewsSearchType.ByContent) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
                             shape = RoundedCornerShape(7.dp),
                             content = {
                                 IconButton(
                                     onClick = {
-                                        focusManager.clearFocus(force = true)
+                                        // TODO: Hide virtual keyboard
+                                        clearAllFocusAndHideKeyboard()
                                         fetchExpanded.value = true
                                     },
                                     content = {
@@ -469,13 +464,14 @@ class NewsActivity : BaseActivity() {
                             }
                         )
                         Surface(
-                            modifier = Modifier.padding(start = 3.dp),
+                            modifier = Modifier
+                                .padding(start = 3.dp),
                             color = if (newsType.value) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
                             shape = RoundedCornerShape(7.dp),
                             content = {
                                 IconButton(
                                     onClick = {
-                                        focusManager.clearFocus(force = true)
+                                        clearAllFocusAndHideKeyboard()
                                         searchExpanded.value = true
                                     },
                                     content = {
@@ -517,7 +513,7 @@ class NewsActivity : BaseActivity() {
                         IconButton(
                             modifier = Modifier.padding(start = 3.dp),
                             onClick = {
-                                focusManager.clearFocus(force = true)
+                                clearAllFocusAndHideKeyboard()
                                 invokeSearch(searchOver = true)
                             },
                             enabled = newsProgress.value != ProcessState.Running,
@@ -547,10 +543,8 @@ class NewsActivity : BaseActivity() {
                         .fillMaxSize()
                         .padding(padding)
                         .padding(horizontal = 10.dp)
-                        .pointerInput(Unit) {
-                            detectTapGestures(onTap = {
-                                focusManager.clearFocus()
-                            })
+                        .clickable {
+                            clearAllFocusAndHideKeyboard()
                         },
                     verticalArrangement = if (newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -564,7 +558,7 @@ class NewsActivity : BaseActivity() {
                                         description = item.contentString,
                                         dateTime = item.date,
                                         onClick = {
-                                            focusManager.clearFocus()
+                                            clearAllFocusAndHideKeyboard()
                                             context.startActivity(
                                                 Intent(
                                                     context,
@@ -608,15 +602,5 @@ class NewsActivity : BaseActivity() {
                 )
             }
         )
-
-        val hasRun = remember { mutableStateOf(false) }
-        run {
-            if (!hasRun.value) {
-                CoroutineScope(Dispatchers.Main).launch {
-                    focusRequester.requestFocus()
-                }
-                hasRun.value = true
-            }
-        }
     }
 }

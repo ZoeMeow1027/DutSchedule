@@ -471,8 +471,7 @@ class NewsUpdateService : BaseService(
     private fun scheduleNextRun() {
         val pendingIntent = getPendingIntentForBackground(this)
         super.scheduleNextRun(
-            // intervalInMinute = settings.fetchNewsBackgroundDuration,
-            intervalInMinute = 1,
+            intervalInMinute = settings.fetchNewsBackgroundDuration,
             scheduleStart = null,
             scheduleEnd = null,
             pendingIntent = pendingIntent

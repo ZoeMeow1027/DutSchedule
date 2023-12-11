@@ -28,6 +28,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -48,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
@@ -112,11 +114,13 @@ class SettingsActivity : BaseActivity() {
         val dialogFetchNews: MutableState<Boolean> = remember { mutableStateOf(false) }
         val context = LocalContext.current
 
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Settings") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -134,6 +138,7 @@ class SettingsActivity : BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             content = {
@@ -853,7 +858,8 @@ class SettingsActivity : BaseActivity() {
                         }
                     )
                     FlowRow(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
                             .wrapContentHeight()
                             .padding(top = 7.dp),
                         horizontalArrangement = Arrangement.Center,

@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -19,10 +20,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
@@ -43,22 +48,26 @@ abstract class BaseActivity: ComponentActivity() {
     private lateinit var snackBarHostState: SnackbarHostState
     private lateinit var snackBarScope: CoroutineScope
     private val loadScriptAtStartup = mutableStateOf(true)
+    private var focusManager: FocusManager? = null
+    private var keyboardController: SoftwareKeyboardController? = null
 
+    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         permitAllPolicy()
 
         setContent {
+            // SnackBar state
             snackBarHostState = remember { SnackbarHostState() }
             snackBarScope = rememberCoroutineScope()
 
+            // Initialize focus manager & software keyboard controller
+            focusManager = LocalFocusManager.current
+            keyboardController = LocalSoftwareKeyboardController.current
+
+            // Initialize MainViewModel
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
-            }
-
-            if (loadScriptAtStartup.value) {
-                loadScriptAtStartup.value = false
-                OnPreloadOnce()
             }
 
             DutScheduleTheme(
@@ -108,6 +117,12 @@ abstract class BaseActivity: ComponentActivity() {
                     )
                 },
             )
+
+            // Run startup script once
+            if (loadScriptAtStartup.value) {
+                loadScriptAtStartup.value = false
+                OnPreloadOnce()
+            }
         }
     }
 
@@ -120,6 +135,11 @@ abstract class BaseActivity: ComponentActivity() {
             ThemeMode.DarkMode -> true
             ThemeMode.FollowDeviceTheme -> isSystemInDarkTheme()
         }
+    }
+
+    fun clearAllFocusAndHideKeyboard() {
+        keyboardController?.hide()
+        focusManager?.clearFocus(force = true)
     }
 
     @Composable

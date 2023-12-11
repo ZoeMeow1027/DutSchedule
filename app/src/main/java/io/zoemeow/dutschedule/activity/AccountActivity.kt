@@ -42,7 +42,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -103,14 +102,35 @@ class AccountActivity: BaseActivity() {
         val searchQuery = remember { mutableStateOf("") }
         val searchEnabled = remember { mutableStateOf(false) }
 
-        val focusManager = LocalFocusManager.current
-
-        fun dismissSearchBar(clearQuery: Boolean = false) {
-            focusManager.clearFocus(force = true)
-            if (clearQuery) {
-                searchQuery.value = ""
-            }
+        fun dismissSearchBar() {
+            clearAllFocusAndHideKeyboard()
+            searchQuery.value = ""
             searchEnabled.value = false
+        }
+
+        fun subjectResultToMap(item: SubjectResult): Map<String, String?> {
+            return mapOf(
+                "Subject Year" to (item.schoolYear ?: "(unknown)"),
+                "Subject Code" to (item.id ?: "(unknown)"),
+                "Credit" to item.credit.toString(),
+                "Point formula" to (item.pointFormula ?: "(unknown)"),
+                "BT" to item.pointBT?.toString(),
+                "BV" to item.pointBV?.toString(),
+                "CC" to item.pointCC?.toString(),
+                "CK" to item.pointCK?.toString(),
+                "GK" to item.pointGK?.toString(),
+                "QT" to item.pointQT?.toString(),
+                "TH" to item.pointTH?.toString(),
+                "Point (T10 - T4 - By point char)" to String.format(
+                    "%s - %s - %s",
+                    if (item.resultT10 != null) String.format(
+                        "%.2f",
+                        item.resultT10
+                    ) else "unscored",
+                    if (item.resultT4 != null) String.format("%.2f", item.resultT4) else "unscored",
+                    if (item.resultByCharacter.isNullOrEmpty()) "(unscored)" else item.resultByCharacter
+                )
+            )
         }
 
         Scaffold(
@@ -131,7 +151,7 @@ class AccountActivity: BaseActivity() {
                                 ),
                                 keyboardActions = KeyboardActions(
                                     onDone = {
-                                        dismissSearchBar(clearQuery = false)
+                                        clearAllFocusAndHideKeyboard()
                                     }
                                 )
                             )
@@ -142,7 +162,7 @@ class AccountActivity: BaseActivity() {
                         IconButton(
                             onClick = {
                                 if (searchEnabled.value) {
-                                    dismissSearchBar(clearQuery = true)
+                                    dismissSearchBar()
                                 } else {
                                     setResult(RESULT_OK)
                                     finish()
@@ -175,6 +195,7 @@ class AccountActivity: BaseActivity() {
                 if (getMainViewModel().accountTrainingStatus2.processState.value != ProcessState.Running) {
                     FloatingActionButton(
                         onClick = {
+                            clearAllFocusAndHideKeyboard()
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
@@ -196,7 +217,7 @@ class AccountActivity: BaseActivity() {
                         .padding(padding)
                         .padding(horizontal = 10.dp, vertical = 5.dp)
                         .verticalScroll(rememberScrollState())
-                        .clickable { dismissSearchBar(clearQuery = false) },
+                        .clickable { clearAllFocusAndHideKeyboard() },
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = if (
                         getMainViewModel().accountTrainingStatus2.data.value != null &&
@@ -226,96 +247,19 @@ class AccountActivity: BaseActivity() {
                                         },
                                         isTitleCentered = false,
                                         onTitleClicked = {
-                                            dismissSearchBar(clearQuery = false)
+                                            clearAllFocusAndHideKeyboard()
                                             selectedSubject.value = subjectItem
                                         },
                                         content = {
-                                            OutlinedTextBox(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                title = "Subject year",
-                                                value = subjectItem.schoolYear ?: "(unknown)"
-                                            )
-                                            OutlinedTextBox(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                title = "Subject code",
-                                                value = subjectItem.id ?: "(unknown)"
-                                            )
-                                            OutlinedTextBox(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                title = "Credit",
-                                                value = subjectItem.credit.toString()
-                                            )
-                                            OutlinedTextBox(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                title = "Point formula",
-                                                value = subjectItem.pointFormula ?: "(unknown)"
-                                            )
-                                            if (subjectItem.pointBT != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "BT",
-                                                    value = subjectItem.pointBT.toString()
-                                                )
+                                            subjectResultToMap(subjectItem).forEach { (key, value) ->
+                                                if (value != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = key,
+                                                        value = value
+                                                    )
+                                                }
                                             }
-                                            if (subjectItem.pointBV != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "BV",
-                                                    value = subjectItem.pointBV.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointCC != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "CC",
-                                                    value = subjectItem.pointCC.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointCK != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "CK",
-                                                    value = subjectItem.pointCK.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointGK != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "GK",
-                                                    value = subjectItem.pointGK.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointQT != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "QT",
-                                                    value = subjectItem.pointQT.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointTH != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "TH",
-                                                    value = subjectItem.pointTH.toString()
-                                                )
-                                            }
-                                            if (subjectItem.pointTH != null) {
-                                                OutlinedTextBox(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    title = "TH",
-                                                    value = subjectItem.pointTH.toString()
-                                                )
-                                            }
-                                            OutlinedTextBox(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                title = "Point (T10 - T4 - By point char)",
-                                                value = String.format(
-                                                    "%s - %s - %s",
-                                                    if (subjectItem.resultT10 != null) String.format("%.2f", subjectItem.resultT10) else "unscored",
-                                                    if (subjectItem.resultT4 != null) String.format("%.2f", subjectItem.resultT4) else "unscored",
-                                                    if (subjectItem.resultByCharacter.isNullOrEmpty()) "(unscored)" else subjectItem.resultByCharacter
-                                                )
-                                            )
                                         },
                                         isContentVisible = selectedSubject.value?.id == subjectItem.id
                                     )
@@ -333,7 +277,7 @@ class AccountActivity: BaseActivity() {
         BackHandler(
             enabled = searchEnabled.value,
             onBack = {
-                dismissSearchBar(clearQuery = true)
+                dismissSearchBar()
             }
         )
 

@@ -196,7 +196,8 @@ class MainActivity : BaseActivity() {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .wrapContentHeight(),
+                                .wrapContentHeight()
+                                .verticalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                             content = {
