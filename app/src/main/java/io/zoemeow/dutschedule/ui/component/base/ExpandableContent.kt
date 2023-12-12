@@ -29,7 +29,8 @@ fun ExpandableContent(
     onTitleClicked: (() -> Unit)? = null,
     content: @Composable ColumnScope. () -> Unit,
     isContentCentered: Boolean = false,
-    isContentVisible: Boolean = false
+    isContentVisible: Boolean = false,
+    opacity: Float = 1.0f
 ) {
     Surface(
         modifier = modifier
@@ -38,7 +39,7 @@ fun ExpandableContent(
             .padding(horizontal = 5.dp)
             .padding(top = 10.dp)
             .clip(RoundedCornerShape(7.dp)),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         content = {
             Column(
                 verticalArrangement = Arrangement.Center,

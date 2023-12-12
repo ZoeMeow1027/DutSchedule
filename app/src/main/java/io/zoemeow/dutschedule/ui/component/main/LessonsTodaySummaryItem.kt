@@ -17,6 +17,7 @@ fun LessonTodaySummaryItem(
     affectedList: List<SubjectScheduleItem> = listOf(),
     padding: PaddingValues = PaddingValues(),
     clicked: () -> Unit,
+    opacity: Float = 1.0f
 ) {
     fun affectedListStringBuilder(): String {
         val result = arrayListOf<String>()
@@ -63,6 +64,7 @@ fun LessonTodaySummaryItem(
         title = "Your subjects today",
         clicked = clicked,
         isLoading = isLoading,
+        opacity = opacity,
         content = {
             Text(
                 text = summaryStringBuilder(),

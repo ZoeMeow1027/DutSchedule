@@ -2,6 +2,6 @@
 <resources>
 
     <style name="Theme.DutSchedule" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowBackground">#FFFFFF</item>
+        <item name="android:windowBackground">#000000</item>
     </style>
 </resources>

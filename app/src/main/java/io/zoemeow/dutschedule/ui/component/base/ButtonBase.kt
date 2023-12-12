@@ -19,28 +19,29 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ButtonBase(
+    modifier: Modifier = Modifier,
+    modifierInside: Modifier = Modifier,
     clicked: (() -> Unit)? = null,
     content: @Composable RowScope.() -> Unit,
     isOutlinedButton: Boolean = false,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Center,
     cornerSize: Dp = 5.dp,
-    modifier: Modifier? = null,
-    modifierInside: Modifier? = null,
+    opacity: Float = 1f
 ) {
     Surface(
-        modifier = (modifier ?: Modifier)
+        modifier = modifier
             .clip(RoundedCornerShape(cornerSize))
             .border(BorderStroke(2.dp, MaterialTheme.colorScheme.inversePrimary), shape = RoundedCornerShape(5.dp))
             .clickable { clicked?.let { it() } },
         color = when (isOutlinedButton) {
-            true -> MaterialTheme.colorScheme.background
-            false -> MaterialTheme.colorScheme.inversePrimary
+            true -> MaterialTheme.colorScheme.background.copy(alpha = opacity)
+            false -> MaterialTheme.colorScheme.inversePrimary.copy(alpha = opacity)
         },
         content = {
             Row(
                 horizontalArrangement = horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = (modifierInside ?: Modifier).padding(vertical = 8.dp, horizontal = 12.dp),
+                modifier = modifierInside.padding(vertical = 8.dp, horizontal = 12.dp),
                 content = content,
             )
         },

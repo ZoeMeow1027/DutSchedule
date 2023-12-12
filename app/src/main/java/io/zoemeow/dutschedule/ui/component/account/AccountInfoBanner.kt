@@ -26,12 +26,13 @@ fun AccountInfoBanner(
     username: String? = null,
     schoolClass: String? = null,
     trainingProgramPlan: String? = null,
+    opacity: Float = 1.0f
 ) {
     Surface(
         modifier = Modifier
             .padding(padding)
             .clip(RoundedCornerShape(7.dp)),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         content = {
             Column(
                 modifier = Modifier

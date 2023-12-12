@@ -14,12 +14,14 @@ fun SchoolNewsSummaryItem(
     clicked: () -> Unit,
     newsToday: Int = 0,
     newsThisWeek: Int = 0,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    opacity: Float = 1.0f
 ) {
     SummaryItem(
         padding = padding,
         title = "School news",
         isLoading = isLoading,
+        opacity = opacity,
         content = {
             Text(
                 text = String.format(

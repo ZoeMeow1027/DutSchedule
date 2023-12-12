@@ -97,10 +97,7 @@ abstract class BaseActivity: ComponentActivity() {
                         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
                         containerColor = when (mainViewModel.appSettings.value.backgroundImage) {
                             BackgroundImageOption.None -> when (mainViewModel.appSettings.value.blackBackground) {
-                                true -> when (mainViewModel.appSettings.value.backgroundImage) {
-                                    BackgroundImageOption.None -> if (isAppInDarkMode()) Color.Black else MaterialTheme.colorScheme.background
-                                    else -> MaterialTheme.colorScheme.background
-                                }
+                                true -> if (isAppInDarkMode()) Color.Black else MaterialTheme.colorScheme.background
                                 false -> MaterialTheme.colorScheme.background
                             }
                             BackgroundImageOption.YourCurrentWallpaper -> MaterialTheme.colorScheme.background.copy(
@@ -150,6 +147,14 @@ abstract class BaseActivity: ComponentActivity() {
 
     fun getMainViewModel(): MainViewModel {
         return mainViewModel
+    }
+
+    fun getControlBackgroundAlpha(): Float {
+        return when (mainViewModel.appSettings.value.backgroundImage != BackgroundImageOption.None) {
+            true -> 0.7f
+            false -> 1f
+            // true -> return mainViewModel.appSettings.value.
+        }
     }
 
     fun saveSettings() {

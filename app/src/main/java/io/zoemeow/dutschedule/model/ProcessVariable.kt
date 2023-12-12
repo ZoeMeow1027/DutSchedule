@@ -49,8 +49,13 @@ data class ProcessVariable<T>(
         }
     }
 
-    fun refreshData(args: Map<String, String>? = null, force: Boolean = false) {
+    fun refreshData(
+        args: Map<String, String>? = null,
+        force: Boolean = false,
+        after: ((Boolean) -> Unit)? = null
+    ) {
         if (!isSuccessfulRequestExpired() && !force) {
+            after?.let { it(true) }
             onAfterRefresh?.let { it(true) }
             return
         }
@@ -68,6 +73,7 @@ data class ProcessVariable<T>(
                 throwable?.printStackTrace()
                 lastRequest.value = System.currentTimeMillis()
                 processState.value = if (throwable != null) ProcessState.Failed else ProcessState.Successful
+                after?.let { it(throwable == null) }
                 onAfterRefresh?.let { it(throwable == null) }
             }
         )

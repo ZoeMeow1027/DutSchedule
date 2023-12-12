@@ -25,11 +25,13 @@ fun SummaryItem(
     isLoading: Boolean = false,
     clicked: () -> Unit,
     padding: PaddingValues = PaddingValues(10.dp),
+    opacity: Float = 1.0f
 ) {
     SimpleCardItem(
         title = title,
         clicked = clicked,
         padding = padding,
+        opacity = opacity,
         content = {
             if (isLoading) {
                 Column(
@@ -41,7 +43,7 @@ fun SummaryItem(
                         .padding(padding)
                         .clip(RoundedCornerShape(7.dp))
                         .clickable { clicked() }
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                        .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)),
                 ) {
                     CircularProgressIndicator()
                 }

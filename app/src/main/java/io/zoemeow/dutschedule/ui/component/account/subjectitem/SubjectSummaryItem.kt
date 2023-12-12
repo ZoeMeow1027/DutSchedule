@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 fun SubjectSummaryItem(
     title: String,
     content: String,
-    clicked: (() -> Unit)? = null
+    clicked: (() -> Unit)? = null,
+    opacity: Float = 1f
 ) {
     Surface(
         modifier = Modifier
@@ -29,7 +30,7 @@ fun SubjectSummaryItem(
             .clickable {
                 clicked?.let { it() }
             },
-        color = MaterialTheme.colorScheme.secondaryContainer
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity)
     ) {
         Column(
             modifier = Modifier

@@ -40,7 +40,6 @@ import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.ui.component.permissionrequest.PermissionInformation
 
 class PermissionRequestActivity : BaseActivity() {
-    private val recentPermissionRequestList = mutableStateListOf<Pair<String, Boolean>>()
     private val permissionStatusList = mutableStateListOf<PermissionInfo>()
 
     @Composable
@@ -170,15 +169,19 @@ class PermissionRequestActivity : BaseActivity() {
         )
     }
 
-    private val permissionRequestLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+    private val permissionRequestLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { result ->
         val permissionResultList = arrayListOf<Pair<String, Boolean>>()
         result.toList().forEach { item ->
             permissionResultList.add(Pair(item.first, item.second))
         }
 
-        recentPermissionRequestList.clear()
-        recentPermissionRequestList.addAll(permissionResultList)
+        reloadPermissionStatus()
+    }
 
+    override fun onResume() {
+        super.onResume()
         reloadPermissionStatus()
     }
 

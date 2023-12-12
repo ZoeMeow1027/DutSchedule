@@ -21,7 +21,8 @@ import kotlinx.coroutines.delay
 fun DateAndTimeSummaryItem(
     padding: PaddingValues = PaddingValues(),
     isLoading: Boolean = false,
-    currentSchoolWeek: DutSchoolYearItem? = null
+    currentSchoolWeek: DutSchoolYearItem? = null,
+    opacity: Float = 1.0f
 ) {
     val dateTimeString = remember { mutableStateOf("") }
 
@@ -29,6 +30,7 @@ fun DateAndTimeSummaryItem(
         padding = padding,
         title = "Date & time today",
         isLoading = isLoading,
+        opacity = opacity,
         clicked = { },
         content = {
             Column(

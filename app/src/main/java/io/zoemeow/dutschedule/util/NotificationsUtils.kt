@@ -115,7 +115,7 @@ class NotificationsUtils {
             val builder = NotificationCompat.Builder(context, channelId)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.drawable.ic_launcher_notification)
                 .setContentTitle(newsTitle)
                 .setContentText(newsDescription)
                 .setStyle(

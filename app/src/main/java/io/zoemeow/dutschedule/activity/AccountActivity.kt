@@ -55,7 +55,7 @@ import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
 import io.zoemeow.dutschedule.ui.component.account.LoginBannerNotLoggedIn
 import io.zoemeow.dutschedule.ui.component.account.LoginDialog
 import io.zoemeow.dutschedule.ui.component.account.LogoutDialog
-import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectDetailItem
+import io.zoemeow.dutschedule.ui.component.account.subjectitem.DialogSubjectDetailItem
 import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectSummaryItem
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.base.ExpandableContent
@@ -404,7 +404,7 @@ class AccountActivity: BaseActivity() {
                                     title = "Your training result",
                                     isTitleCentered = true,
                                     padding = PaddingValues(start = 10.dp, end = 10.dp, bottom = 7.dp),
-                                    clicked = {},
+                                    opacity = getControlBackgroundAlpha(),
                                     content = {
                                         Column(
                                             modifier = Modifier
@@ -442,14 +442,15 @@ class AccountActivity: BaseActivity() {
                                                 )
                                             }
                                         )
-                                    }
+                                    },
+                                    clicked = {}
                                 )
                                 Spacer(modifier = Modifier.size(5.dp))
                                 SimpleCardItem(
                                     title = "Graduate status",
                                     isTitleCentered = true,
                                     padding = PaddingValues(horizontal = 10.dp),
-                                    clicked = {},
+                                    opacity = getControlBackgroundAlpha(),
                                     content = {
                                         Column(
                                             modifier = Modifier
@@ -494,7 +495,8 @@ class AccountActivity: BaseActivity() {
                                                 )
                                             }
                                         )
-                                    }
+                                    },
+                                    clicked = {}
                                 )
                                 Spacer(modifier = Modifier.size(5.dp))
                             }
@@ -610,6 +612,7 @@ class AccountActivity: BaseActivity() {
                                     SubjectSummaryItem(
                                         title = item.name,
                                         content = item.lecturer,
+                                        opacity = getControlBackgroundAlpha(),
                                         clicked = {
                                             subjectScheduleItem.value = item
                                             subjectDetailVisible.value = true
@@ -622,7 +625,7 @@ class AccountActivity: BaseActivity() {
                 }
             }
         )
-        SubjectDetailItem(
+        DialogSubjectDetailItem(
             item = subjectScheduleItem.value,
             isVisible = subjectDetailVisible.value,
             dismissClicked = {
@@ -750,7 +753,8 @@ class AccountActivity: BaseActivity() {
                                 getMainViewModel().subjectFee2.data.value?.forEach { item ->
                                     SubjectSummaryItem(
                                         title = item.name,
-                                        content = "${item.credit} credit(s), ${item.price} VND (${if (item.debt) "not completed yet" else "completed"})"
+                                        content = "${item.credit} credit(s), ${item.price} VND (${if (item.debt) "not completed yet" else "completed"})",
+                                        opacity = getControlBackgroundAlpha()
                                     )
                                 }
                             }
@@ -949,6 +953,7 @@ class AccountActivity: BaseActivity() {
                             ProcessState.NotRunYet,
                             ProcessState.Failed -> {
                                 LoginBannerNotLoggedIn(
+                                    opacity = getControlBackgroundAlpha(),
                                     padding = PaddingValues(10.dp),
                                     clicked = {
                                         loginDialogVisible.value = true
@@ -968,6 +973,7 @@ class AccountActivity: BaseActivity() {
                             ProcessState.Successful -> {
                                 getMainViewModel().accountInformation2.let { accInfo ->
                                     AccountInfoBanner(
+                                        opacity = getControlBackgroundAlpha(),
                                         padding = PaddingValues(10.dp),
                                         isLoading = accInfo.processState.value == ProcessState.Running,
                                         username = accInfo.data.value?.studentId ?: "(unknown)",
@@ -983,6 +989,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Subject schedule") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "subject_schedule"
@@ -997,6 +1004,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Subject fee") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "subject_fee"
@@ -1011,6 +1019,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Account information") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "acc_info"
@@ -1025,6 +1034,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Account training result") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "acc_training_result"
@@ -1039,6 +1049,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Logout") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         logoutDialogVisible.value = true
                                     }

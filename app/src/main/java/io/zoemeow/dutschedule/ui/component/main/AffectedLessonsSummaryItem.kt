@@ -14,7 +14,8 @@ fun AffectedLessonsSummaryItem(
     clicked: () -> Unit,
     hasLoggedIn: Boolean = false,
     affectedList: ArrayList<String> = arrayListOf(),
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    opacity: Float = 1.0f
 ) {
     fun affectedListStringBuilder(): String {
         return if (!hasLoggedIn) {
@@ -35,6 +36,7 @@ fun AffectedLessonsSummaryItem(
         title = "Affected lessons by announcement",
         clicked = clicked,
         isLoading = isLoading,
+        opacity = opacity,
         content = {
             Text(
                 text = affectedListStringBuilder(),

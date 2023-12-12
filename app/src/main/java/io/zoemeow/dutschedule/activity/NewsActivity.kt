@@ -1,7 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +26,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,9 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -58,19 +55,21 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import io.dutwrapper.dutwrapper.model.enums.NewsSearchType
+import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
-import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.news.NewsListItem
 import io.zoemeow.dutschedule.ui.component.news.NewsListPage
 import io.zoemeow.dutschedule.ui.component.news.NewsListPage_EndOfListHandler
+import io.zoemeow.dutschedule.viewmodel.NewsSearchViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -194,6 +193,9 @@ class NewsActivity : BaseActivity() {
             },
             bottomBar = {
                 BottomAppBar(
+                    containerColor = BottomAppBarDefaults.containerColor.copy(
+                        alpha = getControlBackgroundAlpha()
+                    ),
                     actions = {
                         Row(
                             horizontalArrangement = Arrangement.Center,
@@ -211,7 +213,7 @@ class NewsActivity : BaseActivity() {
                                     isOutlinedButton = pagerState.currentPage != 0,
                                     content = {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
+                                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_newspaper_24),
                                             "News global",
                                             modifier = Modifier
                                                 .size(30.dp)
@@ -230,7 +232,7 @@ class NewsActivity : BaseActivity() {
                                     },
                                     content = {
                                         Icon(
-                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
+                                            painter = painterResource(id = R.drawable.ic_baseline_newspaper_24),
                                             "News subject",
                                             modifier = Modifier
                                                 .size(30.dp)
@@ -254,6 +256,7 @@ class NewsActivity : BaseActivity() {
                             NewsListPage(
                                 newsList = (getMainViewModel().newsGlobal2.data.value?.newsListByDate ?: arrayListOf()),
                                 processState = getMainViewModel().newsGlobal2.processState.value,
+                                opacity = getControlBackgroundAlpha(),
                                 itemClicked = { newsItem ->
                                     context.startActivity(
                                         Intent(
@@ -282,6 +285,7 @@ class NewsActivity : BaseActivity() {
                             NewsListPage(
                                 newsList = (getMainViewModel().newsSubject2.data.value?.newsListByDate ?: arrayListOf()) as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
                                 processState = getMainViewModel().newsSubject2.processState.value,
+                                opacity = getControlBackgroundAlpha(),
                                 itemClicked = { newsItem ->
                                     context.startActivity(
                                         Intent(
@@ -313,69 +317,12 @@ class NewsActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun SearchView() {
+        val newsSearchViewModel: NewsSearchViewModel = viewModel()
         val context = LocalContext.current
-
-        val searchQuery = remember { mutableStateOf("") }
-        val searchType = remember { mutableStateOf(NewsSearchType.ByTitle) }
-        // False: Global - True: Subject
-        val newsType = remember { mutableStateOf(false) }
-        val newsList = remember { mutableStateListOf<NewsGlobalItem>() }
-        val newsPage = remember { mutableIntStateOf(1) }
-        val newsProgress = remember { mutableStateOf(ProcessState.NotRunYet) }
 
         val lazyListState = rememberLazyListState()
 
-        val fetchExpanded = remember { mutableStateOf(false) }
-        val searchExpanded = remember { mutableStateOf(false) }
-
         val focusRequester = remember { FocusRequester() }
-
-        fun invokeSearch(searchOver: Boolean = false) {
-            Log.d("DutSchedule", "Invoking search")
-            CoroutineScope(Dispatchers.IO).launch {
-                if (newsProgress.value == ProcessState.Running) {
-                    return@launch
-                }
-                if (searchQuery.value.isEmpty()) {
-                    newsProgress.value = ProcessState.NotRunYet
-                    return@launch
-                } else {
-                    newsProgress.value = ProcessState.Running
-                }
-
-                try {
-                    if (searchOver) {
-                        newsList.clear()
-                    }
-                    if (newsType.value) {
-                        newsList.addAll(
-                            DutNewsRepository.getNewsSubject(
-                                if (searchOver) 1 else newsPage.value,
-                                searchType = searchType.value,
-                                searchQuery = searchQuery.value
-                            )
-                        )
-                    } else {
-                        newsList.addAll(
-                            DutNewsRepository.getNewsGlobal(
-                                if (searchOver) 1 else newsPage.value,
-                                searchType = searchType.value,
-                                searchQuery = searchQuery.value
-                            )
-                        )
-                    }
-                    if (searchOver) {
-                        newsPage.value = 2
-                    } else {
-                        newsPage.value += 1
-                    }
-
-                    newsProgress.value = ProcessState.Successful
-                } catch (_: Exception) {
-                    newsProgress.value = ProcessState.Failed
-                }
-            }
-        }
 
         Scaffold(
             containerColor = Color.Transparent,
@@ -383,13 +330,14 @@ class NewsActivity : BaseActivity() {
                 TopAppBar(
                     title = {
                         OutlinedTextField(
-                            value = searchQuery.value,
-                            onValueChange = { searchQuery.value = it },
+                            value = newsSearchViewModel.query.value,
+                            onValueChange = { newsSearchViewModel.query.value = it },
                             modifier = Modifier.focusRequester(focusRequester),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(
                                 onSearch = {
-                                    invokeSearch(searchOver = true)
+                                    clearAllFocusAndHideKeyboard()
+                                    newsSearchViewModel.invokeSearch(startOver = true)
                                 }
                             )
                         )
@@ -414,14 +362,17 @@ class NewsActivity : BaseActivity() {
                         Surface(
                             modifier = Modifier
                                 .padding(start = 3.dp),
-                            color = if (searchType.value == NewsSearchType.ByContent) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                            color = when (newsSearchViewModel.method.value == NewsSearchType.ByContent) {
+                                true -> MaterialTheme.colorScheme.secondaryContainer
+                                false -> Color.Transparent
+                            },
                             shape = RoundedCornerShape(7.dp),
                             content = {
                                 IconButton(
                                     onClick = {
                                         // TODO: Hide virtual keyboard
                                         clearAllFocusAndHideKeyboard()
-                                        fetchExpanded.value = true
+                                        newsSearchViewModel.searchMethodOptionVisible.value = true
                                     },
                                     content = {
                                         Icon(
@@ -432,8 +383,8 @@ class NewsActivity : BaseActivity() {
                                 )
                                 DropdownMenu(
                                     modifier = Modifier.background(color = MaterialTheme.colorScheme.surface),
-                                    expanded = fetchExpanded.value,
-                                    onDismissRequest = { fetchExpanded.value = false },
+                                    expanded = newsSearchViewModel.searchMethodOptionVisible.value,
+                                    onDismissRequest = { newsSearchViewModel.searchMethodOptionVisible.value = false },
                                     content = {
                                         listOf(
                                             NewsSearchType.ByTitle,
@@ -441,7 +392,7 @@ class NewsActivity : BaseActivity() {
                                         ).forEach {
                                             DropdownMenuItem(
                                                 modifier = Modifier.background(
-                                                    color = if (searchType.value == it) MaterialTheme.colorScheme.secondaryContainer
+                                                    color = if (newsSearchViewModel.method.value == it) MaterialTheme.colorScheme.secondaryContainer
                                                     else MaterialTheme.colorScheme.surface
                                                 ),
                                                 text = {
@@ -454,8 +405,8 @@ class NewsActivity : BaseActivity() {
                                                     )
                                                 },
                                                 onClick = {
-                                                    searchType.value = it
-                                                    fetchExpanded.value = false
+                                                    newsSearchViewModel.method.value = it
+                                                    newsSearchViewModel.searchMethodOptionVisible.value = false
                                                 }
                                             )
                                         }
@@ -466,13 +417,13 @@ class NewsActivity : BaseActivity() {
                         Surface(
                             modifier = Modifier
                                 .padding(start = 3.dp),
-                            color = if (newsType.value) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
+                            color = if (newsSearchViewModel.type.value == NewsType.Subject) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
                             shape = RoundedCornerShape(7.dp),
                             content = {
                                 IconButton(
                                     onClick = {
                                         clearAllFocusAndHideKeyboard()
-                                        searchExpanded.value = true
+                                        newsSearchViewModel.newsSearchType.value = true
                                     },
                                     content = {
                                         Icon(
@@ -483,26 +434,29 @@ class NewsActivity : BaseActivity() {
                                 )
                                 DropdownMenu(
                                     modifier = Modifier.background(color = MaterialTheme.colorScheme.surface),
-                                    expanded = searchExpanded.value,
-                                    onDismissRequest = { searchExpanded.value = false },
+                                    expanded = newsSearchViewModel.newsSearchType.value,
+                                    onDismissRequest = { newsSearchViewModel.newsSearchType.value = false },
                                     content = {
-                                        listOf(false, true).forEach {
+                                        listOf(
+                                            NewsType.Global,
+                                            NewsType.Subject
+                                        ).forEach {
                                             DropdownMenuItem(
                                                 modifier = Modifier.background(
-                                                    color = if (newsType.value == it) MaterialTheme.colorScheme.secondaryContainer
+                                                    color = if (newsSearchViewModel.type.value == it) MaterialTheme.colorScheme.secondaryContainer
                                                     else MaterialTheme.colorScheme.surface
                                                 ),
                                                 text = {
                                                     Text(
                                                         when (it) {
-                                                            true -> "News subject"
-                                                            false -> "News global"
+                                                            NewsType.Subject -> "News subject"
+                                                            NewsType.Global -> "News global"
                                                         }
                                                     )
                                                 },
                                                 onClick = {
-                                                    newsType.value = it
-                                                    searchExpanded.value = false
+                                                    newsSearchViewModel.type.value = it
+                                                    newsSearchViewModel.newsSearchType.value = false
                                                 }
                                             )
                                         }
@@ -514,11 +468,11 @@ class NewsActivity : BaseActivity() {
                             modifier = Modifier.padding(start = 3.dp),
                             onClick = {
                                 clearAllFocusAndHideKeyboard()
-                                invokeSearch(searchOver = true)
+                                newsSearchViewModel.invokeSearch(startOver = true)
                             },
-                            enabled = newsProgress.value != ProcessState.Running,
+                            enabled = newsSearchViewModel.progress.value != ProcessState.Running,
                             content = {
-                                if (newsProgress.value == ProcessState.Running) {
+                                if (newsSearchViewModel.progress.value == ProcessState.Running) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(24.dp),
                                         strokeWidth = 3.dp
@@ -535,7 +489,7 @@ class NewsActivity : BaseActivity() {
                 NewsListPage_EndOfListHandler(
                     listState = lazyListState,
                     onLoadMore = {
-                        invokeSearch(searchOver = false)
+                        newsSearchViewModel.invokeSearch()
                     }
                 )
                 LazyColumn(
@@ -546,17 +500,18 @@ class NewsActivity : BaseActivity() {
                         .clickable {
                             clearAllFocusAndHideKeyboard()
                         },
-                    verticalArrangement = if (newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
+                    verticalArrangement = if (newsSearchViewModel.newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     state = lazyListState,
                     content = {
                         when {
-                            (newsList.isNotEmpty()) -> {
-                                items(newsList) { item ->
+                            (newsSearchViewModel.newsList.isNotEmpty()) -> {
+                                items(newsSearchViewModel.newsList) { item ->
                                     NewsListItem(
                                         title = item.title,
                                         description = item.contentString,
                                         dateTime = item.date,
+                                        opacity = getControlBackgroundAlpha(),
                                         onClick = {
                                             clearAllFocusAndHideKeyboard()
                                             context.startActivity(
@@ -565,7 +520,7 @@ class NewsActivity : BaseActivity() {
                                                     NewsDetailActivity::class.java
                                                 ).also {
                                                     it.action =
-                                                        if (newsType.value) "news_subject" else "news_global"
+                                                        if (newsSearchViewModel.type.value == NewsType.Subject) "news_subject" else "news_global"
                                                     it.putExtra("data", Gson().toJson(item))
                                                 })
                                         }
@@ -574,13 +529,13 @@ class NewsActivity : BaseActivity() {
                                 }
                             }
 
-                            (newsProgress.value == ProcessState.Running) -> {
+                            (newsSearchViewModel.progress.value == ProcessState.Running) -> {
                                 item {
                                     CircularProgressIndicator()
                                 }
                             }
 
-                            (newsProgress.value == ProcessState.NotRunYet) -> {
+                            (newsSearchViewModel.progress.value == ProcessState.NotRunYet) -> {
                                 item {
                                     Text(
                                         "Tap search on top to get started.",
@@ -589,7 +544,7 @@ class NewsActivity : BaseActivity() {
                                 }
                             }
 
-                            (newsProgress.value != ProcessState.Running && newsList.isEmpty()) -> {
+                            (newsSearchViewModel.progress.value != ProcessState.Running && newsSearchViewModel.newsList.isEmpty()) -> {
                                 item {
                                     Text(
                                         "No available news matches your search. Try again with new query.",

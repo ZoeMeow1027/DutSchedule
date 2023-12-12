@@ -11,11 +11,11 @@ import java.io.File
 class BackgroundImageUtils {
     companion object {
         fun getCurrentWallpaperBackground(context: Context): Bitmap? {
-            try {
+            return try {
                 val wallpaperManager = WallpaperManager.getInstance(context)
-                return wallpaperManager.drawable?.toBitmap()
+                wallpaperManager.drawable?.toBitmap()
             } catch (_: Exception) {
-                return null
+                null
             }
         }
 
@@ -45,12 +45,11 @@ class BackgroundImageUtils {
 
         // https://stackoverflow.com/questions/75172380/kotlin-jetpack-compose-display-bytearray-or-filestream-as-image-in-android
         fun getImageFromAppData(context: Context): Bitmap? {
-            try {
+            return try {
                 val file = File("${context.filesDir.path}/image/background.jpg")
-                return BitmapFactory.decodeByteArray(file.readBytes(), 0, file.readBytes().size)
-            }
-            catch (_: Exception) {
-                return null
+                BitmapFactory.decodeByteArray(file.readBytes(), 0, file.readBytes().size)
+            } catch (_: Exception) {
+                null
             }
         }
     }

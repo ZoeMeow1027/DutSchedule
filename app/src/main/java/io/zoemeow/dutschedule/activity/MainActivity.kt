@@ -11,10 +11,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -30,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
@@ -44,7 +44,6 @@ import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
-import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
 import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.NotificationsUtils
 import io.zoemeow.dutschedule.util.OpenLink
@@ -83,7 +82,8 @@ class MainActivity : BaseActivity() {
                 DateAndTimeSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     isLoading = getMainViewModel().currentSchoolWeek2.processState.value == ProcessState.Running,
-                    currentSchoolWeek = getMainViewModel().currentSchoolWeek2.data.value
+                    currentSchoolWeek = getMainViewModel().currentSchoolWeek2.data.value,
+                    opacity = getControlBackgroundAlpha()
                 )
                 LessonTodaySummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
@@ -111,14 +111,16 @@ class MainActivity : BaseActivity() {
                                         else -> CustomClock.getCurrent().toDUTLesson().toDouble()
                                     }
                                 }
-                    }?.toList() ?: listOf()
+                    }?.toList() ?: listOf(),
+                    opacity = getControlBackgroundAlpha()
                 )
                 AffectedLessonsSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
                     isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
                     clicked = {},
-                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12")
+                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12"),
+                    opacity = getControlBackgroundAlpha()
                 )
                 SchoolNewsSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
@@ -127,7 +129,8 @@ class MainActivity : BaseActivity() {
                     clicked = {
                         context.startActivity(Intent(context, NewsActivity::class.java))
                     },
-                    isLoading = getMainViewModel().newsGlobal2.processState.value == ProcessState.Running
+                    isLoading = getMainViewModel().newsGlobal2.processState.value == ProcessState.Running,
+                    opacity = getControlBackgroundAlpha()
                 )
                 UpdateAvailableSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
@@ -140,7 +143,8 @@ class MainActivity : BaseActivity() {
                             context = context,
                             customTab = false,
                         )
-                    }
+                    },
+                    opacity = getControlBackgroundAlpha()
                 )
             }
         )
@@ -183,7 +187,9 @@ class MainActivity : BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             containerColor = Color.Transparent,
             topBar = {
                 LargeTopAppBar(
@@ -194,25 +200,16 @@ class MainActivity : BaseActivity() {
             },
             bottomBar = {
                 BottomAppBar(
+                    containerColor = BottomAppBarDefaults.containerColor.copy(
+                        alpha = getControlBackgroundAlpha()
+                    ),
                     actions = {
                         IconButton(
                             onClick = { newsClicked?.let { it() } },
                             content = {
                                 Icon(
-                                    painter = painterResource(id = R.drawable.baseline_newspaper_24),
+                                    painter = painterResource(id = R.drawable.ic_baseline_newspaper_24),
                                     "News",
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .padding(end = 7.dp),
-                                )
-                            }
-                        )
-                        IconButton(
-                            onClick = { accountClicked?.let { it() } },
-                            content = {
-                                Icon(
-                                    Icons.Outlined.AccountCircle,
-                                    "Account",
                                     modifier = Modifier
                                         .size(30.dp)
                                         .padding(end = 7.dp),
@@ -231,73 +228,36 @@ class MainActivity : BaseActivity() {
                                 )
                             }
                         )
-//                        Row(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .wrapContentHeight()
-//                                .verticalScroll(rememberScrollState()),
-//                            horizontalArrangement = Arrangement.Center,
-//                            verticalAlignment = Alignment.CenterVertically,
-//                            content = {
-//                                ButtonBase(
-//                                    clicked = {
-//                                        newsClicked?.let { it() }
-//                                    },
-//                                    content = {
-//                                        Icon(
-//                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
-//                                            "News",
-//                                            modifier = Modifier
-//                                                .size(30.dp)
-//                                                .padding(end = 7.dp),
-//                                        )
-//                                        Text("News")
-//                                    }
-//                                )
-//                                ButtonBase(
-//                                    modifier = Modifier.padding(start = 10.dp),
-//                                    clicked = {
-//                                        accountClicked?.let {
-//                                            it()
-//                                        }
-//                                    },
-//                                    content = {
-//                                        Icon(
-//                                            Icons.Outlined.AccountCircle,
-//                                            "",
-//                                            modifier = Modifier
-//                                                .size(30.dp)
-//                                                .padding(end = 7.dp),
-//                                        )
-//                                        Text("Account")
-//                                    }
-//                                )
-//                                ButtonBase(
-//                                    modifier = Modifier.padding(start = 10.dp),
-//                                    clicked = {
-//                                        settingsClicked?.let {
-//                                            it()
-//                                        }
-//                                    },
-//                                    content = {
-//                                        Icon(
-//                                            Icons.Default.Settings,
-//                                            "",
-//                                            modifier = Modifier
-//                                                .size(30.dp)
-//                                                .padding(end = 7.dp),
-//                                        )
-//                                        Text("Settings")
-//                                    }
-//                                )
-//                            }
-//                        )
                     },
                     floatingActionButton = {
                         ExtendedFloatingActionButton(
-                            text = { Text("Refresh") },
-                            icon = { Icon(Icons.Default.Refresh, "Refresh status") },
-                            onClick = { /*TODO*/ }
+                            text = {
+                                getMainViewModel().accountSession.value.let {
+                                    Text(
+                                        when (it.processState) {
+                                            ProcessState.NotRunYet -> "Sign in"
+                                            ProcessState.Running -> "Fetching..."
+                                            ProcessState.Failed -> when (it.data.accountAuth.username == null) {
+                                                true -> "Sign in"
+                                                false -> String.format(
+                                                    "%s (failed)",
+                                                    it.data.accountAuth.username
+                                                )
+                                            }
+                                            else -> it.data.accountAuth.username ?: "unknown"
+                                        }
+                                    )
+                                }
+                            },
+                            icon = {
+                                when (getMainViewModel().accountSession.value.processState) {
+                                    ProcessState.Running -> CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    else -> Icon(Icons.Outlined.AccountCircle, "Account")
+                                }
+                            },
+                            onClick = { accountClicked?.let { it() } }
                         )
                     }
                 )
@@ -330,7 +290,6 @@ class MainActivity : BaseActivity() {
                 context = this,
                 intent = Intent(applicationContext, NewsUpdateService::class.java).also {
                     it.action = "news.service.action.fetchallpage1background"
-//                putExtra("news.service.variable.fetchtype", 1)
                 }
             )
         }
@@ -344,7 +303,6 @@ class MainActivity : BaseActivity() {
                 context = this,
                 intent = Intent(applicationContext, NewsUpdateService::class.java).also {
                     it.action = "news.service.action.fetchallpage1background"
-//                putExtra("news.service.variable.fetchtype", 1)
                 }
             )
         }
@@ -359,13 +317,5 @@ class MainActivity : BaseActivity() {
     override fun onRestart() {
         NewsUpdateService.cancelSchedule(this)
         super.onRestart()
-    }
-
-    @Preview(showBackground = true)
-    @Composable
-    private fun SummaryItemPreview() {
-        DutScheduleTheme {
-            MainView()
-        }
     }
 }

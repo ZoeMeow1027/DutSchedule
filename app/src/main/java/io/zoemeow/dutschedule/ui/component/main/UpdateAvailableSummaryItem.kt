@@ -13,6 +13,7 @@ fun UpdateAvailableSummaryItem(
     updateAvailable: Boolean = false,
     isLoading: Boolean = false,
     latestVersionString: String,
+    opacity: Float = 1.0f,
     padding: PaddingValues,
     clicked: () -> Unit
 ) {
@@ -21,6 +22,7 @@ fun UpdateAvailableSummaryItem(
             title = if (isLoading) "Checking for updates..." else "Update is available",
             padding = padding,
             clicked = clicked,
+            opacity = opacity,
             content = {
                 Text(
                     text = String.format(

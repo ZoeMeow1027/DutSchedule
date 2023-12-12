@@ -18,9 +18,11 @@ import io.zoemeow.dutschedule.ui.component.base.ExpandableContentDefaultTitle
 fun NewsFilterClearAll(
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
-    onSubmit: (() -> Unit)? = null
+    onSubmit: (() -> Unit)? = null,
+    opacity: Float = 1.0f
 ) {
     ExpandableContent(
+        opacity = opacity,
         title = {
             ExpandableContentDefaultTitle(title = "Clear all filters")
         },

@@ -23,11 +23,11 @@ import io.zoemeow.dutschedule.ui.component.base.DialogBase
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
-fun SubjectDetailItem(
+fun DialogSubjectDetailItem(
     item: SubjectScheduleItem? = null,
     isVisible: Boolean = false,
     onAddToFilterRequested: ((SubjectCode) -> Unit)? = null,
-    dismissClicked: (() -> Unit)? = null
+    dismissClicked: (() -> Unit)? = null,
 ) {
     DialogBase(
         modifier = Modifier

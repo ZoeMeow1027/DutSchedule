@@ -33,7 +33,8 @@ fun NewsListPage(
     processState: ProcessState = ProcessState.NotRunYet,
     endOfListReached: (() -> Unit)? = null,
     itemClicked: ((NewsGlobalItem) -> Unit)? = null,
-    lazyListState: LazyListState = rememberLazyListState()
+    lazyListState: LazyListState = rememberLazyListState(),
+    opacity: Float = 1f
 ) {
     LazyColumn(
         modifier = Modifier
@@ -62,6 +63,7 @@ fun NewsListPage(
                             NewsListItem(
                                 title = newsItem.title ?: "",
                                 description = newsItem.contentString ?: "",
+                                opacity = opacity,
                                 onClick = {
                                     itemClicked?.let { it(newsItem) }
                                 }

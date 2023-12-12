@@ -22,6 +22,7 @@ import io.zoemeow.dutschedule.util.CustomDateUtils
 @Composable
 fun NewsListItem(
     modifier: Modifier = Modifier,
+    opacity: Float = 1f,
     title: String,
     description: String,
     dateTime: Long? = null,
@@ -37,7 +38,7 @@ fun NewsListItem(
             .clickable {
                 onClick?.let { it() }
             },
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         content = {
             Column(
                 modifier = Modifier.padding(

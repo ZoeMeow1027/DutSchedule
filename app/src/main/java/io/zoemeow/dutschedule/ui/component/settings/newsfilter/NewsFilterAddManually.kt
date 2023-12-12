@@ -24,13 +24,15 @@ import io.zoemeow.dutschedule.ui.component.base.ExpandableContentDefaultTitle
 fun NewsFilterAddManually(
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
-    onSubmit: ((String, String, String) -> Unit)? = null
+    onSubmit: ((String, String, String) -> Unit)? = null,
+    opacity: Float = 1.0f
 ) {
     val studentYearId = remember { mutableStateOf("") }
     val classId = remember { mutableStateOf("") }
     val subjectName = remember { mutableStateOf("") }
 
     ExpandableContent(
+        opacity = opacity,
         title = {
             ExpandableContentDefaultTitle(title = "Add filter manually")
         },

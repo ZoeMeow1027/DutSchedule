@@ -489,6 +489,7 @@ class SettingsActivity : BaseActivity() {
                         .verticalScroll(rememberScrollState()),
                     content = {
                         NewsFilterCurrentFilter(
+                            opacity = getControlBackgroundAlpha(),
                             selectedSubjects = tempFilterList,
                             onRemoveRequested = { subjectCode ->
                                 tempFilterList.remove(subjectCode)
@@ -500,6 +501,7 @@ class SettingsActivity : BaseActivity() {
                             }
                         )
                         NewsFilterAddManually(
+                            opacity = getControlBackgroundAlpha(),
                             expanded = tabIndex.intValue == 1,
                             onExpanded = { tabIndex.intValue = 1 },
                             onSubmit = { schoolYearItem, classItem, subjectName ->
@@ -518,6 +520,7 @@ class SettingsActivity : BaseActivity() {
                             }
                         )
                         NewsFilterClearAll(
+                            opacity = getControlBackgroundAlpha(),
                             expanded = tabIndex.intValue == 2,
                             onExpanded = { tabIndex.intValue = 2 },
                             onSubmit = {
