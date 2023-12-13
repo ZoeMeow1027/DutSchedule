@@ -20,7 +20,9 @@ class PermissionList {
             name = "Manage External Storage",
             code = "android.permission.MANAGE_EXTERNAL_STORAGE",
             minSdk = 30,
-            description = "Allow this app to get your current launcher wallpaper.",
+            description = "This app will use your current wallpaper as app background wallpaper. " +
+                    "We promise not to upload or modify any data on your device, including your wallpaper. " +
+                    "If you don't want to grant this permission, you can use \"Choose a image from media\" instead.",
             required = false,
             extraAction = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 Intent(

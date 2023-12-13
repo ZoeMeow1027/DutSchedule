@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -22,6 +23,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -39,7 +41,6 @@ import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.service.BaseService
 import io.zoemeow.dutschedule.service.NewsUpdateService
-import io.zoemeow.dutschedule.ui.component.main.AffectedLessonsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
@@ -64,19 +65,30 @@ class MainActivity : BaseActivity() {
     }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
-        // A surface container using the 'background' color from the theme
-
-        val context = LocalContext.current
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         MainView(
+            context = context,
+            snackBarHostState = snackBarHostState,
+            containerColor = containerColor,
+            contentColor = contentColor,
             newsClicked = {
-                this.startActivity(Intent(this, NewsActivity::class.java))
+                context.startActivity(Intent(this, NewsActivity::class.java))
             },
             accountClicked = {
-                this.startActivity(Intent(this, AccountActivity::class.java))
+                context.startActivity(Intent(this, AccountActivity::class.java))
             },
             settingsClicked = {
-                this.startActivity(Intent(this, SettingsActivity::class.java))
+                context.startActivity(Intent(this, SettingsActivity::class.java))
+            },
+            externalLinkClicked = {
+                val intent = Intent(context, HelpActivity::class.java)
+                intent.action = "view_externallink"
+                context.startActivity(intent)
             },
             content = {
                 DateAndTimeSummaryItem(
@@ -114,14 +126,14 @@ class MainActivity : BaseActivity() {
                     }?.toList() ?: listOf(),
                     opacity = getControlBackgroundAlpha()
                 )
-                AffectedLessonsSummaryItem(
-                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
-                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
-                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
-                    clicked = {},
-                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12"),
-                    opacity = getControlBackgroundAlpha()
-                )
+//                AffectedLessonsSummaryItem(
+//                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+//                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
+//                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
+//                    clicked = {},
+//                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12"),
+//                    opacity = getControlBackgroundAlpha()
+//                )
                 SchoolNewsSummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     newsToday = getNews(false),
@@ -179,9 +191,14 @@ class MainActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color,
         newsClicked: (() -> Unit)? = null,
         accountClicked: (() -> Unit)? = null,
         settingsClicked: (() -> Unit)? = null,
+        externalLinkClicked: (() -> Unit)? = null,
         content: (@Composable ColumnScope.() -> Unit)? = null,
     ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -190,7 +207,9 @@ class MainActivity : BaseActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text(text = "DutSchedule") },
@@ -222,6 +241,18 @@ class MainActivity : BaseActivity() {
                                 Icon(
                                     Icons.Default.Settings,
                                     "Settings",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
+                                )
+                            }
+                        )
+                        IconButton(
+                            onClick = { externalLinkClicked?.let { it() } },
+                            content = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_baseline_web_24),
+                                    "External links",
                                     modifier = Modifier
                                         .size(30.dp)
                                         .padding(end = 7.dp),

@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,9 +31,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,7 +56,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -61,6 +66,7 @@ import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
+import io.zoemeow.dutschedule.ui.component.base.SwitchWithTextInSurface
 import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.DividerItem
 import io.zoemeow.dutschedule.ui.component.settings.OptionItem
@@ -94,25 +100,158 @@ class SettingsActivity : BaseActivity() {
         }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         when (intent.action) {
-            "news_filter" -> {
-                NewsFilterSettingsView()
+            "settings_newsfilter" -> {
+                NewsFilterSettingsView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
+            }
+
+            "settings_newssubjectnewparse" -> {
+                NewsSubjectNewParseView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
 
             else -> {
-                MainView()
+                MainView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MainView() {
+    private fun NewsSubjectNewParseView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
+            topBar = {
+                LargeTopAppBar(
+                    title = { Text("News Subject with new parse") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_OK)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            },
+            content = {
+                Column(
+                    modifier = Modifier
+                        .padding(it)
+                        .verticalScroll(rememberScrollState()),
+                    content = {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
+                                .padding(bottom = 5.dp),
+                            shape = RoundedCornerShape(30.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(
+                                alpha = getControlBackgroundAlpha()
+                            ),
+                            content = {
+                                Column(
+                                    modifier = Modifier
+                                        .padding(20.dp),
+                                    content = {
+                                        Text(
+                                            "New Making up announcement from (A person)",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            modifier = Modifier.padding(bottom = 5.dp)
+                                        )
+                                        Text(
+                                            when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
+                                                true -> "Subject(s) affected: ...\nDate affected: ...\nLesson(s) affected: ...\nRoom will make up: ..."
+                                                false -> "Person messaged: Class will MAKED UP at lesson 1-4, date: dd/MM/yyyy, at room A123"
+                                            }
+                                        )
+                                    }
+                                )
+                            }
+                        )
+                        SwitchWithTextInSurface(
+                            text = "Use this feature",
+                            enabled = true,
+                            checked = getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject,
+                            onCheckedChange = {
+                                getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                                    newsBackgroundParseNewsSubject = !getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject
+                                )
+                            }
+                        )
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.Start,
+                            modifier = Modifier
+                                .wrapContentSize()
+                                .padding(horizontal = 20.dp)
+                                .padding(top = 20.dp),
+                        ) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_baseline_info_24),
+                                contentDescription = "info_icon",
+                                modifier = Modifier.size(24.dp),
+                            )
+                            Text("Use the new parser for news subject if supported. Turned off or unsupported news subject won't affected.")
+                        }
+                    }
+                )
+            }
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun MainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val dialogAppTheme: MutableState<Boolean> = remember { mutableStateOf(false) }
         val dialogBackground: MutableState<Boolean> = remember { mutableStateOf(false) }
         val dialogFetchNews: MutableState<Boolean> = remember { mutableStateOf(false) }
-        val context = LocalContext.current
 
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -120,7 +259,9 @@ class SettingsActivity : BaseActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Settings") },
@@ -166,7 +307,7 @@ class SettingsActivity : BaseActivity() {
                                             )
                                         else -> "Disabled"
                                     },
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
                                         dialogFetchNews.value = true
                                     }
@@ -174,29 +315,31 @@ class SettingsActivity : BaseActivity() {
                                 OptionItem(
                                     title = "News filter settings",
                                     description = "Make your filter to only receive your preferred subject news.",
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
                                         val intent = Intent(context, SettingsActivity::class.java)
-                                        intent.action = "news_filter"
+                                        intent.action = "settings_newsfilter"
                                         context.startActivity(intent)
                                     }
                                 )
                                 OptionItem(
-                                    title = "Parse news subject",
+                                    title = "News subject notification new parse",
                                     description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
                                         true -> "Enabled (special notification for news subject)"
                                         false -> "Disabled (regular notification)"
                                     },
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
-
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        intent.action = "settings_newssubjectnewparse"
+                                        context.startActivity(intent)
                                     }
                                 )
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                     OptionItem(
                                         title = "System notification settings",
                                         description = "Click here to manage app notifications in Android app settings.",
-                                        padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                        padding = PaddingValues(vertical = 15.dp),
                                         clicked = {
                                             context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).also { intent ->
                                                 intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
@@ -224,14 +367,14 @@ class SettingsActivity : BaseActivity() {
                                         },
                                         if (getMainViewModel().appSettings.value.dynamicColor) " (dynamic color enabled)" else ""
                                     ),
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = { dialogAppTheme.value = true }
                                 )
                                 OptionSwitchItem(
                                     title = "Black background",
                                     description = "Make app background to black color. Only in dark mode and turned off background image.",
                                     switchChecked = getMainViewModel().appSettings.value.blackBackground,
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     onValueChanged = { value ->
                                         getMainViewModel().appSettings.value =
                                             getMainViewModel().appSettings.value.clone(
@@ -247,9 +390,35 @@ class SettingsActivity : BaseActivity() {
                                         BackgroundImageOption.YourCurrentWallpaper -> "Your current wallpaper"
                                         BackgroundImageOption.PickFileFromMedia -> "Your picked image"
                                     },
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = { dialogBackground.value = true }
                                 )
+                                if (getMainViewModel().appSettings.value.backgroundImage != BackgroundImageOption.None) {
+                                    OptionItem(
+                                        title = "Background opacity",
+                                        description = String.format(
+                                            "%2.0f%%",
+                                            (getMainViewModel().appSettings.value.backgroundImageOpacity * 100)
+                                        ),
+                                        padding = PaddingValues(vertical = 15.dp),
+                                        clicked = {
+                                            showSnackBar("This option is in development. Check back soon.")
+                                            /* TODO: Implement here: Background opacity */
+                                        }
+                                    )
+                                    OptionItem(
+                                        title = "Component opacity",
+                                        description = String.format(
+                                            "%2.0f%%",
+                                            (getMainViewModel().appSettings.value.componentOpacity * 100)
+                                        ),
+                                        padding = PaddingValues(vertical = 15.dp),
+                                        clicked = {
+                                            showSnackBar("This option is in development. Check back soon.")
+                                            /* TODO: Implement here: Component opacity */
+                                        }
+                                    )
+                                }
                             }
                         )
                         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
@@ -262,7 +431,7 @@ class SettingsActivity : BaseActivity() {
                                 OptionItem(
                                     title = "Application permissions",
                                     description = "Click here for allow and manage app permissions you granted.",
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
                                         context.startActivity(
                                             Intent(
@@ -276,7 +445,7 @@ class SettingsActivity : BaseActivity() {
                                     title = "Open link inside app",
                                     description = "Open clicked link without leaving this app. Turn off to open link in default browser.",
                                     switchChecked = getMainViewModel().appSettings.value.openLinkInsideApp,
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     onValueChanged = { value ->
                                         getMainViewModel().appSettings.value =
                                             getMainViewModel().appSettings.value.clone(
@@ -297,12 +466,12 @@ class SettingsActivity : BaseActivity() {
                                 OptionItem(
                                     title = "Version",
                                     description = "Current version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nClick here to check for update",
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                 )
                                 OptionItem(
                                     title = "Changelogs",
                                     description = "Tap to view app changelog",
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
                                         OpenLink(
                                             url = "https://github.com/ZoeMeow1027/DutSchedule/blob/stable/CHANGELOG.md",
@@ -314,7 +483,7 @@ class SettingsActivity : BaseActivity() {
                                 OptionItem(
                                     title = "GitHub (click to open link)",
                                     description = "https://github.com/ZoeMeow1027/DutSchedule",
-                                    padding = PaddingValues(horizontal = 20.dp, vertical = 15.dp),
+                                    padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
                                         OpenLink(
                                             url = "https://github.com/ZoeMeow1027/DutSchedule",
@@ -410,7 +579,12 @@ class SettingsActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun NewsFilterSettingsView() {
+    private fun NewsFilterSettingsView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val tempFilterList = remember {
             mutableStateListOf<SubjectCode>().also {
                 it.addAll(getMainViewModel().appSettings.value.newsBackgroundFilterList)
@@ -449,7 +623,9 @@ class SettingsActivity : BaseActivity() {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 TopAppBar(
                     title = { Text("News filter settings") },
@@ -869,6 +1045,12 @@ class SettingsActivity : BaseActivity() {
                         valueRange = 0f..240f,
                         steps = 241,
                         value = duration.intValue.toFloat(),
+                        colors = SliderDefaults.colors(
+                            activeTickColor = Color.Transparent,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTickColor = Color.Transparent,
+                            inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
+                        ),
                         onValueChange = {
                             duration.intValue = it.toInt()
                         }

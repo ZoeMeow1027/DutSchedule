@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
@@ -29,6 +30,8 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -74,32 +77,72 @@ class AccountActivity: BaseActivity() {
     }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         when (intent.action) {
             "subject_schedule" -> {
-                AccountSubjectScheduleView()
+                AccountSubjectScheduleView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "subject_fee" -> {
-                AccountSubjectFeeView()
+                AccountSubjectFeeView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "acc_info" -> {
-                AccountInformationView()
+                AccountInformationView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "acc_training_result" -> {
-                AccountTrainingResult()
+                AccountTrainingResult(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "acc_training_result_subjectresult" -> {
-                AccountTrainingResult_SubjectResult()
+                AccountTrainingResult_SubjectResult(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             else -> {
-                MainView()
+                MainView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountTrainingResult_SubjectResult() {
+    private fun AccountTrainingResult_SubjectResult(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
         val searchQuery = remember { mutableStateOf("") }
         val searchEnabled = remember { mutableStateOf(false) }
@@ -137,7 +180,9 @@ class AccountActivity: BaseActivity() {
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 TopAppBar(
                     title = {
@@ -302,12 +347,19 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountTrainingResult() {
+    private fun AccountTrainingResult(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Account Training Result") },
@@ -527,14 +579,21 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountSubjectScheduleView() {
+    private fun AccountSubjectScheduleView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val subjectScheduleItem: MutableState<SubjectScheduleItem?> = remember { mutableStateOf(null) }
         val subjectDetailVisible = remember { mutableStateOf(false) }
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Subject schedule") },
@@ -671,12 +730,19 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountSubjectFeeView() {
+    private fun AccountSubjectFeeView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Subject fee") },
@@ -783,12 +849,19 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountInformationView() {
+    private fun AccountInformationView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Basic Information") },
@@ -910,16 +983,22 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MainView() {
+    private fun MainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val loginDialogVisible = remember { mutableStateOf(false) }
         val loginDialogEnabled = remember { mutableStateOf(true) }
         val logoutDialogVisible = remember { mutableStateOf(false) }
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-        val context = LocalContext.current
 
         Scaffold(
             modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Account") },

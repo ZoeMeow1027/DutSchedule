@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
@@ -55,6 +56,7 @@ fun LoginDialog(
             username.value = ""
             password.value = ""
             rememberLogin.value = false
+            passwordShow.value = false
         }
     }
 
@@ -113,7 +115,10 @@ fun LoginDialog(
                             modifier = Modifier.size(16.dp)
                         )
                     },
-                    visualTransformation = PasswordVisualTransformation(),
+                    visualTransformation = when (passwordShow.value) {
+                        false -> PasswordVisualTransformation()
+                        true -> VisualTransformation.None
+                    },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Go

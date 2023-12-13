@@ -1,19 +1,18 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -51,11 +50,20 @@ abstract class BaseActivity: ComponentActivity() {
     private var focusManager: FocusManager? = null
     private var keyboardController: SoftwareKeyboardController? = null
 
-    @OptIn(ExperimentalLayoutApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // A surface container using the 'background' color from the theme
         super.onCreate(savedInstanceState)
-        permitAllPolicy()
 
+        enableEdgeToEdge(
+            // This app is only ever in dark mode, so hard code detectDarkMode to true.
+            SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT,
+                detectDarkMode = { true }
+            )
+        )
+
+        permitAllPolicy()
         setContent {
             // SnackBar state
             snackBarHostState = remember { SnackbarHostState() }
@@ -77,6 +85,7 @@ abstract class BaseActivity: ComponentActivity() {
                     ThemeMode.FollowDeviceTheme -> isSystemInDarkTheme()
                 },
                 dynamicColor = mainViewModel.appSettings.value.dynamicColor,
+                translucentStatusBar = getMainViewModel().appSettings.value.backgroundImage != BackgroundImageOption.None,
                 content = {
                     val context = LocalContext.current
 
@@ -93,8 +102,9 @@ abstract class BaseActivity: ComponentActivity() {
                             contentScale = ContentScale.Crop
                         )
                     }
-                    Scaffold(
-                        snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+
+                    OnMainView(
+                        snackBarHostState = snackBarHostState,
                         containerColor = when (mainViewModel.appSettings.value.backgroundImage) {
                             BackgroundImageOption.None -> when (mainViewModel.appSettings.value.blackBackground) {
                                 true -> if (isAppInDarkMode()) Color.Black else MaterialTheme.colorScheme.background
@@ -108,9 +118,7 @@ abstract class BaseActivity: ComponentActivity() {
                             )
                         },
                         contentColor = if (isAppInDarkMode()) Color.White else Color.Black,
-                        content = {
-                            OnMainView(it)
-                        }
+                        context = context
                     )
                 },
             )
@@ -143,7 +151,12 @@ abstract class BaseActivity: ComponentActivity() {
     abstract fun OnPreloadOnce()
 
     @Composable
-    abstract fun OnMainView(padding: PaddingValues)
+    abstract fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    )
 
     fun getMainViewModel(): MainViewModel {
         return mainViewModel

@@ -19,20 +19,23 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionInfo
@@ -53,11 +56,17 @@ class PermissionRequestActivity : BaseActivity() {
     }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
-        val context = LocalContext.current
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         MainView(
-            padding = padding,
             context = context,
+            snackBarHostState = snackBarHostState,
+            containerColor = containerColor,
+            contentColor = contentColor,
             navIconClicked = {
                 setResult(RESULT_OK)
                 finish()
@@ -79,19 +88,25 @@ class PermissionRequestActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MainView(
-        padding: PaddingValues,
         context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color,
         navIconClicked: (() -> Unit)? = null,
         fabClicked: (() -> Unit)? = null,
         permissionRequest: ((String) -> Unit)? = null,
         permissionExtraAction: ((Intent) -> Unit)? = null
     ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
             modifier = Modifier.fillMaxSize()
-                .padding(padding),
-            containerColor = Color.Transparent,
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text(text = "Permissions request") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -107,11 +122,15 @@ class PermissionRequestActivity : BaseActivity() {
                                 )
                             }
                         )
-                    }
+                    },
+                    scrollBehavior = scrollBehavior
                 )
             },
             bottomBar = {
                 BottomAppBar(
+                    containerColor = BottomAppBarDefaults.containerColor.copy(
+                        alpha = getControlBackgroundAlpha()
+                    ),
                     floatingActionButton = {
                         ExtendedFloatingActionButton(
                             onClick = { fabClicked?.let { it() } },
@@ -143,13 +162,15 @@ class PermissionRequestActivity : BaseActivity() {
                                 permissionStatusList.forEach { item ->
                                     PermissionInformation(
                                         title = "${item.name}${if (!item.required) " (optimal)" else ""}",
-                                        description = "${item.code}\n\n${item.description}",
+//                                        description = "${item.code}\n\n${item.description}",
+                                        description = "\n${item.description}",
                                         isRequired = item.required,
                                         isGranted = isPermissionGranted(
                                             item,
                                             context
                                         ),
                                         padding = PaddingValues(bottom = 10.dp),
+                                        opacity = getControlBackgroundAlpha(),
                                         clicked = {
                                             if (!isPermissionGranted(item, context)) {
                                                 if (item.extraAction == null) {

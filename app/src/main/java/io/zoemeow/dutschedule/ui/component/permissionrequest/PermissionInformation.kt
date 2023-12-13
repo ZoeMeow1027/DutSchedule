@@ -29,6 +29,7 @@ fun PermissionInformation(
     isRequired: Boolean = false,
     isGranted: Boolean = false,
     clicked: (() -> Unit)? = null,
+    opacity: Float = 1f,
     padding: PaddingValues = PaddingValues(0.dp)
 ) {
     Surface(
@@ -41,6 +42,7 @@ fun PermissionInformation(
             )
             .clip(shape = RoundedCornerShape(7.dp))
             .clickable { clicked?.let { it() } },
+        color = MaterialTheme.colorScheme.onSecondary.copy(alpha = opacity),
         content = {
             Surface(
                 modifier = Modifier.padding(15.dp),

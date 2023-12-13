@@ -82,6 +82,13 @@
             android:label="DutSchedule - Settings"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
+        <activity
+            android:name=".activity.HelpActivity"
+            android:exported="false"
+            android:label="DutSchedule - Help"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.DutSchedule"
+            android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".service.NewsUpdateService"
             android:enabled="true"
