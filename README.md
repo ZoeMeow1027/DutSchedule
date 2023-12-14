@@ -4,7 +4,8 @@ A unofficial Android app about Da Nang University of technology to provide bette
 
 # Version
 
-- Release [![https://github.com/ZoeMeow1027/DutSchedule](https://img.shields.io/github/v/release/ZoeMeow1027/DutSchedule)](https://github.com/ZoeMeow1027/DutSchedule/releases)
+- Release version: [![https://github.com/ZoeMeow1027/DutSchedule](https://img.shields.io/github/v/release/ZoeMeow1027/DutSchedule)](https://github.com/ZoeMeow1027/DutSchedule/releases)
+- Pre-release version: [![https://github.com/ZoeMeow1027/DutSchedule/tree/draft](https://img.shields.io/github/v/tag/ZoeMeow1027/DutSchedule?label=pre-release%20tag)](https://github.com/ZoeMeow1027/DutSchedule/tree/draft)
 - You can [view change log](CHANGELOG.md) for this project.
 - Badge provided by [https://shields.io/](https://shields.io/).
 
