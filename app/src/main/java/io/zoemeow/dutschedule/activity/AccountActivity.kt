@@ -1,7 +1,10 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,16 +15,27 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,22 +46,30 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.trainingresult.SubjectResult
+import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectFeeInformation
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectInformation
 import io.zoemeow.dutschedule.ui.component.account.LoginBannerNotLoggedIn
 import io.zoemeow.dutschedule.ui.component.account.LoginDialog
 import io.zoemeow.dutschedule.ui.component.account.LogoutDialog
-import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectDetailItem
-import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectSummaryItem
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectMoreInformation
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.base.ExpandableContent
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
 import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
+import io.zoemeow.dutschedule.util.toNonAccent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,34 +82,352 @@ class AccountActivity: BaseActivity() {
     }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         when (intent.action) {
-            "subject_schedule" -> {
-                AccountSubjectScheduleView()
+            "subject_information" -> {
+                AccountSubjectInformationView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "subject_fee" -> {
-                AccountSubjectFeeView()
+                AccountSubjectFeeView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "acc_info" -> {
-                AccountInformationView()
+                AccountInformationView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             "acc_training_result" -> {
-                AccountTrainingResult()
+                AccountTrainingResult(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
+            }
+            "acc_training_result_subjectresult" -> {
+                AccountTrainingResult_SubjectResult(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
             else -> {
-                MainView()
+                MainView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountTrainingResult() {
+    private fun AccountTrainingResult_SubjectResult(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
+        val searchQuery = remember { mutableStateOf("") }
+        val searchEnabled = remember { mutableStateOf(false) }
+        val schYearOption = remember { mutableStateOf(false) }
+        val schYearOptionText = remember { mutableStateOf("All school year items") }
+
+        fun dismissSearchBar() {
+            clearAllFocusAndHideKeyboard()
+            searchQuery.value = ""
+            searchEnabled.value = false
+        }
+
+        fun subjectResultToMap(item: SubjectResult): Map<String, String?> {
+            return mapOf(
+                "Subject Year" to (item.schoolYear ?: "(unknown)"),
+                "Subject Code" to (item.id ?: "(unknown)"),
+                "Credit" to item.credit.toString(),
+                "Point formula" to (item.pointFormula ?: "(unknown)"),
+                "BT" to item.pointBT?.toString(),
+                "BV" to item.pointBV?.toString(),
+                "CC" to item.pointCC?.toString(),
+                "CK" to item.pointCK?.toString(),
+                "GK" to item.pointGK?.toString(),
+                "QT" to item.pointQT?.toString(),
+                "TH" to item.pointTH?.toString(),
+                "Point (T10 - T4 - By point char)" to String.format(
+                    "%s - %s - %s",
+                    if (item.resultT10 != null) String.format(
+                        "%.2f",
+                        item.resultT10
+                    ) else "unscored",
+                    if (item.resultT4 != null) String.format("%.2f", item.resultT4) else "unscored",
+                    if (item.resultByCharacter.isNullOrEmpty()) "(unscored)" else item.resultByCharacter
+                )
+            )
+        }
+
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 TopAppBar(
+                    title = {
+                        if (!searchEnabled.value) {
+                            Text("Your Subjects Result")
+                        } else {
+                            OutlinedTextField(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(FocusRequester()),
+                                value = searchQuery.value,
+                                onValueChange = { searchQuery.value = it },
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        clearAllFocusAndHideKeyboard()
+                                    }
+                                )
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                if (searchEnabled.value) {
+                                    dismissSearchBar()
+                                } else {
+                                    setResult(RESULT_CANCELED)
+                                    finish()
+                                }
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                    actions = {
+                        if (!searchEnabled.value) {
+                            IconButton(
+                                onClick = {
+                                    searchEnabled.value = true
+                                },
+                                content = {
+                                    Icon(Icons.Default.Search, "Search")
+                                }
+                            )
+                        }
+                    }
+                )
+            },
+            floatingActionButton = {
+                if (getMainViewModel().accountTrainingStatus2.processState.value != ProcessState.Running) {
+                    FloatingActionButton(
+                        onClick = {
+                            clearAllFocusAndHideKeyboard()
+                            CoroutineScope(Dispatchers.IO).launch {
+                                getMainViewModel().accountLogin(
+                                    after = {
+                                        if (it) { getMainViewModel().accountTrainingStatus2.refreshData(force = true) }
+                                    }
+                                )
+                            }
+                        },
+                        content = {
+                            Icon(Icons.Default.Refresh, "Refresh")
+                        }
+                    )
+                }
+            },
+            content = { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(padding)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .verticalScroll(rememberScrollState())
+                        .clickable { clearAllFocusAndHideKeyboard() },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = if (
+                        getMainViewModel().accountTrainingStatus2.data.value != null &&
+                        getMainViewModel().accountTrainingStatus2.processState.value != ProcessState.Running
+                        ) Arrangement.Top else Arrangement.Center,
+                    content = {
+                        when (getMainViewModel().accountTrainingStatus2.processState.value) {
+                            ProcessState.Running -> {
+                                CircularProgressIndicator()
+                            }
+                            ProcessState.Successful -> {
+                                ExposedDropdownMenuBox(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 5.dp)
+                                        .padding(bottom = 5.dp),
+                                    expanded = schYearOption.value,
+                                    onExpandedChange = { schYearOption.value = !schYearOption.value },
+                                    content = {
+                                        OutlinedTextField(
+                                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                            label = { Text("Select a school year to filter") },
+                                            readOnly = true,
+                                            value = schYearOptionText.value,
+                                            onValueChange = { }
+                                        )
+                                        DropdownMenu(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            expanded = schYearOption.value,
+                                            onDismissRequest = { schYearOption.value = false},
+                                            content = {
+                                                DropdownMenuItem(
+                                                    modifier = Modifier.background(
+                                                        color = when (schYearOptionText.value == "All school year items") {
+                                                            true -> MaterialTheme.colorScheme.secondaryContainer
+                                                            false -> MaterialTheme.colorScheme.surface
+                                                        }
+                                                    ),
+                                                    text = { Text("All school year items") },
+                                                    onClick = {
+                                                        schYearOptionText.value = "All school year items"
+                                                        schYearOption.value = false
+                                                    }
+                                                )
+                                                (getMainViewModel().accountTrainingStatus2.data.value?.subjectResultList?.map { it.schoolYear }?.toList()?.distinct() ?: listOf()).forEach {
+                                                    DropdownMenuItem(
+                                                        modifier = Modifier.background(
+                                                            color = when (schYearOptionText.value == it) {
+                                                                true -> MaterialTheme.colorScheme.secondaryContainer
+                                                                false -> MaterialTheme.colorScheme.surface
+                                                            }
+                                                        ),
+                                                        text = { Text(it) },
+                                                        onClick = {
+                                                            schYearOptionText.value = it
+                                                            schYearOption.value = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                )
+                                getMainViewModel().accountTrainingStatus2.data.value?.subjectResultList?.filter {
+                                    p ->
+                                    (schYearOptionText.value == "All school year items" || p.schoolYear == schYearOptionText.value) &&
+                                    (searchQuery.value.isEmpty()
+                                        || p.name.toNonAccent().lowercase().contains(searchQuery.value.toNonAccent().lowercase()))
+                                }?.reversed()?.forEach { subjectItem ->
+                                    ExpandableContent(
+                                        title = {
+                                            Text(
+                                                text = String.format(
+                                                    "%2d - %s (%s)",
+                                                    subjectItem.index,
+                                                    subjectItem.name,
+                                                    if (subjectItem.resultT4 != null) String.format("%.2f", subjectItem.resultT4) else "unscored"
+                                                ),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                modifier = Modifier.padding(15.dp)
+                                            )
+                                        },
+                                        isTitleCentered = false,
+                                        onTitleClicked = {
+                                            clearAllFocusAndHideKeyboard()
+                                            selectedSubject.value = subjectItem
+                                        },
+                                        content = {
+                                            subjectResultToMap(subjectItem).forEach { (key, value) ->
+                                                if (value != null) {
+                                                    OutlinedTextBox(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        title = key,
+                                                        value = value
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        isContentVisible = selectedSubject.value?.id == subjectItem.id
+                                    )
+                                }
+                            }
+                            else -> {
+
+                            }
+                        }
+                    }
+                )
+            }
+        )
+
+        BackHandler(
+            enabled = searchEnabled.value,
+            onBack = {
+                dismissSearchBar()
+            }
+        )
+
+        val hasRun = remember { mutableStateOf(false) }
+        run {
+            if (!hasRun.value) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    getMainViewModel().accountLogin(
+                        after = {
+                            if (it) {
+                                getMainViewModel().accountTrainingStatus2.refreshData()
+                            }
+                        }
+                    )
+                }
+                hasRun.value = true
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AccountTrainingResult(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
+            topBar = {
+                LargeTopAppBar(
                     title = { Text("Account Training Result") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -105,16 +445,17 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
-                if (getMainViewModel().accountTrainingStatus.value.processState != ProcessState.Running) {
+                if (getMainViewModel().accountTrainingStatus2.processState.value != ProcessState.Running) {
                     FloatingActionButton(
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
-                                        if (it) { getMainViewModel().fetchAccountTrainingStatus(force = true) }
+                                        if (it) { getMainViewModel().accountTrainingStatus2.refreshData(force = true) }
                                     }
                                 )
                             }
@@ -126,9 +467,7 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                // TODO: Account training result screen
-
-                when (getMainViewModel().accountTrainingStatus.value.processState) {
+                when (getMainViewModel().accountTrainingStatus2.processState.value) {
                     ProcessState.Running -> {
                         Column(
                             modifier = Modifier.fillMaxSize(),
@@ -151,39 +490,38 @@ class AccountActivity: BaseActivity() {
                                 fun graduateStatus(): String {
                                     val owned = ArrayList<String>()
                                     val missing = ArrayList<String>()
-                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigGDTC == true) {
+                                    if (getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.hasSigGDTC == true) {
                                         owned.add("GDTC certificate")
                                     } else {
                                         missing.add("GDTC certificate")
                                     }
-                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigGDQP == true) {
+                                    if (getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.hasSigGDQP == true) {
                                         owned.add("GDQP certificate")
                                     } else {
                                         missing.add("GDQP certificate")
                                     }
-                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigEnglish == true) {
+                                    if (getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.hasSigEnglish == true) {
                                         owned.add("English certificate")
                                     } else {
                                         missing.add("English certificate")
                                     }
-                                    if (getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasSigIT == true) {
+                                    if (getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.hasSigIT == true) {
                                         owned.add("IT certificate")
                                     } else {
                                         missing.add("IT certificate")
                                     }
-                                    val hasQualifiedGraduate = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.hasQualifiedGraduate == true
+                                    val hasQualifiedGraduate = getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.hasQualifiedGraduate == true
 
                                     val result = "- Owned certificate(s): ${owned.joinToString(", ")}\n- Missing certificate(s): ${missing.joinToString(", ")}\n- Has qualified graduate: ${if (hasQualifiedGraduate) "Yes" else "No (check information below)"}"
                                     owned.clear()
                                     missing.clear()
                                     return result
                                 }
-
                                 SimpleCardItem(
                                     title = "Your training result",
                                     isTitleCentered = true,
-                                    padding = PaddingValues(horizontal = 10.dp),
-                                    clicked = {},
+                                    padding = PaddingValues(start = 10.dp, end = 10.dp, bottom = 7.dp),
+                                    opacity = getControlBackgroundAlpha(),
                                     content = {
                                         Column(
                                             modifier = Modifier
@@ -193,28 +531,43 @@ class AccountActivity: BaseActivity() {
                                             content = {
                                                 OutlinedTextBox(
                                                     title = "Score (point per 4)",
-                                                    value = "${getMainViewModel().accountTrainingStatus.value.data?.trainingSummary?.avgTrainingScore4 ?: "(unknown)"}",
+                                                    value = "${getMainViewModel().accountTrainingStatus2.data.value?.trainingSummary?.avgTrainingScore4 ?: "(unknown)"}",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
                                                 OutlinedTextBox(
                                                     title = "School year updated",
-                                                    value = getMainViewModel().accountTrainingStatus.value.data?.trainingSummary?.schoolYearCurrent ?: "(unknown)",
+                                                    value = getMainViewModel().accountTrainingStatus2.data.value?.trainingSummary?.schoolYearCurrent ?: "(unknown)",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
+                                                ButtonBase(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(vertical = 5.dp),
+                                                    horizontalArrangement = Arrangement.Center,
+                                                    content = {
+                                                        Text("View your training details")
+                                                    },
+                                                    clicked = {
+                                                        val intent = Intent(context, AccountActivity::class.java)
+                                                        intent.action = "acc_training_result_subjectresult"
+                                                        context.startActivity(intent)
+                                                    }
+                                                )
                                             }
                                         )
-                                    }
+                                    },
+                                    clicked = {}
                                 )
                                 Spacer(modifier = Modifier.size(5.dp))
                                 SimpleCardItem(
                                     title = "Graduate status",
                                     isTitleCentered = true,
                                     padding = PaddingValues(horizontal = 10.dp),
-                                    clicked = {},
+                                    opacity = getControlBackgroundAlpha(),
                                     content = {
                                         Column(
                                             modifier = Modifier
@@ -231,36 +584,38 @@ class AccountActivity: BaseActivity() {
                                                 )
                                                 OutlinedTextBox(
                                                     title = "Khen thuong",
-                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info1 ?: "(unknown)",
+                                                    value = getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.info1 ?: "(unknown)",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
                                                 OutlinedTextBox(
                                                     title = "Ky luat",
-                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info2 ?: "(unknown)",
+                                                    value = getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.info2 ?: "(unknown)",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
                                                 OutlinedTextBox(
                                                     title = "Thong tin xet do an tot nghiep",
-                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.info3 ?: "(unknown)",
+                                                    value = getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.info3 ?: "(unknown)",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
                                                 OutlinedTextBox(
                                                     title = "Approved graduate process information",
-                                                    value = getMainViewModel().accountTrainingStatus.value.data?.graduateStatus?.approveGraduateProcessInfo ?: "(unknown)",
+                                                    value = getMainViewModel().accountTrainingStatus2.data.value?.graduateStatus?.approveGraduateProcessInfo ?: "(unknown)",
                                                     modifier = Modifier
                                                         .fillMaxWidth()
                                                         .padding(bottom = 5.dp)
                                                 )
                                             }
                                         )
-                                    }
+                                    },
+                                    clicked = {}
                                 )
+                                Spacer(modifier = Modifier.size(5.dp))
                             }
                         )
                     }
@@ -277,7 +632,7 @@ class AccountActivity: BaseActivity() {
                     getMainViewModel().accountLogin(
                         after = {
                             if (it) {
-                                getMainViewModel().fetchAccountTrainingStatus()
+                                getMainViewModel().accountTrainingStatus2.refreshData()
                             }
                         }
                     )
@@ -289,42 +644,55 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountSubjectScheduleView() {
+    private fun AccountSubjectInformationView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val subjectScheduleItem: MutableState<SubjectScheduleItem?> = remember { mutableStateOf(null) }
         val subjectDetailVisible = remember { mutableStateOf(false) }
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
-                    title = { Text("Subject schedule") },
+                LargeTopAppBar(
+                    title = { Text("Subject Information") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
-                                setResult(RESULT_OK)
+                                setResult(RESULT_CANCELED)
                                 finish()
                             },
                             content = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
-                                    "",
+                                    "Back to previous screen",
                                     modifier = Modifier.size(25.dp)
                                 )
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
-                if (getMainViewModel().subjectSchedule.value.processState != ProcessState.Running) {
+                if (getMainViewModel().subjectSchedule2.processState.value != ProcessState.Running) {
                     FloatingActionButton(
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
-                                        if (it) { getMainViewModel().accountGetSubjectSchedule(force = true) }
+                                        if (it) {
+                                            getMainViewModel().subjectSchedule2.refreshData(force = true)
+                                        }
                                     }
                                 )
                             }
@@ -336,11 +704,9 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                when (getMainViewModel().subjectSchedule.value.processState) {
+                when (getMainViewModel().subjectSchedule2.processState.value) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier
@@ -368,11 +734,12 @@ class AccountActivity: BaseActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Top,
                             content = {
-                                getMainViewModel().subjectSchedule.value.data?.forEach { item ->
-                                    SubjectSummaryItem(
-                                        title = item.name,
-                                        content = item.lecturer,
-                                        clicked = {
+                                getMainViewModel().subjectSchedule2.data.value?.forEach { item ->
+                                    AccountSubjectInformation(
+                                        modifier = Modifier.padding(bottom = 7.dp),
+                                        item = item,
+                                        opacity = getControlBackgroundAlpha(),
+                                        onClick = {
                                             subjectScheduleItem.value = item
                                             subjectDetailVisible.value = true
                                         }
@@ -384,21 +751,21 @@ class AccountActivity: BaseActivity() {
                 }
             }
         )
-        SubjectDetailItem(
+        AccountSubjectMoreInformation(
             item = subjectScheduleItem.value,
             isVisible = subjectDetailVisible.value,
             dismissClicked = {
                 subjectDetailVisible.value = false
             },
             onAddToFilterRequested = { item ->
-                if (getMainViewModel().appSettings.value.newsFilterList.any { it.isEquals(item) }) {
+                if (getMainViewModel().appSettings.value.newsBackgroundFilterList.any { it.isEquals(item) }) {
                     showSnackBar(
                         text = "This subject has already exist in your news filter list!",
                         clearPrevious = true
                     )
                 } else {
                     getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                        newsFilterList = getMainViewModel().appSettings.value.newsFilterList.also {
+                        newsFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList.also {
                             it.add(item)
                         }
                     )
@@ -418,7 +785,7 @@ class AccountActivity: BaseActivity() {
                     getMainViewModel().accountLogin(
                         after = {
                             if (it) {
-                                getMainViewModel().accountGetSubjectSchedule()
+                                getMainViewModel().subjectSchedule2.refreshData()
                             }
                         }
                     )
@@ -430,12 +797,23 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountSubjectFeeView() {
+    private fun AccountSubjectFeeView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Subject fee") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -453,17 +831,18 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
-                if (getMainViewModel().subjectFee.value.processState != ProcessState.Running) {
+                if (getMainViewModel().subjectFee2.processState.value != ProcessState.Running) {
                     FloatingActionButton(
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
                                         if (it) {
-                                            getMainViewModel().accountGetSubjectFee(force = true)
+                                            getMainViewModel().subjectFee2.refreshData(force = true)
                                         }
                                     }
                                 )
@@ -476,11 +855,9 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                when (getMainViewModel().subjectFee.value.processState) {
+                when (getMainViewModel().subjectFee2.processState.value) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier
@@ -508,10 +885,12 @@ class AccountActivity: BaseActivity() {
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Top,
                             content = {
-                                getMainViewModel().subjectFee.value.data?.forEach { item ->
-                                    SubjectSummaryItem(
-                                        title = item.name,
-                                        content = "${item.credit} credit(s), ${item.price} VND (${if (item.debt) "not completed yet" else "completed"})"
+                                getMainViewModel().subjectFee2.data.value?.forEach { item ->
+                                    AccountSubjectFeeInformation(
+                                        modifier = Modifier.padding(bottom = 10.dp),
+                                        item = item,
+                                        opacity = getControlBackgroundAlpha(),
+                                        onClick = { }
                                     )
                                 }
                             }
@@ -528,7 +907,7 @@ class AccountActivity: BaseActivity() {
                     getMainViewModel().accountLogin(
                         after = {
                             if (it) {
-                                getMainViewModel().accountGetSubjectFee()
+                                getMainViewModel().subjectFee2.refreshData()
                             }
                         }
                     )
@@ -540,12 +919,23 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountInformationView() {
+    private fun AccountInformationView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Basic Information") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -563,17 +953,18 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             floatingActionButton = {
-                if (getMainViewModel().accountInformation.value.processState != ProcessState.Running) {
+                if (getMainViewModel().accountInformation2.processState.value != ProcessState.Running) {
                     FloatingActionButton(
                         onClick = {
                             CoroutineScope(Dispatchers.IO).launch {
                                 getMainViewModel().accountLogin(
                                     after = {
                                         if (it) {
-                                            getMainViewModel().accountGetInformation(force = true)
+                                            getMainViewModel().accountInformation2.refreshData(force = true)
                                         }
                                     }
                                 )
@@ -586,7 +977,7 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                val data = getMainViewModel().accountInformation.value.data
+                val data = getMainViewModel().accountInformation2.data.value
                 val mapPersonalInfo = mapOf(
                     "Name" to (data?.name ?: "(unknown)"),
                     "Date of birth" to (data?.dateOfBirth ?: "(unknown)"),
@@ -605,12 +996,9 @@ class AccountActivity: BaseActivity() {
                     "School email" to (data?.schoolEmail ?: "(unknown)"),
                 )
 
-                when (getMainViewModel().accountInformation.value.processState) {
+                when (getMainViewModel().accountInformation2.processState.value) {
                     ProcessState.NotRunYet,
-                    ProcessState.Failed -> {
-                        val p1 = padding
-                    }
-
+                    ProcessState.Failed -> { }
                     ProcessState.Running -> {
                         Surface(
                             modifier = Modifier
@@ -667,17 +1055,26 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MainView() {
+    private fun MainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val loginDialogVisible = remember { mutableStateOf(false) }
         val loginDialogEnabled = remember { mutableStateOf(true) }
         val logoutDialogVisible = remember { mutableStateOf(false) }
-        val context = LocalContext.current
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text("Account") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
@@ -695,6 +1092,7 @@ class AccountActivity: BaseActivity() {
                             }
                         )
                     },
+                    scrollBehavior = scrollBehavior
                 )
             },
             content = {
@@ -708,6 +1106,7 @@ class AccountActivity: BaseActivity() {
                             ProcessState.NotRunYet,
                             ProcessState.Failed -> {
                                 LoginBannerNotLoggedIn(
+                                    opacity = getControlBackgroundAlpha(),
                                     padding = PaddingValues(10.dp),
                                     clicked = {
                                         loginDialogVisible.value = true
@@ -725,24 +1124,28 @@ class AccountActivity: BaseActivity() {
                                 )
                             }
                             ProcessState.Successful -> {
-                                AccountInfoBanner(
-                                    padding = PaddingValues(10.dp),
-                                    isLoading = getMainViewModel().accountInformation.value.processState == ProcessState.Running,
-                                    username = getMainViewModel().accountInformation.value.data?.studentId ?: "(unknown)",
-                                    schoolClass = getMainViewModel().accountInformation.value.data?.schoolClass ?: "(unknown)",
-                                    trainingProgramPlan = getMainViewModel().accountInformation.value.data?.trainingProgramPlan ?: "(unknown)"
-                                )
+                                getMainViewModel().accountInformation2.let { accInfo ->
+                                    AccountInfoBanner(
+                                        opacity = getControlBackgroundAlpha(),
+                                        padding = PaddingValues(10.dp),
+                                        isLoading = accInfo.processState.value == ProcessState.Running,
+                                        username = accInfo.data.value?.studentId ?: "(unknown)",
+                                        schoolClass = accInfo.data.value?.schoolClass ?: "(unknown)",
+                                        trainingProgramPlan = accInfo.data.value?.trainingProgramPlan ?: "(unknown)"
+                                    )
+                                }
                                 ButtonBase(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Subject schedule") },
+                                    content = { Text("Subject Information") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
-                                        intent.action = "subject_schedule"
+                                        intent.action = "subject_information"
                                         context.startActivity(intent)
                                     }
                                 )
@@ -751,9 +1154,10 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Subject fee") },
+                                    content = { Text("Subject Fee") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "subject_fee"
@@ -765,9 +1169,10 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Account information") },
+                                    content = { Text("Account Information") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "acc_info"
@@ -779,9 +1184,10 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Account training result") },
+                                    content = { Text("Account Training Result") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
                                         intent.action = "acc_training_result"
@@ -796,6 +1202,7 @@ class AccountActivity: BaseActivity() {
                                     content = { Text("Logout") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
+                                    opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         logoutDialogVisible.value = true
                                     }
@@ -834,7 +1241,8 @@ class AccountActivity: BaseActivity() {
                                             text = "Successfully logged in!",
                                             clearPrevious = true,
                                         )
-                                        getMainViewModel().accountGetInformation()
+                                        getMainViewModel().accountInformation2.refreshData(force = true)
+                                        // getMainViewModel().fetchAccountInformation()
                                     }
                                     false -> {
                                         loginDialogEnabled.value = true

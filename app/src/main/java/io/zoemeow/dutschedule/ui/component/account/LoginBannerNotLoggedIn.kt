@@ -31,10 +31,11 @@ fun LoginBannerNotLoggedIn(
     studentName: String? = null,
     studentId: String? = null,
     schoolYear: Int? = null,
+    opacity: Float = 1.0f
 ) {
     Surface(
         modifier = Modifier.padding(padding),
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         shape = RoundedCornerShape(7.dp),
         content = {
             Row(

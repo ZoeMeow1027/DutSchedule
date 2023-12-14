@@ -7,6 +7,8 @@
         tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:name=".MainApplication"
@@ -22,7 +24,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="tiramisu">
 
-        <!-- Trigger Google Play services to install the backported photo picker module. -->
+        <!-- Trigger Google Play services to install the backport photo picker module. -->
         <!--suppress AndroidDomInspection -->
         <service android:name="com.google.android.gms.metadata.ModuleDependencies"
             android:enabled="false"
@@ -80,10 +82,18 @@
             android:label="DutSchedule - Settings"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DutSchedule" />
+        <activity
+            android:name=".activity.HelpActivity"
+            android:exported="false"
+            android:label="DutSchedule - Help"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.DutSchedule"
+            android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".service.NewsUpdateService"
             android:enabled="true"
             android:exported="true"
+            android:foregroundServiceType="shortService"
             android:label="DutSchedule - News Update Service" />
     </application>
 

@@ -67,7 +67,7 @@ fun DialogBase(
                         indication = null,
                     ) { },
                     color = MaterialTheme.colorScheme.secondaryContainer,
-                    shape = RoundedCornerShape(7.dp),
+                    shape = RoundedCornerShape(10.dp),
                     content = {
                         Column(
                             horizontalAlignment = Alignment.Start,

@@ -4,44 +4,49 @@ import android.annotation.SuppressLint
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 import java.util.TimeZone
 
 class CustomDateUtils {
     companion object {
         /**
-         * Get current day of week with Sunday as 0 to Saturday as 7.
+         * Get current day of week with Sunday as 1 to Saturday as 7.
          */
         fun getCurrentDayOfWeek(): Int {
             return Calendar.getInstance()[Calendar.DAY_OF_WEEK]
         }
 
-        fun dayOfWeekToString(
-            value: Int = 0,
+        fun dayOfWeekInString(
+            value: Int = 1,
             fullString: Boolean = false
         ): String {
             return if (fullString) {
                 when (value) {
-                    0 -> "Sunday"
-                    1 -> "Monday"
-                    2 -> "Tuesday"
-                    3 -> "Wednesday"
-                    4 -> "Thursday"
-                    5 -> "Friday"
-                    6 -> "Saturday"
+                    1 -> "Sunday"
+                    2 -> "Monday"
+                    3 -> "Tuesday"
+                    4 -> "Wednesday"
+                    5 -> "Thursday"
+                    6 -> "Friday"
+                    7 -> "Saturday"
                     else -> throw Exception("Invalid value: Must between 0 and 6!")
                 }
             } else {
                 when (value) {
-                    0 -> "Sun"
-                    1 -> "Mon"
-                    2 -> "Tue"
-                    3 -> "Wed"
-                    4 -> "Thu"
-                    5 -> "Fri"
-                    6 -> "Sat"
+                    1 -> "Sun"
+                    2 -> "Mon"
+                    3 -> "Tue"
+                    4 -> "Wed"
+                    5 -> "Thu"
+                    6 -> "Fri"
+                    7 -> "Sat"
                     else -> throw Exception("Invalid value: Must between 0 and 6!")
                 }
             }
+        }
+
+        fun getCurrentDateAndTimeToString(format: String = "yyyy-MM-dd HH:mm:ss"): String {
+            return SimpleDateFormat(format, Locale.getDefault()).format(Date())
         }
 
         fun unixToDuration(

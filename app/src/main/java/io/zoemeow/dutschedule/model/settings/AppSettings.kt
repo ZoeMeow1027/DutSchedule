@@ -4,29 +4,35 @@ import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
 data class AppSettings(
-    @SerializedName("appsettings.thememode")
+    @SerializedName("appsettings.appearance.thememode")
     val themeMode: ThemeMode = ThemeMode.FollowDeviceTheme,
 
-    @SerializedName("appsettings.dynamiccolor")
+    @SerializedName("appsettings.appearance.dynamiccolor")
     val dynamicColor: Boolean = true,
 
-    @SerializedName("appsettings.blackbackground")
+    @SerializedName("appsettings.appearance.blackbackground")
     val blackBackground: Boolean = false,
 
-    @SerializedName("appsettings.backgroundimage")
+    @SerializedName("appsettings.appearance.backgroundimage.option")
     val backgroundImage: BackgroundImageOption = BackgroundImageOption.None,
 
-    @SerializedName("appsettings.backgroundimage.opacity")
+    @SerializedName("appsettings.appearance.backgroundimage.backgroundopacity")
     val backgroundImageOpacity: Float = 0.7f,
 
-    @SerializedName("appsettings.openlinkinsideapp")
+    @SerializedName("appsettings.appearance.backgroundimage.componentopacity")
+    val componentOpacity: Float = 0.7f,
+
+    @SerializedName("appsettings.miscellaneous.openlinkinsideapp")
     val openLinkInsideApp: Boolean = true,
 
-    @SerializedName("appsettings.newsfilterlist")
-    val newsFilterList: ArrayList<SubjectCode> = arrayListOf(),
+    @SerializedName("appsettings.newsbackground.filterlist")
+    val newsBackgroundFilterList: ArrayList<SubjectCode> = arrayListOf(),
 
-    @SerializedName("appsettings.fetchnewsinbackground.duration")
-    val fetchNewsBackgroundDuration: Int = 0
+    @SerializedName("appsettings.newsbackground.duration")
+    val newsBackgroundDuration: Int = 0,
+
+    @SerializedName("appsettings.newsbackground.parsenewssubject")
+    val newsBackgroundParseNewsSubject: Boolean = true
 ): Serializable {
     fun clone(
         themeMode: ThemeMode? = null,
@@ -36,7 +42,8 @@ data class AppSettings(
         openLinkInsideApp: Boolean? = null,
         newsFilterList: ArrayList<SubjectCode>? = null,
         backgroundImageOpacity: Float? = null,
-        fetchNewsBackgroundDuration: Int? = null
+        fetchNewsBackgroundDuration: Int? = null,
+        newsBackgroundParseNewsSubject: Boolean? = null
     ): AppSettings {
         return AppSettings(
             themeMode = themeMode ?: this.themeMode,
@@ -44,13 +51,14 @@ data class AppSettings(
             blackBackground = blackBackground ?: this.blackBackground,
             backgroundImage = backgroundImage ?: this.backgroundImage,
             openLinkInsideApp = openLinkInsideApp ?: this.openLinkInsideApp,
-            newsFilterList = newsFilterList ?: this.newsFilterList,
+            newsBackgroundFilterList = newsFilterList ?: this.newsBackgroundFilterList,
             backgroundImageOpacity = backgroundImageOpacity ?: this.backgroundImageOpacity,
-            fetchNewsBackgroundDuration = when (fetchNewsBackgroundDuration) {
-                null -> this.fetchNewsBackgroundDuration
+            newsBackgroundDuration = when (fetchNewsBackgroundDuration) {
+                null -> this.newsBackgroundDuration
                 0 -> 0
                 else -> if (fetchNewsBackgroundDuration >= 5) fetchNewsBackgroundDuration else 5
-            }
+            },
+            newsBackgroundParseNewsSubject = newsBackgroundParseNewsSubject ?: this.newsBackgroundParseNewsSubject
         )
     }
 }

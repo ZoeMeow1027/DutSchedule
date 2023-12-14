@@ -1,45 +1,53 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.CustomClock
 import io.zoemeow.dutschedule.model.ProcessState
-import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.model.news.NewsCache
+import io.zoemeow.dutschedule.service.BaseService
+import io.zoemeow.dutschedule.service.NewsUpdateService
+import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
+import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
-import io.zoemeow.dutschedule.ui.component.main.SummaryItem
-import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
+import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
+import io.zoemeow.dutschedule.util.CustomDateUtils
 import io.zoemeow.dutschedule.util.NotificationsUtils
+import io.zoemeow.dutschedule.util.OpenLink
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -53,59 +61,103 @@ class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
         NotificationsUtils.initializeNotificationChannel(this)
+        NewsUpdateService.cancelSchedule(this)
     }
 
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
-        // A surface container using the 'background' color from the theme
-
-        val context = LocalContext.current
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         MainView(
+            context = context,
+            snackBarHostState = snackBarHostState,
+            containerColor = containerColor,
+            contentColor = contentColor,
             newsClicked = {
-                this.startActivity(Intent(this, NewsActivity::class.java))
+                context.startActivity(Intent(this, NewsActivity::class.java))
             },
             accountClicked = {
-                this.startActivity(Intent(this, AccountActivity::class.java))
+                context.startActivity(Intent(this, AccountActivity::class.java))
             },
             settingsClicked = {
-                this.startActivity(Intent(this, SettingsActivity::class.java))
+                context.startActivity(Intent(this, SettingsActivity::class.java))
+            },
+            externalLinkClicked = {
+                val intent = Intent(context, HelpActivity::class.java)
+                intent.action = "view_externallink"
+                context.startActivity(intent)
             },
             content = {
-                SummaryItem(
-                    padding = PaddingValues(15.dp),
-                    title = "Your Schedule",
-                    content = "You have already done your subjects today! Good job!",
-                    clicked = { },
+                DateAndTimeSummaryItem(
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+                    isLoading = getMainViewModel().currentSchoolWeek2.processState.value == ProcessState.Running,
+                    currentSchoolWeek = getMainViewModel().currentSchoolWeek2.data.value,
+                    opacity = getControlBackgroundAlpha()
                 )
-                SummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-                    title = "Affected lessons by announcement",
-                    content = "Your lessons will be affected by school announcements in next 7 days:\n\n" +
-                    "ie1i0921d - i029di12\nie1i0921d - i029di12\nie1i0921d - i029di12\n" +
-                            "ie1i0921d - i029di12\nie1i0921d - i029di12",
-                    clicked = {},
+                LessonTodaySummaryItem(
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
+                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
+                    clicked = {
+                        getMainViewModel().accountLogin(
+                            after = {
+                                if (it) {
+                                    val intent = Intent(context, AccountActivity::class.java)
+                                    intent.action = "subject_schedule"
+                                    context.startActivity(intent)
+                                }
+                            }
+                        )
+                    },
+                    affectedList = getMainViewModel().subjectSchedule2.data.value?.filter { subSch ->
+                        subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtils.getCurrentDayOfWeek() } &&
+                                subSch.subjectStudy.scheduleList.any { schItem ->
+                                    schItem.lesson.end >= when (CustomClock.getCurrent().toDUTLesson()) {
+                                        -3 -> -99.0
+                                        -2 -> -99.0
+                                        -1 -> 5.5
+                                        0 -> 99.0
+                                        else -> CustomClock.getCurrent().toDUTLesson().toDouble()
+                                    }
+                                }
+                    }?.toList() ?: listOf(),
+                    opacity = getControlBackgroundAlpha()
                 )
+//                AffectedLessonsSummaryItem(
+//                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+//                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
+//                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
+//                    clicked = {},
+//                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12"),
+//                    opacity = getControlBackgroundAlpha()
+//                )
                 SchoolNewsSummaryItem(
-                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
                     newsToday = getNews(false),
                     newsThisWeek = getNews(true),
                     clicked = {
                         context.startActivity(Intent(context, NewsActivity::class.java))
                     },
-                    isLoading = getMainViewModel().newsGlobal.value.processState == ProcessState.Running
+                    isLoading = getMainViewModel().newsGlobal2.processState.value == ProcessState.Running,
+                    opacity = getControlBackgroundAlpha()
                 )
-//                SummaryItem(
-//                    padding = PaddingValues(bottom = 15.dp, start = 15.dp, end = 15.dp),
-//                    title = "Update is available",
-//                    content = "Tap here to download update file on GitHub (this will open download page in default browser)\nLatest version: 2.0-draft8",
-//                    clicked = {
-//                        OpenLink(
-//                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
-//                            context = context,
-//                            customTab = false,
-//                        )
-//                    },
-//                )
+                UpdateAvailableSummaryItem(
+                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
+                    isLoading = false,
+                    updateAvailable = false,
+                    latestVersionString = "",
+                    clicked = {
+                        OpenLink(
+                            url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
+                            context = context,
+                            customTab = false,
+                        )
+                    },
+                    opacity = getControlBackgroundAlpha()
+                )
             }
         )
     }
@@ -119,14 +171,14 @@ class MainActivity : BaseActivity() {
         val before7Days = today.minus(7.days)
 
         if (!byWeek) {
-            getMainViewModel().newsGlobal.value.data.newsListByDate.firstOrNull {
+            (getMainViewModel().newsGlobal2.data.value ?: NewsCache()).newsListByDate.firstOrNull {
                 // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
                 it.date == today.toEpochMilliseconds()
             }.also {
                 if (it != null) data = it.itemList.count()
             }
         } else {
-            getMainViewModel().newsGlobal.value.data.newsListByDate.forEach {
+            (getMainViewModel().newsGlobal2.data.value ?: NewsCache()).newsListByDate.forEach {
                 // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
                 if (it.date <= today.toEpochMilliseconds() && it.date >= before7Days.toEpochMilliseconds()) {
                     data += it.itemList.count()
@@ -139,84 +191,107 @@ class MainActivity : BaseActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun MainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color,
         newsClicked: (() -> Unit)? = null,
         accountClicked: (() -> Unit)? = null,
         settingsClicked: (() -> Unit)? = null,
+        externalLinkClicked: (() -> Unit)? = null,
         content: (@Composable ColumnScope.() -> Unit)? = null,
     ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
         Scaffold(
-            modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
-                TopAppBar(
+                LargeTopAppBar(
                     title = { Text(text = "DutSchedule") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    scrollBehavior = scrollBehavior
                 )
             },
             bottomBar = {
                 BottomAppBar(
+                    containerColor = BottomAppBarDefaults.containerColor.copy(
+                        alpha = getControlBackgroundAlpha()
+                    ),
                     actions = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
+                        IconButton(
+                            onClick = { newsClicked?.let { it() } },
                             content = {
-                                ButtonBase(
-                                    clicked = {
-                                        newsClicked?.let { it() }
-                                    },
-                                    content = {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.baseline_newspaper_24),
-                                            "News",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("News")
-                                    }
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_baseline_newspaper_24),
+                                    "News",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
                                 )
-                                ButtonBase(
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    clicked = {
-                                        accountClicked?.let {
-                                            it()
-                                        }
-                                    },
-                                    content = {
-                                        Icon(
-                                            Icons.Outlined.AccountCircle,
-                                            "",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("Account")
-                                    }
+                            }
+                        )
+                        IconButton(
+                            onClick = { settingsClicked?.let { it() } },
+                            content = {
+                                Icon(
+                                    Icons.Default.Settings,
+                                    "Settings",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
                                 )
-                                ButtonBase(
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    clicked = {
-                                        settingsClicked?.let {
-                                            it()
-                                        }
-                                    },
-                                    content = {
-                                        Icon(
-                                            Icons.Default.Settings,
-                                            "",
-                                            modifier = Modifier
-                                                .size(30.dp)
-                                                .padding(end = 7.dp),
-                                        )
-                                        Text("Settings")
-                                    }
+                            }
+                        )
+                        IconButton(
+                            onClick = { externalLinkClicked?.let { it() } },
+                            content = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_baseline_web_24),
+                                    "External links",
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .padding(end = 7.dp),
                                 )
                             }
                         )
                     },
+                    floatingActionButton = {
+                        ExtendedFloatingActionButton(
+                            text = {
+                                getMainViewModel().accountSession.value.let {
+                                    Text(
+                                        when (it.processState) {
+                                            ProcessState.NotRunYet -> "Sign in"
+                                            ProcessState.Running -> "Fetching..."
+                                            ProcessState.Failed -> when (it.data.accountAuth.username == null) {
+                                                true -> "Sign in"
+                                                false -> String.format(
+                                                    "%s (failed)",
+                                                    it.data.accountAuth.username
+                                                )
+                                            }
+                                            else -> it.data.accountAuth.username ?: "unknown"
+                                        }
+                                    )
+                                }
+                            },
+                            icon = {
+                                when (getMainViewModel().accountSession.value.processState) {
+                                    ProcessState.Running -> CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 3.dp
+                                    )
+                                    else -> Icon(Icons.Outlined.AccountCircle, "Account")
+                                }
+                            },
+                            onClick = { accountClicked?.let { it() } }
+                        )
+                    }
                 )
             },
             content = { padding ->
@@ -227,7 +302,9 @@ class MainActivity : BaseActivity() {
                     color = Color.Transparent,
                     content = {
                         Column(
-                            modifier = Modifier.verticalScroll(rememberScrollState()),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .verticalScroll(rememberScrollState()),
                             content = {
                                 content?.let { it() }
                             },
@@ -238,11 +315,39 @@ class MainActivity : BaseActivity() {
         )
     }
 
-    @Preview(showBackground = true)
-    @Composable
-    private fun SummaryItemPreview() {
-        DutScheduleTheme {
-            MainView()
+    override fun onPause() {
+        NewsUpdateService.cancelSchedule(this)
+        if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
+            BaseService.startService(
+                context = this,
+                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
+                    it.action = "news.service.action.fetchallpage1background"
+                }
+            )
         }
+        super.onPause()
+    }
+
+    override fun onDestroy() {
+        NewsUpdateService.cancelSchedule(this)
+        if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
+            BaseService.startService(
+                context = this,
+                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
+                    it.action = "news.service.action.fetchallpage1background"
+                }
+            )
+        }
+        super.onDestroy()
+    }
+
+    override fun onResume() {
+        NewsUpdateService.cancelSchedule(this)
+        super.onResume()
+    }
+
+    override fun onRestart() {
+        NewsUpdateService.cancelSchedule(this)
+        super.onRestart()
     }
 }

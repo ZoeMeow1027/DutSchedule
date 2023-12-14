@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.ui.component.account.subjectitem
+package io.zoemeow.dutschedule.ui.component.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,17 +17,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.dutwrapperlib.dutwrapper.model.accounts.SubjectScheduleItem
+import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
-fun SubjectDetailItem(
+fun AccountSubjectMoreInformation(
     item: SubjectScheduleItem? = null,
     isVisible: Boolean = false,
     onAddToFilterRequested: ((SubjectCode) -> Unit)? = null,
-    dismissClicked: (() -> Unit)? = null
+    dismissClicked: (() -> Unit)? = null,
 ) {
     DialogBase(
         modifier = Modifier
@@ -58,7 +58,7 @@ fun SubjectDetailItem(
                             schList = it.subjectStudy.scheduleList.joinToString(
                                 separator = "; ",
                                 transform = { item1 ->
-                                    "${CustomDateUtils.dayOfWeekToString(item1.dayOfWeek)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
+                                    "${CustomDateUtils.dayOfWeekInString(item1.dayOfWeek + 1)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
                                 }
                             )
                         }

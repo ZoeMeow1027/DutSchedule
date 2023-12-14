@@ -22,24 +22,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
-import io.dutwrapperlib.dutwrapper.model.enums.LessonStatus
-import io.dutwrapperlib.dutwrapper.model.enums.NewsType
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.model.enums.LessonStatus
+import io.dutwrapper.dutwrapper.model.enums.NewsType
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
 fun NewsDetailScreen(
     newsItem: NewsGlobalItem,
     newsType: NewsType,
-    darkMode: Boolean = false,
     padding: PaddingValues = PaddingValues(0.dp),
     linkClicked: ((String) -> Unit)? = null
 ) {
     when (newsType) {
         NewsType.Global -> {
             NewsDetailBody_NewsGlobal(
-                darkMode = darkMode,
                 padding = padding,
                 newsItem = newsItem,
                 linkClicked = linkClicked
@@ -47,7 +45,6 @@ fun NewsDetailScreen(
         }
         NewsType.Subject -> {
             NewsDetailBody_NewsSubject(
-                darkMode = darkMode,
                 padding = padding,
                 newsItem = newsItem as NewsSubjectItem,
                 linkClicked = linkClicked
@@ -58,7 +55,6 @@ fun NewsDetailScreen(
 
 @Composable
 private fun NewsDetailBody_NewsGlobal(
-    darkMode: Boolean = false,
     padding: PaddingValues,
     newsItem: NewsGlobalItem,
     linkClicked: ((String) -> Unit)? = null
@@ -158,7 +154,6 @@ private fun NewsDetailBody_NewsGlobal(
 
 @Composable
 private fun NewsDetailBody_NewsSubject(
-    darkMode: Boolean = false,
     padding: PaddingValues,
     newsItem: NewsSubjectItem,
     linkClicked: ((String) -> Unit)? = null
@@ -252,11 +247,7 @@ private fun NewsDetailBody_NewsSubject(
                 Spacer(modifier = Modifier.size(5.dp))
                 Text(
                     text = String.format(
-                        when (newsItem.lessonStatus) {
-                            LessonStatus.Leaving -> "Lesson will leave: %s"
-                            LessonStatus.MakeUp -> "Lesson will make up: %s"
-                            else -> "Lesson will leave: %s"
-                        },
+                        "Lesson(s) affected: %s",
                         newsItem.affectedLesson
                     ),
                     style = MaterialTheme.typography.bodyLarge,
@@ -274,75 +265,79 @@ private fun NewsDetailBody_NewsSubject(
                     Text(
                         text =
                         String.format(
-                            "Make up in room: %s",
+                            "Room affected: %s",
                             newsItem.affectedRoom
                         ),
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 }
-            } else {
-                val annotatedString = buildAnnotatedString {
-                    if (newsItem.contentString != null) {
-                        // Parse all string to annotated string.
-                        append(newsItem.contentString)
-                        // Adjust color for annotated string to follow system mode.
-                        addStyle(
-                            style = SpanStyle(color = MaterialTheme.colorScheme.inverseSurface),
-                            start = 0,
-                            end = newsItem.contentString.length
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(top = 7.dp, bottom = 10.dp)
+                )
+            }
+            val annotatedString = buildAnnotatedString {
+                if (newsItem.contentString != null) {
+                    // Parse all string to annotated string.
+                    append(newsItem.contentString)
+                    // Adjust color for annotated string to follow system mode.
+                    addStyle(
+                        style = SpanStyle(color = MaterialTheme.colorScheme.inverseSurface),
+                        start = 0,
+                        end = newsItem.contentString.length
+                    )
+                    // Adjust for detected link.
+                    newsItem.links?.forEach {
+                        addStringAnnotation(
+                            tag = it.position!!.toString(),
+                            annotation = it.url!!,
+                            start = it.position,
+                            end = it.position + it.text!!.length
                         )
-                        // Adjust for detected link.
-                        newsItem.links?.forEach {
-                            addStringAnnotation(
-                                tag = it.position!!.toString(),
-                                annotation = it.url!!,
-                                start = it.position,
-                                end = it.position + it.text!!.length
-                            )
-                            addStyle(
-                                style = SpanStyle(color = Color(0xff64B5F6)),
-                                start = it.position,
-                                end = it.position + it.text.length
-                            )
-                        }
+                        addStyle(
+                            style = SpanStyle(color = Color(0xff64B5F6)),
+                            start = it.position,
+                            end = it.position + it.text.length
+                        )
                     }
                 }
-                SelectionContainer {
-                    ClickableText(
-                        text = annotatedString,
-                        style = MaterialTheme.typography.bodyLarge,
-                        onClick = {
-                            try {
-                                newsItem.links?.forEach { item ->
-                                    annotatedString
-                                        .getStringAnnotations(
-                                            item.position!!.toString(),
-                                            it,
-                                            it
-                                        )
-                                        .firstOrNull()
-                                        ?.let { url ->
-                                            var urlTemp = url.toString()
-                                            urlTemp =
-                                                urlTemp.replace(
-                                                    "http://",
-                                                    "http://",
-                                                    ignoreCase = true
-                                                )
-                                            urlTemp = urlTemp.replace(
-                                                "https://",
-                                                "https://",
+            }
+            SelectionContainer {
+                ClickableText(
+                    text = annotatedString,
+                    style = MaterialTheme.typography.bodyLarge,
+                    onClick = {
+                        try {
+                            newsItem.links?.forEach { item ->
+                                annotatedString
+                                    .getStringAnnotations(
+                                        item.position!!.toString(),
+                                        it,
+                                        it
+                                    )
+                                    .firstOrNull()
+                                    ?.let { url ->
+                                        var urlTemp = url.toString()
+                                        urlTemp =
+                                            urlTemp.replace(
+                                                "http://",
+                                                "http://",
                                                 ignoreCase = true
                                             )
-                                            linkClicked?.let { it(urlTemp) }
-                                        }
-                                }
-                            } catch (_: Exception) {
-                                // TODO: Exception for can't open link here!
+                                        urlTemp = urlTemp.replace(
+                                            "https://",
+                                            "https://",
+                                            ignoreCase = true
+                                        )
+                                        linkClicked?.let { it(urlTemp) }
+                                    }
                             }
+                        } catch (_: Exception) {
+                            // TODO: Exception for can't open link here!
                         }
-                    )
-                }
+                    }
+                )
             }
         }
     }

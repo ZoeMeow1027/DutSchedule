@@ -25,6 +25,7 @@ fun SimpleCardItem(
     content: @Composable (() -> Unit)? = null,
     clicked: () -> Unit,
     padding: PaddingValues = PaddingValues(10.dp),
+    opacity: Float = 1.0f
 ) {
     Column(
         horizontalAlignment = Alignment.Start,
@@ -35,7 +36,7 @@ fun SimpleCardItem(
             .padding(padding)
             .clip(RoundedCornerShape(7.dp))
             .clickable { clicked() }
-            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp),

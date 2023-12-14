@@ -1,28 +1,32 @@
 package io.zoemeow.dutschedule.activity
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
@@ -40,25 +44,38 @@ abstract class BaseActivity: ComponentActivity() {
             return ::mainViewModel.isInitialized
         }
     }
-    private lateinit var snackbarHostState: SnackbarHostState
-    private lateinit var snackbarScope: CoroutineScope
+    private lateinit var snackBarHostState: SnackbarHostState
+    private lateinit var snackBarScope: CoroutineScope
     private val loadScriptAtStartup = mutableStateOf(true)
+    private var focusManager: FocusManager? = null
+    private var keyboardController: SoftwareKeyboardController? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // A surface container using the 'background' color from the theme
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge(
+            // This app is only ever in dark mode, so hard code detectDarkMode to true.
+            SystemBarStyle.auto(
+                android.graphics.Color.TRANSPARENT,
+                android.graphics.Color.TRANSPARENT,
+                detectDarkMode = { true }
+            )
+        )
+
         permitAllPolicy()
-
         setContent {
-            snackbarHostState = remember { SnackbarHostState() }
-            snackbarScope = rememberCoroutineScope()
+            // SnackBar state
+            snackBarHostState = remember { SnackbarHostState() }
+            snackBarScope = rememberCoroutineScope()
 
+            // Initialize focus manager & software keyboard controller
+            focusManager = LocalFocusManager.current
+            keyboardController = LocalSoftwareKeyboardController.current
+
+            // Initialize MainViewModel
             if (!isMainViewModelInitialized()) {
                 mainViewModel = viewModel()
-            }
-
-            if (loadScriptAtStartup.value) {
-                loadScriptAtStartup.value = false
-                OnPreloadOnce()
             }
 
             DutScheduleTheme(
@@ -68,10 +85,11 @@ abstract class BaseActivity: ComponentActivity() {
                     ThemeMode.FollowDeviceTheme -> isSystemInDarkTheme()
                 },
                 dynamicColor = mainViewModel.appSettings.value.dynamicColor,
+                translucentStatusBar = getMainViewModel().appSettings.value.backgroundImage != BackgroundImageOption.None,
                 content = {
                     val context = LocalContext.current
 
-                    var draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
+                    val draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
                         BackgroundImageOption.None -> null
                         BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtils.getCurrentWallpaperBackground(context)
                         BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtils.getImageFromAppData(context)
@@ -84,14 +102,12 @@ abstract class BaseActivity: ComponentActivity() {
                             contentScale = ContentScale.Crop
                         )
                     }
-                    Scaffold(
-                        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+
+                    OnMainView(
+                        snackBarHostState = snackBarHostState,
                         containerColor = when (mainViewModel.appSettings.value.backgroundImage) {
                             BackgroundImageOption.None -> when (mainViewModel.appSettings.value.blackBackground) {
-                                true -> when (mainViewModel.appSettings.value.backgroundImage) {
-                                    BackgroundImageOption.None -> if (isAppInDarkMode()) Color.Black else MaterialTheme.colorScheme.background
-                                    else -> MaterialTheme.colorScheme.background
-                                }
+                                true -> if (isAppInDarkMode()) Color.Black else MaterialTheme.colorScheme.background
                                 false -> MaterialTheme.colorScheme.background
                             }
                             BackgroundImageOption.YourCurrentWallpaper -> MaterialTheme.colorScheme.background.copy(
@@ -102,12 +118,16 @@ abstract class BaseActivity: ComponentActivity() {
                             )
                         },
                         contentColor = if (isAppInDarkMode()) Color.White else Color.Black,
-                        content = {
-                            OnMainView(it)
-                        }
+                        context = context
                     )
                 },
             )
+
+            // Run startup script once
+            if (loadScriptAtStartup.value) {
+                loadScriptAtStartup.value = false
+                OnPreloadOnce()
+            }
         }
     }
 
@@ -122,14 +142,32 @@ abstract class BaseActivity: ComponentActivity() {
         }
     }
 
+    fun clearAllFocusAndHideKeyboard() {
+        keyboardController?.hide()
+        focusManager?.clearFocus(force = true)
+    }
+
     @Composable
     abstract fun OnPreloadOnce()
 
     @Composable
-    abstract fun OnMainView(padding: PaddingValues)
+    abstract fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    )
 
     fun getMainViewModel(): MainViewModel {
         return mainViewModel
+    }
+
+    fun getControlBackgroundAlpha(): Float {
+        return when (mainViewModel.appSettings.value.backgroundImage != BackgroundImageOption.None) {
+            true -> 0.7f
+            false -> 1f
+            // true -> return mainViewModel.appSettings.value.
+        }
     }
 
     fun saveSettings() {
@@ -140,11 +178,11 @@ abstract class BaseActivity: ComponentActivity() {
         text: String,
         clearPrevious: Boolean = false,
     ) {
-        snackbarScope.launch {
+        snackBarScope.launch {
             if (clearPrevious) {
-                snackbarHostState.currentSnackbarData?.dismiss()
+                snackBarHostState.currentSnackbarData?.dismiss()
             }
-            snackbarHostState
+            snackBarHostState
                 .showSnackbar(
                     message = text,
                     withDismissAction = false,

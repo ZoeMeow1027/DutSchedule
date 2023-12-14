@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,10 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
 
 @Composable
@@ -37,9 +42,10 @@ fun LoginDialog(
     dismissClicked: (() -> Unit)? = null,
     isVisible: Boolean = false,
     controlEnabled: Boolean = true,
-    clearOnClose: Boolean = true,
+    clearOnClose: Boolean = true
 ) {
     val passTextFieldFocusRequester = remember { FocusRequester() }
+    val passwordShow: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     val username: MutableState<String> = remember { mutableStateOf("") }
     val password: MutableState<String> = remember { mutableStateOf("") }
@@ -50,11 +56,14 @@ fun LoginDialog(
             username.value = ""
             password.value = ""
             rememberLogin.value = false
+            passwordShow.value = false
         }
     }
 
     DialogBase(
-        modifier = Modifier.fillMaxWidth().padding(25.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(25.dp),
         isVisible = isVisible,
         title = "Login",
         isTitleCentered = true,
@@ -91,7 +100,25 @@ fun LoginDialog(
                     value = password.value,
                     onValueChange = { password.value = it },
                     label = { Text("Password") },
-                    visualTransformation = PasswordVisualTransformation(),
+                    suffix = {
+                        IconButton(
+                            onClick = { passwordShow.value = !passwordShow.value },
+                            content = {
+                                Icon(
+                                    painter = painterResource(id = when (passwordShow.value) {
+                                        false -> R.drawable.ic_baseline_visibility_24
+                                        true -> R.drawable.ic_baseline_visibility_off_24
+                                    }),
+                                    contentDescription = ""
+                                )
+                            },
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    visualTransformation = when (passwordShow.value) {
+                        false -> PasswordVisualTransformation()
+                        true -> VisualTransformation.None
+                    },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Go

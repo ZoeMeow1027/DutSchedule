@@ -1,21 +1,20 @@
 package io.zoemeow.dutschedule.util
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.zoemeow.dutschedule.R
-import io.zoemeow.dutschedule.activity.PermissionRequestActivity
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
+import io.zoemeow.dutschedule.activity.NewsDetailActivity
 
 class NotificationsUtils {
     companion object {
@@ -89,41 +88,44 @@ class NotificationsUtils {
 
         fun showNewsNotification(
             context: Context,
-            channel_id: String,
-            news_md5: String,
-            news_title: String,
-            news_description: String,
-            data: Any?
+            channelId: String,
+            newsMD5: String,
+            newsTitle: String,
+            newsDescription: String,
+            jsonData: String
         ) {
-//            val notificationIntent = Intent(context, NewsDetailsActivity::class.java).apply {
-//                putExtra("type", channel_id)
-//                if (data != null)
-//                    putExtra("data", data as Serializable)
-//            }
-//
-//            val pendingIntent = PendingIntent.getActivity(
-//                context,
-//                AppUtils.calcMD5CharValue(news_md5),
-//                notificationIntent,
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
-//                    (PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-//                else PendingIntent.FLAG_UPDATE_CURRENT
-//            )
+            val notificationIntent = Intent(context, NewsDetailActivity::class.java).also {
+                it.action = when (channelId) {
+                    "notification.id.news.global" -> "news_global"
+                    "notification.id.news.subject" -> "news_subject"
+                    else -> ""
+                }
+                it.putExtra("data", jsonData)
+            }
 
-            val builder = NotificationCompat.Builder(context, channel_id)
-                //.setContentIntent(pendingIntent)
+            val pendingIntent = PendingIntent.getActivity(
+                context,
+                newsMD5.calcToSumByCharArray(),
+                notificationIntent,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    (PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+                else PendingIntent.FLAG_UPDATE_CURRENT
+            )
+
+            val builder = NotificationCompat.Builder(context, channelId)
+                .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(news_title)
-                .setContentText(news_description)
+                .setSmallIcon(R.drawable.ic_launcher_notification)
+                .setContentTitle(newsTitle)
+                .setContentText(newsDescription)
                 .setStyle(
-                    NotificationCompat.BigTextStyle().bigText(news_description)
+                    NotificationCompat.BigTextStyle().bigText(newsDescription)
                 )
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
             with(NotificationManagerCompat.from(context)) {
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                    notify(AppUtils.calcMD5CharValue(news_md5), builder.build())
+                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    notify(newsMD5.calcToSumByCharArray(), builder.build())
                 }
             }
         }

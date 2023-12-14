@@ -21,13 +21,15 @@ import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
 fun NewsListItem(
+    modifier: Modifier = Modifier,
+    opacity: Float = 1f,
     title: String,
     description: String,
     dateTime: Long? = null,
     onClick: (() -> Unit)? = null
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 5.dp)
             // https://www.android--code.com/2021/09/jetpack-compose-box-rounded-corners_25.html
@@ -36,7 +38,7 @@ fun NewsListItem(
             .clickable {
                 onClick?.let { it() }
             },
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         content = {
             Column(
                 modifier = Modifier.padding(

@@ -1,14 +1,20 @@
 package io.zoemeow.dutschedule.activity
 
-import androidx.compose.foundation.layout.PaddingValues
+import android.content.Context
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -19,9 +25,9 @@ import androidx.compose.ui.unit.dp
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
-import io.dutwrapperlib.dutwrapper.model.enums.NewsType
-import io.dutwrapperlib.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapperlib.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.model.enums.NewsType
+import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.ui.component.news.NewsDetailScreen
 import io.zoemeow.dutschedule.util.OpenLink
 
@@ -32,13 +38,20 @@ class NewsDetailActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun OnMainView(padding: PaddingValues) {
+    override fun OnMainView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
         val newsType = intent.action
         val newsData = intent.getStringExtra("data")
 
         Scaffold(
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
             topBar = {
                 TopAppBar(
                     title = { Text("News detail") },
@@ -59,6 +72,31 @@ class NewsDetailActivity: BaseActivity() {
                         )
                     },
                 )
+            },
+            floatingActionButton = {
+                if (newsType == "news_subject") {
+                    ExtendedFloatingActionButton(
+                        content = {
+                            Row {
+                                Icon(Icons.Default.Add, "Add to news filter")
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text("Add to news filter")
+                            }
+                        },
+                        onClick = {
+                            try {
+//                                (Gson().fromJson<NewsSubjectItem>(newsData, object : TypeToken<NewsSubjectItem>() {}.type).also {
+//                                    getMainViewModel().appSettings.value.newsFilterList.add()
+//                                }
+                                // TODO: Develop a add news filter function for news subject detail.
+                                showSnackBar("This function is in development. Check back soon.")
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                                showSnackBar("We can't add this subject in this news to your filter! You can instead add manually them.")
+                            }
+                        }
+                    )
+                }
             },
             content = {
                 when (newsType) {

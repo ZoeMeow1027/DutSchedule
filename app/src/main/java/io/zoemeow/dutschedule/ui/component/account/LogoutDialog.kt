@@ -16,7 +16,7 @@ fun LogoutDialog(
     isVisible: Boolean = false,
     canDismiss: Boolean = false,
     logoutClicked: (() -> Unit)? = null,
-    dismissClicked: (() -> Unit)? = null,
+    dismissClicked: (() -> Unit)? = null
 ) {
     DialogBase(
         modifier = Modifier.fillMaxWidth().padding(25.dp),
