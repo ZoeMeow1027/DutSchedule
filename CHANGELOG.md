@@ -3,6 +3,54 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft11 (886)
+- Account Activity:
+  - Redesign items in Subject Information (previous named Subject Schedule) and Subject Fee.
+  - Add a visibility icon for showing password for Password OutlinedTextField.
+  - [New] Search bar for search a SubjectResult.
+  - [New] School year filter in SubjectResult.
+
+- [New] Help Activity:
+  - This will explain and provide external link related for DUT school.
+
+- News Activity & News Detail Activity:
+  - News Search will split variables to NewsSearchViewModel.
+  - In news details - subject, content description will show entire content whenever new can parse to news subject.
+
+- Main Activity:
+  - Redesign components for optimize view.
+    - Lessons today
+    - Date and time (add current school year and week)
+    - School news
+
+- MainViewModel:
+  - Various changes for easier for manage them.
+
+- [New] NewsUpdateService:
+  - This service ensure notify you new announcements in sv.dut.udn.vn.
+
+- App Settings & Settings Activity
+  - [New] News Subject with new parse
+    - This will apply a new parse for news subject if supported.
+    - Access them in App Settings.
+  - [View only] Background opacity and Component opacity
+    - This will change background color and component opacity.
+    - Will shown only when BackgroundImageOption isn't equal BackgroundImageOption.None.
+  - Redesign in News Filter Settings.
+  - Reorder some options to correct group.
+  - Added and modified some properties. You might need to delete app or clear app data before updating. We will update a migrations in future.
+
+- Miscellaneous:
+  - Updated dependencies to latest.
+  - Add new permission: SCHEDULE_EXACT_ALARM, FOREGROUND_SERVICE.
+  - Modified app icon: Got from old project - DUTApp_API (this may be changed in future).
+  - Rework BaseActivity.kt: No more built-in Scaffold, transparent status bar.
+  - App will have black background in SplashScreen if system dark mode have enabled.
+  - Fix a issue cause news subject page automatically refresh.
+  - Make transparent for component if BackgroundImageOption isn't equal BackgroundImageOption.None.
+  - Improve performance and optimize codes.
+  - Merge extension function into one.
+
 ## 2.0-draft10 (701)
 - [New] Account training details (all subjects result), but not done yet.
 - [Changed] Implement dependencies to latest version.
