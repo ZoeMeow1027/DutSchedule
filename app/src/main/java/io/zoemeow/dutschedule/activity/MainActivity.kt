@@ -283,7 +283,8 @@ class MainActivity : BaseActivity() {
                             icon = {
                                 when (getMainViewModel().accountSession.value.processState) {
                                     ProcessState.Running -> CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(24.dp),
+                                        strokeWidth = 3.dp
                                     )
                                     else -> Icon(Icons.Outlined.AccountCircle, "Account")
                                 }

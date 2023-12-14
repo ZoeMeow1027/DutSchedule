@@ -3,6 +3,7 @@ package io.zoemeow.dutschedule.activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +23,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,20 +50,21 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.dutwrapper.dutwrapper.model.accounts.trainingresult.SubjectResult
+import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectFeeInformation
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectInformation
 import io.zoemeow.dutschedule.ui.component.account.LoginBannerNotLoggedIn
 import io.zoemeow.dutschedule.ui.component.account.LoginDialog
 import io.zoemeow.dutschedule.ui.component.account.LogoutDialog
-import io.zoemeow.dutschedule.ui.component.account.subjectitem.DialogSubjectDetailItem
-import io.zoemeow.dutschedule.ui.component.account.subjectitem.SubjectSummaryItem
+import io.zoemeow.dutschedule.ui.component.account.AccountSubjectMoreInformation
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.base.ExpandableContent
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
@@ -84,8 +89,8 @@ class AccountActivity: BaseActivity() {
         contentColor: Color
     ) {
         when (intent.action) {
-            "subject_schedule" -> {
-                AccountSubjectScheduleView(
+            "subject_information" -> {
+                AccountSubjectInformationView(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,
@@ -146,6 +151,8 @@ class AccountActivity: BaseActivity() {
         val selectedSubject = remember { mutableStateOf<SubjectResult?>(null) }
         val searchQuery = remember { mutableStateOf("") }
         val searchEnabled = remember { mutableStateOf(false) }
+        val schYearOption = remember { mutableStateOf(false) }
+        val schYearOptionText = remember { mutableStateOf("All school year items") }
 
         fun dismissSearchBar() {
             clearAllFocusAndHideKeyboard()
@@ -187,10 +194,12 @@ class AccountActivity: BaseActivity() {
                 TopAppBar(
                     title = {
                         if (!searchEnabled.value) {
-                            Text("Your training details")
+                            Text("Your Subjects Result")
                         } else {
                             OutlinedTextField(
-                                modifier = Modifier.fillMaxWidth().focusRequester(FocusRequester()),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .focusRequester(FocusRequester()),
                                 value = searchQuery.value,
                                 onValueChange = { searchQuery.value = it },
                                 keyboardOptions = KeyboardOptions(
@@ -211,7 +220,7 @@ class AccountActivity: BaseActivity() {
                                 if (searchEnabled.value) {
                                     dismissSearchBar()
                                 } else {
-                                    setResult(RESULT_OK)
+                                    setResult(RESULT_CANCELED)
                                     finish()
                                 }
                             },
@@ -276,15 +285,70 @@ class AccountActivity: BaseActivity() {
                                 CircularProgressIndicator()
                             }
                             ProcessState.Successful -> {
+                                ExposedDropdownMenuBox(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 5.dp)
+                                        .padding(bottom = 5.dp),
+                                    expanded = schYearOption.value,
+                                    onExpandedChange = { schYearOption.value = !schYearOption.value },
+                                    content = {
+                                        OutlinedTextField(
+                                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                            label = { Text("Select a school year to filter") },
+                                            readOnly = true,
+                                            value = schYearOptionText.value,
+                                            onValueChange = { }
+                                        )
+                                        DropdownMenu(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            expanded = schYearOption.value,
+                                            onDismissRequest = { schYearOption.value = false},
+                                            content = {
+                                                DropdownMenuItem(
+                                                    modifier = Modifier.background(
+                                                        color = when (schYearOptionText.value == "All school year items") {
+                                                            true -> MaterialTheme.colorScheme.secondaryContainer
+                                                            false -> MaterialTheme.colorScheme.surface
+                                                        }
+                                                    ),
+                                                    text = { Text("All school year items") },
+                                                    onClick = {
+                                                        schYearOptionText.value = "All school year items"
+                                                        schYearOption.value = false
+                                                    }
+                                                )
+                                                (getMainViewModel().accountTrainingStatus2.data.value?.subjectResultList?.map { it.schoolYear }?.toList()?.distinct() ?: listOf()).forEach {
+                                                    DropdownMenuItem(
+                                                        modifier = Modifier.background(
+                                                            color = when (schYearOptionText.value == it) {
+                                                                true -> MaterialTheme.colorScheme.secondaryContainer
+                                                                false -> MaterialTheme.colorScheme.surface
+                                                            }
+                                                        ),
+                                                        text = { Text(it) },
+                                                        onClick = {
+                                                            schYearOptionText.value = it
+                                                            schYearOption.value = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    }
+                                )
                                 getMainViewModel().accountTrainingStatus2.data.value?.subjectResultList?.filter {
-                                    p -> searchQuery.value.isEmpty()
-                                        || p.name.toNonAccent().lowercase().contains(searchQuery.value.toNonAccent().lowercase())
-                                }?.forEach { subjectItem ->
+                                    p ->
+                                    (schYearOptionText.value == "All school year items" || p.schoolYear == schYearOptionText.value) &&
+                                    (searchQuery.value.isEmpty()
+                                        || p.name.toNonAccent().lowercase().contains(searchQuery.value.toNonAccent().lowercase()))
+                                }?.reversed()?.forEach { subjectItem ->
                                     ExpandableContent(
                                         title = {
                                             Text(
                                                 text = String.format(
-                                                    "%s (%s)",
+                                                    "%2d - %s (%s)",
+                                                    subjectItem.index,
                                                     subjectItem.name,
                                                     if (subjectItem.resultT4 != null) String.format("%.2f", subjectItem.resultT4) else "unscored"
                                                 ),
@@ -356,7 +420,9 @@ class AccountActivity: BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
             containerColor = containerColor,
             contentColor = contentColor,
@@ -401,7 +467,6 @@ class AccountActivity: BaseActivity() {
                 }
             },
             content = { padding ->
-                val context = LocalContext.current
                 when (getMainViewModel().accountTrainingStatus2.processState.value) {
                     ProcessState.Running -> {
                         Column(
@@ -579,7 +644,7 @@ class AccountActivity: BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AccountSubjectScheduleView(
+    private fun AccountSubjectInformationView(
         context: Context,
         snackBarHostState: SnackbarHostState,
         containerColor: Color,
@@ -590,24 +655,26 @@ class AccountActivity: BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
             containerColor = containerColor,
             contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
-                    title = { Text("Subject schedule") },
+                    title = { Text("Subject Information") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
-                                setResult(RESULT_OK)
+                                setResult(RESULT_CANCELED)
                                 finish()
                             },
                             content = {
                                 Icon(
                                     Icons.AutoMirrored.Filled.ArrowBack,
-                                    "",
+                                    "Back to previous screen",
                                     modifier = Modifier.size(25.dp)
                                 )
                             }
@@ -668,11 +735,11 @@ class AccountActivity: BaseActivity() {
                             verticalArrangement = Arrangement.Top,
                             content = {
                                 getMainViewModel().subjectSchedule2.data.value?.forEach { item ->
-                                    SubjectSummaryItem(
-                                        title = item.name,
-                                        content = item.lecturer,
+                                    AccountSubjectInformation(
+                                        modifier = Modifier.padding(bottom = 7.dp),
+                                        item = item,
                                         opacity = getControlBackgroundAlpha(),
-                                        clicked = {
+                                        onClick = {
                                             subjectScheduleItem.value = item
                                             subjectDetailVisible.value = true
                                         }
@@ -684,7 +751,7 @@ class AccountActivity: BaseActivity() {
                 }
             }
         )
-        DialogSubjectDetailItem(
+        AccountSubjectMoreInformation(
             item = subjectScheduleItem.value,
             isVisible = subjectDetailVisible.value,
             dismissClicked = {
@@ -739,7 +806,9 @@ class AccountActivity: BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
             containerColor = containerColor,
             contentColor = contentColor,
@@ -817,10 +886,11 @@ class AccountActivity: BaseActivity() {
                             verticalArrangement = Arrangement.Top,
                             content = {
                                 getMainViewModel().subjectFee2.data.value?.forEach { item ->
-                                    SubjectSummaryItem(
-                                        title = item.name,
-                                        content = "${item.credit} credit(s), ${item.price} VND (${if (item.debt) "not completed yet" else "completed"})",
-                                        opacity = getControlBackgroundAlpha()
+                                    AccountSubjectFeeInformation(
+                                        modifier = Modifier.padding(bottom = 10.dp),
+                                        item = item,
+                                        opacity = getControlBackgroundAlpha(),
+                                        onClick = { }
                                     )
                                 }
                             }
@@ -858,7 +928,9 @@ class AccountActivity: BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
             containerColor = containerColor,
             contentColor = contentColor,
@@ -995,7 +1067,9 @@ class AccountActivity: BaseActivity() {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
         Scaffold(
-            modifier = Modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
             snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
             containerColor = containerColor,
             contentColor = contentColor,
@@ -1065,13 +1139,13 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Subject schedule") },
+                                    content = { Text("Subject Information") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
                                     opacity = getControlBackgroundAlpha(),
                                     clicked = {
                                         val intent = Intent(context, AccountActivity::class.java)
-                                        intent.action = "subject_schedule"
+                                        intent.action = "subject_information"
                                         context.startActivity(intent)
                                     }
                                 )
@@ -1080,7 +1154,7 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Subject fee") },
+                                    content = { Text("Subject Fee") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
                                     opacity = getControlBackgroundAlpha(),
@@ -1095,7 +1169,7 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Account information") },
+                                    content = { Text("Account Information") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
                                     opacity = getControlBackgroundAlpha(),
@@ -1110,7 +1184,7 @@ class AccountActivity: BaseActivity() {
                                         .fillMaxWidth()
                                         .padding(horizontal = 10.dp, vertical = 5.dp),
                                     modifierInside = Modifier.padding(vertical = 7.dp),
-                                    content = { Text("Account training result") },
+                                    content = { Text("Account Training Result") },
                                     horizontalArrangement = Arrangement.Start,
                                     isOutlinedButton = true,
                                     opacity = getControlBackgroundAlpha(),

@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.ui.component.account.subjectitem
+package io.zoemeow.dutschedule.ui.component.account
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,7 +23,7 @@ import io.zoemeow.dutschedule.ui.component.base.DialogBase
 import io.zoemeow.dutschedule.util.CustomDateUtils
 
 @Composable
-fun DialogSubjectDetailItem(
+fun AccountSubjectMoreInformation(
     item: SubjectScheduleItem? = null,
     isVisible: Boolean = false,
     onAddToFilterRequested: ((SubjectCode) -> Unit)? = null,
