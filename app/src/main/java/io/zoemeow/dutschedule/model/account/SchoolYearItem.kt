@@ -7,4 +7,14 @@ data class SchoolYearItem(
     var year: Int = 23,
     // School semester (in range 1-3, ex. 1 for semester 1, 3 for semester in summer).
     var semester: Int = 1
-): Serializable
+): Serializable {
+    fun clone(
+        year: Int? = null,
+        semester: Int? = null,
+    ): SchoolYearItem {
+        return SchoolYearItem(
+            year = year ?: this.year,
+            semester = semester ?: this.semester
+        )
+    }
+}

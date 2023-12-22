@@ -27,7 +27,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -61,11 +64,13 @@ import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.BuildConfig
 import io.zoemeow.dutschedule.R
+import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
+import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
 import io.zoemeow.dutschedule.ui.component.base.SwitchWithTextInSurface
 import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.DividerItem
@@ -108,7 +113,7 @@ class SettingsActivity : BaseActivity() {
     ) {
         when (intent.action) {
             "settings_newsfilter" -> {
-                NewsFilterSettingsView(
+                View_NewsFilterSettings(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,
@@ -117,7 +122,16 @@ class SettingsActivity : BaseActivity() {
             }
 
             "settings_newssubjectnewparse" -> {
-                NewsSubjectNewParseView(
+                View_NewParseNotification(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
+            }
+
+            "settings_experimentsettings" -> {
+                View_ExperimentSettings(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,
@@ -126,7 +140,7 @@ class SettingsActivity : BaseActivity() {
             }
 
             else -> {
-                MainView(
+                View_Main(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,
@@ -138,7 +152,7 @@ class SettingsActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun NewsSubjectNewParseView(
+    private fun View_NewParseNotification(
         context: Context,
         snackBarHostState: SnackbarHostState,
         containerColor: Color,
@@ -155,7 +169,7 @@ class SettingsActivity : BaseActivity() {
             contentColor = contentColor,
             topBar = {
                 LargeTopAppBar(
-                    title = { Text("News Subject with new parse") },
+                    title = { Text("New parse method on notification") },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
@@ -243,7 +257,7 @@ class SettingsActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun MainView(
+    private fun View_Main(
         context: Context,
         snackBarHostState: SnackbarHostState,
         containerColor: Color,
@@ -309,7 +323,20 @@ class SettingsActivity : BaseActivity() {
                                     },
                                     padding = PaddingValues(vertical = 15.dp),
                                     clicked = {
-                                        dialogFetchNews.value = true
+                                        if (PermissionRequestActivity.isPermissionGranted(PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM, context)) {
+                                            dialogFetchNews.value = true
+                                        } else {
+                                            showSnackBar(
+                                                text = "You need to enable Alarms & reminders in Android app settings to use this feature.",
+                                                clearPrevious = true,
+                                                actionText = "Open",
+                                                action = {
+                                                    context.startActivity(
+                                                        PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM.extraAction
+                                                    )
+                                                }
+                                            )
+                                        }
                                     }
                                 )
                                 OptionItem(
@@ -323,7 +350,7 @@ class SettingsActivity : BaseActivity() {
                                     }
                                 )
                                 OptionItem(
-                                    title = "News subject notification new parse",
+                                    title = "New parse method on notification",
                                     description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
                                         true -> "Enabled (special notification for news subject)"
                                         false -> "Disabled (regular notification)"
@@ -402,7 +429,7 @@ class SettingsActivity : BaseActivity() {
                                         ),
                                         padding = PaddingValues(vertical = 15.dp),
                                         clicked = {
-                                            showSnackBar("This option is in development. Check back soon.")
+                                            showSnackBar("This option is in development. Check back soon.", true)
                                             /* TODO: Implement here: Background opacity */
                                         }
                                     )
@@ -414,7 +441,7 @@ class SettingsActivity : BaseActivity() {
                                         ),
                                         padding = PaddingValues(vertical = 15.dp),
                                         clicked = {
-                                            showSnackBar("This option is in development. Check back soon.")
+                                            showSnackBar("This option is in development. Check back soon.", true)
                                             /* TODO: Implement here: Component opacity */
                                         }
                                     )
@@ -492,6 +519,16 @@ class SettingsActivity : BaseActivity() {
                                         )
                                     }
                                 )
+                                OptionItem(
+                                    title = "Experiment settings",
+                                    description = "Our current experiment settings before public.",
+                                    padding = PaddingValues(vertical = 15.dp),
+                                    clicked = {
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        intent.action = "settings_experimentsettings"
+                                        context.startActivity(intent)
+                                    }
+                                )
                             }
                         )
                     },
@@ -543,6 +580,17 @@ class SettingsActivity : BaseActivity() {
                                 getMainViewModel().appSettings.value.clone(
                                     backgroundImage = it
                                 )
+                        } else {
+                            showSnackBar(
+                                text = "You need to grant All files access in Application permission to use this feature. You can use \"Choose a image from media\" without this permission.",
+                                clearPrevious = true,
+                                actionText = "Grant",
+                                action = {
+                                    context.startActivity(
+                                        PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE.extraAction
+                                    )
+                                }
+                            )
                         }
                     }
 
@@ -579,7 +627,7 @@ class SettingsActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun NewsFilterSettingsView(
+    private fun View_NewsFilterSettings(
         context: Context,
         snackBarHostState: SnackbarHostState,
         containerColor: Color,
@@ -1085,6 +1133,216 @@ class SettingsActivity : BaseActivity() {
             actionButtons = {
                 TextButton(
                     onClick = { onSubmit?.let { it(duration.intValue) } },
+                    content = { Text("Save") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+                TextButton(
+                    onClick = { dismissRequested?.let { it() } },
+                    content = { Text("Cancel") },
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            }
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun View_ExperimentSettings(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        val dialogSchoolYear = remember { mutableStateOf(false) }
+
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
+            topBar = {
+                LargeTopAppBar(
+                    title = { Text("Experiment settings") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_CANCELED)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                    scrollBehavior = scrollBehavior
+                )
+            },
+            content = {
+                Column(
+                    modifier = Modifier
+                        .padding(it)
+                        .verticalScroll(rememberScrollState()),
+                    content = {
+                        ContentRegion(
+                            modifier = Modifier
+                                .padding(horizontal = 20.dp)
+                                .padding(top = 10.dp),
+                            text = "Global variables settings",
+                            content = {
+                                OptionItem(
+                                    title = "Current school year settings",
+                                    description = String.format(
+                                        "Year: 20%d-20%d, Semester: %s%s",
+                                        getMainViewModel().appSettings.value.currentSchoolYear.year,
+                                        getMainViewModel().appSettings.value.currentSchoolYear.year + 1,
+                                        when (getMainViewModel().appSettings.value.currentSchoolYear.semester) {
+                                            1 -> "1"
+                                            2 -> "2"
+                                            else -> "2"
+                                        },
+                                        if (getMainViewModel().appSettings.value.currentSchoolYear.semester > 2) " (in summer)" else ""
+                                    ),
+                                    padding = PaddingValues(vertical = 15.dp),
+                                    clicked = {
+                                        dialogSchoolYear.value = true
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+        )
+        DialogSchoolYearSettings(
+            isVisible = dialogSchoolYear.value,
+            dismissRequested = { dialogSchoolYear.value = false },
+            currentSchoolYearItem = getMainViewModel().appSettings.value.currentSchoolYear,
+            onSubmit = {
+                getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
+                    currentSchoolYear = it
+                )
+                saveSettings()
+                dialogSchoolYear.value = false
+            }
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DialogSchoolYearSettings(
+        isVisible: Boolean = false,
+        dismissRequested: (() -> Unit)? = null,
+        currentSchoolYearItem: SchoolYearItem,
+        onSubmit: ((SchoolYearItem) -> Unit)? = null
+    ) {
+        val currentSettings = remember { mutableStateOf(SchoolYearItem()) }
+        val dropDownSchoolYear = remember { mutableStateOf(false) }
+        val dropDownSemester = remember { mutableStateOf(false) }
+
+        LaunchedEffect(isVisible) {
+            currentSettings.value = currentSchoolYearItem
+            dropDownSchoolYear.value = false
+            dropDownSemester.value = false
+        }
+
+        DialogBase(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(25.dp),
+            title = "School year settings",
+            isVisible = isVisible,
+            canDismiss = false,
+            isTitleCentered = true,
+            dismissClicked = {
+                dismissRequested?.let { it() }
+            },
+            content = {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        "Edit your value below to adjust school year variable (careful when changing settings here)",
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = dropDownSchoolYear.value,
+                        onExpandedChange = { dropDownSchoolYear.value = !dropDownSchoolYear.value },
+                        content = {
+                            OutlinedTextBox(
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                title = "School year",
+                                value = String.format("20%d-20%d", currentSettings.value.year, currentSettings.value.year+1)
+                            )
+                            DropdownMenu(
+                                expanded = dropDownSchoolYear.value,
+                                onDismissRequest = { dropDownSchoolYear.value = false },
+                                content = {
+                                    23.downTo(10).forEach {
+                                        DropdownMenuItem(
+                                            text = { Text(String.format("20%2d-20%2d", it, it+1)) },
+                                            onClick = {
+                                                currentSettings.value = currentSettings.value.clone(
+                                                    year = it
+                                                )
+                                                dropDownSchoolYear.value = false
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    )
+                    ExposedDropdownMenuBox(
+                        expanded = dropDownSemester.value,
+                        onExpandedChange = { dropDownSemester.value = !dropDownSemester.value },
+                        content = {
+                            OutlinedTextBox(
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                title = "Semester",
+                                value = String.format(
+                                    "Semester %d%s",
+                                    if (currentSettings.value.semester <= 2) currentSettings.value.semester else 2,
+                                    if (currentSettings.value.semester > 2) " (in summer)" else ""
+                                )
+                            )
+                            DropdownMenu(
+                                expanded = dropDownSemester.value,
+                                onDismissRequest = { dropDownSemester.value = false },
+                                content = {
+                                    1.rangeTo(3).forEach {
+                                        DropdownMenuItem(
+                                            text = { Text(String.format(
+                                                "Semester %d%s",
+                                                if (it <= 2) it else 2,
+                                                if (it > 2) " (in summer)" else ""
+                                            )) },
+                                            onClick = {
+                                                currentSettings.value = currentSettings.value.clone(
+                                                    semester = it
+                                                )
+                                                dropDownSemester.value = false
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    )
+                }
+            },
+            actionButtons = {
+                TextButton(
+                    onClick = { onSubmit?.let { it(currentSettings.value) } },
                     content = { Text("Save") },
                     modifier = Modifier.padding(start = 8.dp),
                 )

@@ -1,6 +1,7 @@
 package io.zoemeow.dutschedule.model.settings
 
 import com.google.gson.annotations.SerializedName
+import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import java.io.Serializable
 
 data class AppSettings(
@@ -32,7 +33,10 @@ data class AppSettings(
     val newsBackgroundDuration: Int = 0,
 
     @SerializedName("appsettings.newsbackground.parsenewssubject")
-    val newsBackgroundParseNewsSubject: Boolean = true
+    val newsBackgroundParseNewsSubject: Boolean = true,
+
+    @SerializedName("appsettings.globalvariables.schoolyear")
+    val currentSchoolYear: SchoolYearItem = SchoolYearItem(),
 ): Serializable {
     fun clone(
         themeMode: ThemeMode? = null,
@@ -43,7 +47,8 @@ data class AppSettings(
         newsFilterList: ArrayList<SubjectCode>? = null,
         backgroundImageOpacity: Float? = null,
         fetchNewsBackgroundDuration: Int? = null,
-        newsBackgroundParseNewsSubject: Boolean? = null
+        newsBackgroundParseNewsSubject: Boolean? = null,
+        currentSchoolYear: SchoolYearItem? = null
     ): AppSettings {
         return AppSettings(
             themeMode = themeMode ?: this.themeMode,
@@ -58,7 +63,8 @@ data class AppSettings(
                 0 -> 0
                 else -> if (fetchNewsBackgroundDuration >= 5) fetchNewsBackgroundDuration else 5
             },
-            newsBackgroundParseNewsSubject = newsBackgroundParseNewsSubject ?: this.newsBackgroundParseNewsSubject
+            newsBackgroundParseNewsSubject = newsBackgroundParseNewsSubject ?: this.newsBackgroundParseNewsSubject,
+            currentSchoolYear = currentSchoolYear ?: this.currentSchoolYear
         )
     }
 }

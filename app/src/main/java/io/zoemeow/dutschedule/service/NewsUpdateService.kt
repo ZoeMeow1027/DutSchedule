@@ -364,14 +364,14 @@ class NewsUpdateService : BaseService(
                     val notifyTitle = when (newsItem.lessonStatus) {
                         LessonStatus.Leaving -> {
                             String.format(
-                                "New %s announcement from %s",
+                                "New %s lesson from %s",
                                 "Leaving",
                                 newsItem.lecturerName
                             )
                         }
                         LessonStatus.MakeUp -> {
                             String.format(
-                                "New %s announcement from %s",
+                                "New %s lesson from %s",
                                 "Make up",
                                 newsItem.lecturerName
                             )
@@ -409,7 +409,7 @@ class NewsUpdateService : BaseService(
                     // Affected classrooms
                     notifyContentList.add(
                         String.format(
-                            "Subject(s) affected: %s",
+                            "Subject(s): %s",
                             affectedClassrooms
                         )
                     )

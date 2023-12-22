@@ -3,6 +3,10 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft12 (891) (not public yet)
+- Settings Activity:
+  - Add option to edit "School year" variable settings in expriment settings.
+
 ## 2.0-draft11 (886)
 - Account Activity:
   - Redesign items in Subject Information (previous named Subject Schedule) and Subject Fee.

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -177,17 +178,27 @@ abstract class BaseActivity: ComponentActivity() {
     fun showSnackBar(
         text: String,
         clearPrevious: Boolean = false,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        actionText: String? = null,
+        action: (() -> Unit)? = null
     ) {
         snackBarScope.launch {
             if (clearPrevious) {
                 snackBarHostState.currentSnackbarData?.dismiss()
             }
-            snackBarHostState
+            val result = snackBarHostState
                 .showSnackbar(
                     message = text,
+                    actionLabel = actionText,
                     withDismissAction = false,
-                    duration = SnackbarDuration.Short
+                    duration = duration
                 )
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    if (actionText != null) action?.let { it() }
+                }
+                else -> { }
+            }
         }
     }
 
