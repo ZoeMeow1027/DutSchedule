@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.model.helpandexternallink.HelpLinkInfo
 import io.zoemeow.dutschedule.ui.component.helpandexternallink.HelpLinkClickable
-import io.zoemeow.dutschedule.util.OpenLink
+import io.zoemeow.dutschedule.utils.openLink
 
 @AndroidEntryPoint
 class HelpActivity : BaseActivity() {
@@ -195,7 +195,7 @@ class HelpActivity : BaseActivity() {
                                         linkClicked = {
                                             clearAllFocusAndHideKeyboard()
                                             try {
-                                                OpenLink(
+                                                openLink(
                                                     url = item.url,
                                                     context = context,
                                                     customTab = getMainViewModel().appSettings.value.openLinkInsideApp

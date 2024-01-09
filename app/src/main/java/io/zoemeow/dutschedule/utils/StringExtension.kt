@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.util
+package io.zoemeow.dutschedule.utils
 
 import java.math.BigInteger
 import java.security.MessageDigest

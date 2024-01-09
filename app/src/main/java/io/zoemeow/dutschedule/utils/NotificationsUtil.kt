@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.util
+package io.zoemeow.dutschedule.utils
 
 import android.Manifest
 import android.app.Activity
@@ -16,7 +16,7 @@ import androidx.core.app.NotificationManagerCompat
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.NewsDetailActivity
 
-class NotificationsUtils {
+class NotificationsUtil {
     companion object {
         private fun createNotificationChannelWithDefaultSettings(
             activity: Activity,

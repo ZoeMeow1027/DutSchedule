@@ -10,14 +10,18 @@ import io.dutwrapper.dutwrapper.model.enums.NewsSearchType
 import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.model.ProcessState
+import io.zoemeow.dutschedule.model.news.NewsSearchHistory
 import io.zoemeow.dutschedule.repository.DutNewsRepository
+import io.zoemeow.dutschedule.repository.FileModuleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NewsSearchViewModel @Inject constructor(): ViewModel() {
+class NewsSearchViewModel @Inject constructor(
+    private val fileModuleRepository: FileModuleRepository
+): ViewModel() {
     //<editor-fold desc="Config variables">
     // Search query
     val query = mutableStateOf("")
@@ -41,13 +45,11 @@ class NewsSearchViewModel @Inject constructor(): ViewModel() {
     //</editor-fold>
 
     //<editor-fold desc="UI variables - Don't modify these variables to avoid issues">
-    // Search method option (by title/by content)
-    val searchMethodOptionVisible = mutableStateOf(false)
 
-    // Search type option (news global/news subject)
-    val newsSearchType = mutableStateOf(false)
+
     //</editor-fold>
 
+    val searchHistory = mutableStateListOf<NewsSearchHistory>()
 
     // Functions
     fun invokeSearch(startOver: Boolean = false) {
@@ -62,6 +64,12 @@ class NewsSearchViewModel @Inject constructor(): ViewModel() {
             } else {
                 progress.value = ProcessState.Running
             }
+
+            addToSearchHistory(NewsSearchHistory(
+                query = query.value,
+                newsMethod = method.value,
+                newsType = type.value
+            ))
 
             try {
                 if (startOver) {
@@ -95,5 +103,24 @@ class NewsSearchViewModel @Inject constructor(): ViewModel() {
                 progress.value = ProcessState.Failed
             }
         }
+    }
+
+    private fun addToSearchHistory(query: NewsSearchHistory) {
+        if (searchHistory.any { p -> p.isEqual(query) }) {
+            val d = searchHistory.first { p -> p.isEqual(query) }
+            searchHistory.remove(d)
+        }
+        searchHistory.add(0, query);
+        fileModuleRepository.saveNewsSearchHistory(data = ArrayList(searchHistory))
+    }
+
+    fun clearHistory() {
+        searchHistory.clear()
+        fileModuleRepository.saveNewsSearchHistory(data = ArrayList(searchHistory))
+    }
+
+    init {
+        searchHistory.clear()
+        searchHistory.addAll(fileModuleRepository.getNewsSearchHistory())
     }
 }

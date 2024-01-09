@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
 import io.zoemeow.dutschedule.model.CustomClock
-import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.utils.CustomDateUtil
 import kotlinx.coroutines.delay
 
 @Composable
@@ -68,7 +68,7 @@ fun DateAndTimeSummaryItem(
         while (true) {
             String.format(
                 "Date and time: %s\n(based on your current region)\n",
-                CustomDateUtils.getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"),
+                CustomDateUtil.getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"),
             ).also { dateTimeString.value = it }
             delay(1000)
         }

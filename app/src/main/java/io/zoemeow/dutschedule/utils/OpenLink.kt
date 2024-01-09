@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.util
+package io.zoemeow.dutschedule.utils
 
 import android.content.Context
 import android.content.Intent
@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
 
-fun OpenLink(
+fun openLink(
     url: String,
     context: Context,
     customTab: Boolean = true

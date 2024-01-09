@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.activity
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,9 +46,9 @@ import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
-import io.zoemeow.dutschedule.util.CustomDateUtils
-import io.zoemeow.dutschedule.util.NotificationsUtils
-import io.zoemeow.dutschedule.util.OpenLink
+import io.zoemeow.dutschedule.utils.CustomDateUtil
+import io.zoemeow.dutschedule.utils.NotificationsUtil
+import io.zoemeow.dutschedule.utils.openLink
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -60,8 +61,13 @@ import kotlin.time.Duration.Companion.days
 class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
-        NotificationsUtils.initializeNotificationChannel(this)
-        NewsUpdateService.cancelSchedule(this)
+        NewsUpdateService.cancelSchedule(
+            context = this,
+            onDone = {
+                Log.d("NewsBackgroundService", "Cancelled schedule")
+            }
+        )
+        NotificationsUtil.initializeNotificationChannel(this)
     }
 
     @Composable
@@ -113,7 +119,7 @@ class MainActivity : BaseActivity() {
                         )
                     },
                     affectedList = getMainViewModel().subjectSchedule2.data.value?.filter { subSch ->
-                        subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtils.getCurrentDayOfWeek() } &&
+                        subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtil.getCurrentDayOfWeek() } &&
                                 subSch.subjectStudy.scheduleList.any { schItem ->
                                     schItem.lesson.end >= when (CustomClock.getCurrent().toDUTLesson()) {
                                         -3 -> -99.0
@@ -150,7 +156,7 @@ class MainActivity : BaseActivity() {
                     updateAvailable = false,
                     latestVersionString = "",
                     clicked = {
-                        OpenLink(
+                        openLink(
                             url = "https://github.com/ZoeMeow1027/DutSchedule/releases",
                             context = context,
                             customTab = false,
@@ -315,9 +321,16 @@ class MainActivity : BaseActivity() {
         )
     }
 
-    override fun onPause() {
-        NewsUpdateService.cancelSchedule(this)
+    override fun onStop() {
+        Log.d("MainActivity", "MainActivity is being stopped")
+        NewsUpdateService.cancelSchedule(
+            context = this,
+            onDone = {
+                Log.d("NewsBackgroundService", "Cancelled schedule")
+            }
+        )
         if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
+            Log.d("NewsBackgroundService", "Started service")
             BaseService.startService(
                 context = this,
                 intent = Intent(applicationContext, NewsUpdateService::class.java).also {
@@ -325,29 +338,6 @@ class MainActivity : BaseActivity() {
                 }
             )
         }
-        super.onPause()
-    }
-
-    override fun onDestroy() {
-        NewsUpdateService.cancelSchedule(this)
-        if (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) {
-            BaseService.startService(
-                context = this,
-                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
-                    it.action = "news.service.action.fetchallpage1background"
-                }
-            )
-        }
-        super.onDestroy()
-    }
-
-    override fun onResume() {
-        NewsUpdateService.cancelSchedule(this)
-        super.onResume()
-    }
-
-    override fun onRestart() {
-        NewsUpdateService.cancelSchedule(this)
-        super.onRestart()
+        super.onStop()
     }
 }

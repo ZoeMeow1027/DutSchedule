@@ -19,9 +19,10 @@ import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
-import io.zoemeow.dutschedule.util.CustomDateUtils
-import io.zoemeow.dutschedule.util.NotificationsUtils
-import io.zoemeow.dutschedule.util.calcMD5
+import io.zoemeow.dutschedule.utils.CustomDateUtil
+import io.zoemeow.dutschedule.utils.CustomDateUtil.Companion.getCurrentDateAndTimeToString
+import io.zoemeow.dutschedule.utils.NotificationsUtil
+import io.zoemeow.dutschedule.utils.calcMD5
 
 class NewsUpdateService : BaseService(
     nNotifyId = "notification.id.service",
@@ -109,7 +110,6 @@ class NewsUpdateService : BaseService(
             else -> {}
         }
         if (schedule) {
-            Log.d("NewsService", "Triggered next run")
             scheduleNextRun()
         }
     }
@@ -121,6 +121,10 @@ class NewsUpdateService : BaseService(
         try {
             // Get news cache
             val newsCache = file.getCacheNewsGlobal()
+
+            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+                throw Exception("Request too fast. Try again later.")
+            }
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsGlobal(
@@ -200,6 +204,9 @@ class NewsUpdateService : BaseService(
                     newsCache.pageCurrent = 2
                 }
             }
+
+            newsCache.lastModifiedDate = System.currentTimeMillis()
+
             file.saveCacheNewsGlobal(newsCache)
 
             // Check if any news need to be notify here using newsFiltered!
@@ -216,7 +223,7 @@ class NewsUpdateService : BaseService(
             // Processing news global notifications for notify here!
             newsFiltered.forEach { newsGroup ->
                 newsGroup.itemList.forEach { newsItem ->
-                    NotificationsUtils.showNewsNotification(
+                    NotificationsUtil.showNewsNotification(
                         context = this,
                         channelId = "notification.id.news.global",
                         newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
@@ -226,7 +233,10 @@ class NewsUpdateService : BaseService(
                     )
                 }
             }
-        } catch (_: Exception) {
+            Log.d("NewsBackgroundService", "Done executing function in news global.")
+        } catch (ex: Exception) {
+            Log.w("NewsBackgroundService", "An error was occurred when executing function in news global.")
+            ex.printStackTrace()
         }
     }
 
@@ -237,6 +247,10 @@ class NewsUpdateService : BaseService(
         try {
             // Get news cache
             val newsCache = file.getCacheNewsSubject()
+
+            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+                throw Exception("Request too fast. Try again later.")
+            }
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsSubject(
@@ -316,6 +330,9 @@ class NewsUpdateService : BaseService(
                     newsCache.pageCurrent = 2
                 }
             }
+
+            newsCache.lastModifiedDate = System.currentTimeMillis()
+
             file.saveCacheNewsSubject(newsCache)
 
             // Check if any news need to be notify here using newsFiltered!
@@ -422,7 +439,7 @@ class NewsUpdateService : BaseService(
                         notifyContentList.add(
                             String.format(
                                 "Date affected: %s",
-                                CustomDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
+                                CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy")
                             )
                         )
                         // Lessons
@@ -446,7 +463,7 @@ class NewsUpdateService : BaseService(
                         notifyContentList.add(newsItem.contentString)
                     }
 
-                    NotificationsUtils.showNewsNotification(
+                    NotificationsUtil.showNewsNotification(
                         context = this,
                         channelId = "notification.id.news.subject",
                         newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
@@ -459,7 +476,10 @@ class NewsUpdateService : BaseService(
                     )
                 }
             }
-        } catch (_: Exception) {
+            Log.d("NewsBackgroundService", "Done executing function in news subject.")
+        } catch (ex: Exception) {
+            Log.w("NewsBackgroundService", "An error was occurred when executing function in news subject.")
+            ex.printStackTrace()
         }
     }
 
@@ -475,7 +495,13 @@ class NewsUpdateService : BaseService(
             intervalInMinute = settings.newsBackgroundDuration,
             scheduleStart = null,
             scheduleEnd = null,
-            pendingIntent = pendingIntent
+            pendingIntent = pendingIntent,
+            onDone = {
+                Log.d(
+                    "NewsBackgroundService",
+                    String.format("Scheduled service to run at %s.", getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"))
+                )
+            }
         )
     }
 
@@ -500,10 +526,7 @@ class NewsUpdateService : BaseService(
                     context,
                     1234,
                     intent,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        PendingIntent.FLAG_IMMUTABLE
-                    }
-                    else PendingIntent.FLAG_UPDATE_CURRENT
+                    PendingIntent.FLAG_UPDATE_CURRENT
                 )
             }
 
@@ -511,11 +534,12 @@ class NewsUpdateService : BaseService(
         }
 
         fun cancelSchedule(
-            context: Context
+            context: Context,
+            onDone: (() -> Unit)? = null
         ) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(getPendingIntentForBackground(context))
-            Log.d("NewsService", "Cancelled run")
+            onDone?.let { it() }
         }
     }
 }

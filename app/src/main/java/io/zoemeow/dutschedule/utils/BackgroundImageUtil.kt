@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.util
+package io.zoemeow.dutschedule.utils
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -8,7 +8,7 @@ import android.net.Uri
 import androidx.core.graphics.drawable.toBitmap
 import java.io.File
 
-class BackgroundImageUtils {
+class BackgroundImageUtil {
     companion object {
         fun getCurrentWallpaperBackground(context: Context): Bitmap? {
             return try {

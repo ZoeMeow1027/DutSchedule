@@ -29,7 +29,7 @@ import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.ui.component.news.NewsDetailScreen
-import io.zoemeow.dutschedule.util.OpenLink
+import io.zoemeow.dutschedule.utils.openLink
 
 @AndroidEntryPoint
 class NewsDetailActivity: BaseActivity() {
@@ -106,7 +106,7 @@ class NewsDetailActivity: BaseActivity() {
                             newsItem = Gson().fromJson(newsData, object : TypeToken<NewsGlobalItem>() {}.type),
                             newsType = NewsType.Global,
                             linkClicked = { link ->
-                                OpenLink(
+                                openLink(
                                     url = link,
                                     context = this,
                                     customTab = getMainViewModel().appSettings.value.openLinkInsideApp
@@ -120,7 +120,7 @@ class NewsDetailActivity: BaseActivity() {
                             newsItem = Gson().fromJson(newsData, object : TypeToken<NewsSubjectItem>() {}.type) as NewsGlobalItem,
                             newsType = NewsType.Subject,
                             linkClicked = { link ->
-                                OpenLink(
+                                openLink(
                                     url = link,
                                     context = this,
                                     customTab = getMainViewModel().appSettings.value.openLinkInsideApp

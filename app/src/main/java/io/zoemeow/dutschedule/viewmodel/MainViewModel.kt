@@ -223,6 +223,8 @@ class MainViewModel @Inject constructor(
                 }
             }
 
+            newsBase.lastModifiedDate = System.currentTimeMillis()
+
             // TODO: Remove here!
             fileModuleRepository.saveCacheNewsGlobal(newsBase)
 
@@ -318,6 +320,9 @@ class MainViewModel @Inject constructor(
                     newsBase.pageCurrent = 2
                 }
             }
+
+            newsBase.lastModifiedDate = System.currentTimeMillis()
+
             // TODO: Remove here!
             fileModuleRepository.saveCacheNewsSubject(newsBase)
 

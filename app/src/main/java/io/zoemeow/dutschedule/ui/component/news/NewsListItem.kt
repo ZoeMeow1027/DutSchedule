@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.utils.CustomDateUtil
 
 @Composable
 fun NewsListItem(
@@ -55,7 +55,7 @@ fun NewsListItem(
                     )
                     dateTime?.let {
                         Text(
-                            text = CustomDateUtils.dateToString(it, "dd/MM/yyyy"),
+                            text = CustomDateUtil.dateUnixToString(it, "dd/MM/yyyy"),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                     }

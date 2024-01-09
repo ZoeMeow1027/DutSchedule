@@ -6,6 +6,7 @@ data class PermissionInfo(
     val name: String,
     val code: String,
     val minSdk: Int,
+    val maxSdk: Int? = null,
     val description: String,
     val required: Boolean = false,
     val extraAction: Intent? = null

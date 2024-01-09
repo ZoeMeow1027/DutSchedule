@@ -6,7 +6,7 @@ data class VariableTimestamp<T>(
     val data: T,
 )  {
     // Session ID duration in milliseconds
-    private val expiredDuration = 1000 * 60 * 5
+    private val expiredDuration = 1000 * 60 * 10
 
     fun clone(
         lastRequest: Long? = null,

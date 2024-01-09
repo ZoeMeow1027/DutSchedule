@@ -1,4 +1,4 @@
-package io.zoemeow.dutschedule.ui.component.settings
+package io.zoemeow.dutschedule.ui.component.base
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding

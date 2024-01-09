@@ -32,7 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
-import io.zoemeow.dutschedule.util.BackgroundImageUtils
+import io.zoemeow.dutschedule.utils.BackgroundImageUtil
 import io.zoemeow.dutschedule.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -92,8 +92,8 @@ abstract class BaseActivity: ComponentActivity() {
 
                     val draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
                         BackgroundImageOption.None -> null
-                        BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtils.getCurrentWallpaperBackground(context)
-                        BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtils.getImageFromAppData(context)
+                        BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtil.getCurrentWallpaperBackground(context)
+                        BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtil.getImageFromAppData(context)
                     }
                     if (draw != null) {
                         Image(

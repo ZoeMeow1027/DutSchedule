@@ -20,6 +20,7 @@ class PermissionList {
             name = "Manage External Storage",
             code = "android.permission.MANAGE_EXTERNAL_STORAGE",
             minSdk = 30,
+            maxSdk = 33,
             description = "This app will use your current wallpaper as app background wallpaper. " +
                     "We promise not to upload or modify any data on your device, including your wallpaper. " +
                     "If you don't want to grant this permission, you can use \"Choose a image from media\" instead.",
