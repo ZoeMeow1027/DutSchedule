@@ -219,7 +219,7 @@ class MainActivity : BaseActivity() {
             topBar = {
                 LargeTopAppBar(
                     title = { Text(text = "DutSchedule") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     scrollBehavior = scrollBehavior
                 )
             },

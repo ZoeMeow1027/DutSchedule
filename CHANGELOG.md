@@ -3,6 +3,21 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft13 (940)
+- **Important note**:
+  - This version may be changed in future because of commiting my current work.
+
+- General:
+  - Updated dependencies to latest version.
+  - Updated dutwrapper to fix a issue cause resultT4 and resultT10 returned wrong values.
+  - Updated LargeTopAppBar container color to transparent again due to recent dependency.
+  
+- AccountActivity:
+  - Reworked subject result list UI in account training status.
+
+- NewsActivity:
+  - Changed news type and search method to segmentedbutton.
+
 ## 2.0-draft12 (933)
 - **Important note**:
   - `Your current wallpaper` option in app background settings will be disabled on Android 14. You can check why in `Issue` tab in repository.

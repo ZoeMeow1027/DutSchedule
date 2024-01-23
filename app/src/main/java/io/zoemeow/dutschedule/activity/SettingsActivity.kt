@@ -159,7 +159,7 @@ class SettingsActivity : BaseActivity() {
             topBar = {
                 LargeTopAppBar(
                     title = { Text("New parse method on notification") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -268,7 +268,7 @@ class SettingsActivity : BaseActivity() {
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Settings") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
@@ -819,7 +819,7 @@ class SettingsActivity : BaseActivity() {
             topBar = {
                 LargeTopAppBar(
                     title = { Text("Experiment settings") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {
