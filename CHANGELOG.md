@@ -3,6 +3,10 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft14 (954)
+- NewsBackgroundUpdateService:
+  - Fixed a issue cause news subject parsed as news global.
+
 ## 2.0-draft13 (951)
 - General:
   - Updated dependencies to latest version.
