@@ -3,12 +3,57 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft13 (951)
+- General:
+  - Updated dependencies to latest version.
+  - Updated dutwrapper to fix a issue cause resultT4 and resultT10 returned wrong values.
+  - Updated LargeTopAppBar container color to transparent again due to recent dependency.
+  - Fixed MainViewModel is not initialized (temporary).
+  
+- AccountActivity:
+  - Reworked subject result list UI in account training status.
+
+- NewsActivity:
+  - Changed news type and search method to SegmentedButton.
+  - Merge NewsActivity and NewsDetailActivity into one.
+  
+- SettingsActivity:
+  - Moved "New parse method on notification" to "Experiment Settings" because of very experiment.
+  - "New parse method on notification" settings will be turned off at default.
+  - News Background Update Service will show subject name in title by default (for subject news).
+
+## 2.0-draft12 (933)
+- **Important note**:
+  - `Your current wallpaper` option in app background settings will be disabled on Android 14. You can check why in `Issue` tab in repository.
+
+- General:
+  - Optimize codes.
+  - Updated dependencies to latest version.
+
+- Account Session:
+  - Increase expired duration to 10 minutes.
+
+- Account Activity:
+  - Made School Year combobox selection fixed location in Subject Result.
+
+- Settings Activity:
+  - Add option to edit "School year" variable settings in expriment settings.
+  - Move all dialog to `ui.components`.
+
+- NewsUpdateService:
+  - Optimize `NewsUpdateService` to prevent too many request when MainActivity is paused or stopped.
+
+- News Activity:
+  - Rework Search function in News Search.
+    - Two option, `Search Method` and `News Type` is now in a row instead of IconButton.
+	- Add news search history for quick search.
+
 ## 2.0-draft11 (886)
 - Account Activity:
   - Redesign items in Subject Information (previous named Subject Schedule) and Subject Fee.
   - Add a visibility icon for showing password for Password OutlinedTextField.
-  - [New] Search bar for search a SubjectResult.
-  - [New] School year filter in SubjectResult.
+  - Search bar for search a SubjectResult.
+  - School year filter in SubjectResult.
 
 - [New] Help Activity:
   - This will explain and provide external link related for DUT school.

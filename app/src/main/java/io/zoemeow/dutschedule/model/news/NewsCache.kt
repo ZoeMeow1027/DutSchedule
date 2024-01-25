@@ -8,4 +8,6 @@ data class NewsCache<T>(
     val newsListByDate: ArrayList<NewsGroupByDate<T>> = arrayListOf(),
     @SerializedName("page_current")
     var pageCurrent: Int = 1,
+    @SerializedName("last_modified_date")
+    var lastModifiedDate: Long = 0
 ) : Serializable

@@ -1,13 +1,16 @@
-package io.zoemeow.dutschedule.util
+package io.zoemeow.dutschedule.utils
 
 import android.annotation.SuppressLint
+import com.github.marlonlom.utilities.timeago.TimeAgo
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
-class CustomDateUtils {
+class CustomDateUtil {
     companion object {
         /**
          * Get current day of week with Sunday as 1 to Saturday as 7.
@@ -29,7 +32,7 @@ class CustomDateUtils {
                     5 -> "Thursday"
                     6 -> "Friday"
                     7 -> "Saturday"
-                    else -> throw Exception("Invalid value: Must between 0 and 6!")
+                    else -> throw Exception("Invalid value: Must between 1 and 7!")
                 }
             } else {
                 when (value) {
@@ -40,37 +43,33 @@ class CustomDateUtils {
                     5 -> "Thu"
                     6 -> "Fri"
                     7 -> "Sat"
-                    else -> throw Exception("Invalid value: Must between 0 and 6!")
+                    else -> throw Exception("Invalid value: Must between 1 and 7!")
                 }
             }
         }
 
-        fun getCurrentDateAndTimeToString(format: String = "yyyy-MM-dd HH:mm:ss"): String {
+        fun getCurrentDateAndTimeToString(format: String = "yyyy/MM/dd HH:mm:ss"): String {
             return SimpleDateFormat(format, Locale.getDefault()).format(Date())
         }
 
-        fun unixToDuration(
-            unix: Long = System.currentTimeMillis()
-        ): String {
-            val unixDuration = (System.currentTimeMillis() - unix) / 1000
+        fun unixToDuration(unix: Long = System.currentTimeMillis()): String {
+            val duration = (System.currentTimeMillis() - unix).toDuration(DurationUnit.MILLISECONDS)
 
-            return when {
-                // Years
-                unixDuration / 60 / 60 / 24 / 365 > 0 ->
-                    "${unixDuration / 60 / 60 / 24 / 365} year${if (unixDuration / 60 / 60 / 24 / 365 > 1) "s" else ""} ago"
-                // Months
-                unixDuration / 60 / 60 / 24 / 30 > 0 ->
-                    "${unixDuration / 60 / 60 / 24 / 30} month${if (unixDuration / 60 / 60 / 24 / 30 > 1) "s" else ""} ago"
-                // Days
-                unixDuration / 60 / 60 / 24 > 0 ->
-                    "${unixDuration / 60 / 60 / 24} day${if (unixDuration / 60 / 60 / 24 > 1) "s" else ""} ago"
-                // Less than a day
-                else -> "Today"
+            return when (duration.inWholeHours) {
+                in 0..23 -> {
+                    "Today"
+                }
+                in 24..47 -> {
+                    "Yesterday"
+                }
+                else -> {
+                    TimeAgo.using(unix)
+                }
             }
         }
 
         @SuppressLint("SimpleDateFormat")
-        fun dateToString(
+        fun dateUnixToString(
             date: Long,
             dateFormat: String = "dd/MM/yyyy",
             gmt: String = "UTC"

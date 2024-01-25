@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
-import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.utils.CustomDateUtil
 
 @Composable
 fun AccountSubjectInformation(
@@ -44,7 +44,7 @@ fun AccountSubjectInformation(
                         text = "${item.lecturer}\n\nSchedule:\n${item.subjectStudy.scheduleList.joinToString(
                             separator = "\n",
                             transform = { schItem ->
-                                "- ${CustomDateUtils.dayOfWeekInString(schItem.dayOfWeek, true)} - Lesson ${schItem.lesson.start}-${schItem.lesson.end} - Room ${schItem.room}"
+                                "- ${CustomDateUtil.dayOfWeekInString(schItem.dayOfWeek, true)} - Lesson ${schItem.lesson.start}-${schItem.lesson.end} - Room ${schItem.room}"
                             }
                         )}",
                         style = MaterialTheme.typography.bodyMedium

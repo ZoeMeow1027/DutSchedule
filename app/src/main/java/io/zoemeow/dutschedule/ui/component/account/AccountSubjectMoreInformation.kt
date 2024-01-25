@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
-import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.utils.CustomDateUtil
 
 @Composable
 fun AccountSubjectMoreInformation(
@@ -58,7 +58,7 @@ fun AccountSubjectMoreInformation(
                             schList = it.subjectStudy.scheduleList.joinToString(
                                 separator = "; ",
                                 transform = { item1 ->
-                                    "${CustomDateUtils.dayOfWeekInString(item1.dayOfWeek + 1)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
+                                    "${CustomDateUtil.dayOfWeekInString(item1.dayOfWeek + 1)},${item1.lesson.start}-${item1.lesson.end},${item1.room}"
                                 }
                             )
                         }
@@ -87,7 +87,7 @@ fun AccountSubjectMoreInformation(
                             )
                             CustomText(
                                 "Date: ${
-                                    CustomDateUtils.dateToString(
+                                    CustomDateUtil.dateUnixToString(
                                         item.subjectExam.date,
                                         "dd/MM/yyyy HH:mm",
                                         "GMT+7"

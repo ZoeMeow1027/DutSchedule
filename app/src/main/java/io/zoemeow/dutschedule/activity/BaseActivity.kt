@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,11 +28,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.theme.DutScheduleTheme
-import io.zoemeow.dutschedule.util.BackgroundImageUtils
+import io.zoemeow.dutschedule.utils.BackgroundImageUtil
 import io.zoemeow.dutschedule.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -91,8 +93,8 @@ abstract class BaseActivity: ComponentActivity() {
 
                     val draw: Bitmap? = when (mainViewModel.appSettings.value.backgroundImage) {
                         BackgroundImageOption.None -> null
-                        BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtils.getCurrentWallpaperBackground(context)
-                        BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtils.getImageFromAppData(context)
+                        BackgroundImageOption.YourCurrentWallpaper -> BackgroundImageUtil.getCurrentWallpaperBackground(context)
+                        BackgroundImageOption.PickFileFromMedia -> BackgroundImageUtil.getImageFromAppData(context)
                     }
                     if (draw != null) {
                         Image(
@@ -159,6 +161,10 @@ abstract class BaseActivity: ComponentActivity() {
     )
 
     fun getMainViewModel(): MainViewModel {
+        if (!isMainViewModelInitialized()) {
+            // Initialize MainViewModel if this isn't initialized before.
+            mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        }
         return mainViewModel
     }
 
@@ -177,17 +183,27 @@ abstract class BaseActivity: ComponentActivity() {
     fun showSnackBar(
         text: String,
         clearPrevious: Boolean = false,
+        duration: SnackbarDuration = SnackbarDuration.Short,
+        actionText: String? = null,
+        action: (() -> Unit)? = null
     ) {
         snackBarScope.launch {
             if (clearPrevious) {
                 snackBarHostState.currentSnackbarData?.dismiss()
             }
-            snackBarHostState
+            val result = snackBarHostState
                 .showSnackbar(
                     message = text,
+                    actionLabel = actionText,
                     withDismissAction = false,
-                    duration = SnackbarDuration.Short
+                    duration = duration
                 )
+            when (result) {
+                SnackbarResult.ActionPerformed -> {
+                    if (actionText != null) action?.let { it() }
+                }
+                else -> { }
+            }
         }
     }
 

@@ -84,7 +84,8 @@ abstract class BaseService(
         intervalInMinute: Int = 5,
         scheduleStart: CustomClock? = null,
         scheduleEnd: CustomClock? = null,
-        pendingIntent: PendingIntent
+        pendingIntent: PendingIntent,
+        onDone: (() -> Unit)? = null
     ) {
         // TODO: Exception if intervalInMinute is less than 5.
         val currentTime = Calendar.getInstance().also {
@@ -132,6 +133,7 @@ abstract class BaseService(
                     pendingIntent
                 )
             }
+            onDone?.let { it() }
         } else {
             // TODO: Processing if missing permission android.permission.SCHEDULE_EXACT_ALARM.
         }

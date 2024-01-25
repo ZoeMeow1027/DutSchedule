@@ -108,7 +108,7 @@ class PermissionRequestActivity : BaseActivity() {
             topBar = {
                 LargeTopAppBar(
                     title = { Text(text = "Permissions request") },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(
                             onClick = {

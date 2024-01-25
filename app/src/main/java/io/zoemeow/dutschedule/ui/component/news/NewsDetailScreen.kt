@@ -26,7 +26,7 @@ import io.dutwrapper.dutwrapper.model.enums.LessonStatus
 import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
-import io.zoemeow.dutschedule.util.CustomDateUtils
+import io.zoemeow.dutschedule.utils.CustomDateUtil
 
 @Composable
 fun NewsDetailScreen(
@@ -76,12 +76,12 @@ private fun NewsDetailBody_NewsGlobal(
             )
             Text(
                 text = "⏱ ${
-                    CustomDateUtils.dateToString(
+                    CustomDateUtil.dateUnixToString(
                         newsItem.date,
                         "dd/MM/yyyy",
                         "UTC"
                     )
-                } (${CustomDateUtils.unixToDuration(newsItem.date)})",
+                } (${CustomDateUtil.unixToDuration(newsItem.date)})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(vertical = 7.dp)
             )
@@ -179,12 +179,12 @@ private fun NewsDetailBody_NewsSubject(
             )
             Text(
                 text = "⏱ ${
-                    CustomDateUtils.dateToString(
+                    CustomDateUtil.dateUnixToString(
                         newsItem.date,
                         "dd/MM/yyyy",
                         "UTC"
                     )
-                } (${CustomDateUtils.unixToDuration(newsItem.date)})",
+                } (${CustomDateUtil.unixToDuration(newsItem.date)})",
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(vertical = 7.dp)
             )
@@ -256,7 +256,7 @@ private fun NewsDetailBody_NewsSubject(
                 Text(
                     text = String.format(
                         "Date: %s",
-                        CustomDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy", "UTC")
+                        CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy", "UTC")
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                 )

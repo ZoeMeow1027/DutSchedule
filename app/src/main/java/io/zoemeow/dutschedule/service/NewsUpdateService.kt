@@ -19,14 +19,15 @@ import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.repository.DutNewsRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
-import io.zoemeow.dutschedule.util.CustomDateUtils
-import io.zoemeow.dutschedule.util.NotificationsUtils
-import io.zoemeow.dutschedule.util.calcMD5
+import io.zoemeow.dutschedule.utils.CustomDateUtil
+import io.zoemeow.dutschedule.utils.CustomDateUtil.Companion.getCurrentDateAndTimeToString
+import io.zoemeow.dutschedule.utils.NotificationsUtil
+import io.zoemeow.dutschedule.utils.calcMD5
 
 class NewsUpdateService : BaseService(
     nNotifyId = "notification.id.service",
     nTitle = "News service is running",
-    nContent = "A task is running to get news list from sv.dut.udn.vn..."
+    nContent = "A task is running to get news list from sv.dut.udn.vn. This task will take a few minutes..."
 ) {
     private lateinit var file: FileModuleRepository
     private lateinit var settings: AppSettings
@@ -55,10 +56,14 @@ class NewsUpdateService : BaseService(
         // val schedule = intent?.getBooleanExtra("news.service.variable.schedulenextrun", false) ?: false
         val schedule = settings.newsBackgroundDuration > 0
 
+        // Notify?
+        // 0: All, 1: News global only, 2: News subject only, 3: News global and news subject with filter.
+        val nofityType = intent?.getIntExtra("news.service.variable.notifytype", 0) ?: 0
+
         when (intent?.action) {
             "news.service.action.fetchglobal" -> {
                 fetchNewsGlobal(
-                    notify = true,
+                    notify = nofityType,
                     fetchType = when (fetchType) {
                         0 -> NewsFetchType.NextPage
                         1 -> NewsFetchType.FirstPage
@@ -69,7 +74,7 @@ class NewsUpdateService : BaseService(
             }
             "news.service.action.fetchsubject" -> {
                 fetchNewsSubject(
-                    notify = true,
+                    notify = nofityType,
                     fetchType = when (fetchType) {
                         0 -> NewsFetchType.NextPage
                         1 -> NewsFetchType.FirstPage
@@ -98,29 +103,32 @@ class NewsUpdateService : BaseService(
             }
             "news.service.action.fetchallpage1background" -> {
                 fetchNewsGlobal(
-                    notify = true,
+                    notify = nofityType,
                     fetchType = NewsFetchType.FirstPage
                 )
                 fetchNewsSubject(
-                    notify = true,
+                    notify = nofityType,
                     fetchType = NewsFetchType.FirstPage
                 )
             }
             else -> {}
         }
         if (schedule) {
-            Log.d("NewsService", "Triggered next run")
             scheduleNextRun()
         }
     }
 
     private fun fetchNewsGlobal(
-        notify: Boolean = false,
+        notify: Int = 0,
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
             // Get news cache
             val newsCache = file.getCacheNewsGlobal()
+
+            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+                throw Exception("Request too fast. Try again later.")
+            }
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsGlobal(
@@ -200,6 +208,9 @@ class NewsUpdateService : BaseService(
                     newsCache.pageCurrent = 2
                 }
             }
+
+            newsCache.lastModifiedDate = System.currentTimeMillis()
+
             file.saveCacheNewsGlobal(newsCache)
 
             // Check if any news need to be notify here using newsFiltered!
@@ -208,35 +219,32 @@ class NewsUpdateService : BaseService(
                 return
             }
 
-            // If no need to notify, aborting...
-            if (!notify) {
-                return
-            }
+            // TODO: Notify by notify variable...
 
             // Processing news global notifications for notify here!
             newsFiltered.forEach { newsGroup ->
                 newsGroup.itemList.forEach { newsItem ->
-                    NotificationsUtils.showNewsNotification(
-                        context = this,
-                        channelId = "notification.id.news.global",
-                        newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
-                        newsTitle = "News Global",
-                        newsDescription = newsItem.title,
-                        jsonData = Gson().toJson(newsItem)
-                    )
+                    notifyNews(this, newsItem)
                 }
             }
-        } catch (_: Exception) {
+            Log.d("NewsBackgroundService", "Done executing function in news global.")
+        } catch (ex: Exception) {
+            Log.w("NewsBackgroundService", "An error was occurred when executing function in news global.")
+            ex.printStackTrace()
         }
     }
 
     private fun fetchNewsSubject(
-        notify: Boolean = false,
+        notify: Int = 0,
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
             // Get news cache
             val newsCache = file.getCacheNewsSubject()
+
+            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+                throw Exception("Request too fast. Try again later.")
+            }
 
             // Get news from internet
             val newsFromInternet = DutNewsRepository.getNewsSubject(
@@ -316,6 +324,9 @@ class NewsUpdateService : BaseService(
                     newsCache.pageCurrent = 2
                 }
             }
+
+            newsCache.lastModifiedDate = System.currentTimeMillis()
+
             file.saveCacheNewsSubject(newsCache)
 
             // Check if any news need to be notify here using newsFiltered!
@@ -324,10 +335,7 @@ class NewsUpdateService : BaseService(
                 return
             }
 
-            // If no need to notify, aborting...
-            if (!notify) {
-                return
-            }
+            // TODO: Notify by notify variable...
 
             // TODO: Processing news subject notifications for notify here!
             newsFiltered.forEach newsGroupForEach@ { newsGroup ->
@@ -356,111 +364,153 @@ class NewsUpdateService : BaseService(
                         }
                     ) notifyRequired = true
 
-                    // If no notify/notify settings is off, continue with return@forEach.
-                    if (!notifyRequired || !notify) {
-                        return@newsItemForEach
-                    }
+                    // TODO: If no notify/notify settings is off, continue with return@forEach.
+                    // notifyRequired and notify variable
 
-                    val notifyTitle = when (newsItem.lessonStatus) {
-                        LessonStatus.Leaving -> {
-                            String.format(
-                                "New %s announcement from %s",
-                                "Leaving",
-                                newsItem.lecturerName
-                            )
-                        }
-                        LessonStatus.MakeUp -> {
-                            String.format(
-                                "New %s announcement from %s",
-                                "Make up",
-                                newsItem.lecturerName
-                            )
-                        }
-                        else -> {
-                            String.format(
-                                "New announcement from %s",
-                                newsItem.lecturerName
-                            )
-                        }
+                    if (notifyRequired) {
+                        notifyNews(this, newsItem)
                     }
-
-                    // Affected classrooms
-                    var affectedClassrooms = ""
-                    newsItem.affectedClass.forEach { className ->
-                        if (affectedClassrooms.isEmpty()) {
-                            affectedClassrooms = className.subjectName
-                        } else {
-                            affectedClassrooms += ", ${className.subjectName}"
-                        }
-                        var first = true
-                        for (item in className.codeList) {
-                            if (first) {
-                                affectedClassrooms += " ("
-                                first = false
-                            } else {
-                                affectedClassrooms += ", "
-                            }
-                            affectedClassrooms += "${item.studentYearId}.${item.classId}"
-                        }
-                        affectedClassrooms += ")"
-                    }
-
-                    val notifyContentList = arrayListOf<String>()
-                    // Affected classrooms
-                    notifyContentList.add(
-                        String.format(
-                            "Subject(s) affected: %s",
-                            affectedClassrooms
-                        )
-                    )
-                    // Date and lessons
-                    if (
-                        newsItem.lessonStatus == LessonStatus.Leaving ||
-                        newsItem.lessonStatus == LessonStatus.MakeUp
-                    ) {
-                        // Date
-                        notifyContentList.add(
-                            String.format(
-                                "Date affected: %s",
-                                CustomDateUtils.dateToString(newsItem.affectedDate, "dd/MM/yyyy")
-                            )
-                        )
-                        // Lessons
-                        notifyContentList.add(
-                            String.format(
-                                "Lesson(s) affected: %s",
-                                if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)",
-                            )
-                        )
-                        // Make-up room
-                        if (newsItem.lessonStatus == LessonStatus.MakeUp) {
-                            // Make up in room
-                            notifyContentList.add(
-                                String.format(
-                                    "Room will make up: %s",
-                                    newsItem.affectedRoom
-                                )
-                            )
-                        }
-                    } else {
-                        notifyContentList.add(newsItem.contentString)
-                    }
-
-                    NotificationsUtils.showNewsNotification(
-                        context = this,
-                        channelId = "notification.id.news.subject",
-                        newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
-                        newsTitle = notifyTitle,
-                        newsDescription = when (settings.newsBackgroundParseNewsSubject) {
-                            true -> notifyContentList.joinToString("\n")
-                            false -> newsItem.contentString
-                        },
-                        jsonData = Gson().toJson(newsItem)
-                    )
                 }
             }
-        } catch (_: Exception) {
+            Log.d("NewsBackgroundService", "Done executing function in news subject.")
+        } catch (ex: Exception) {
+            Log.w("NewsBackgroundService", "An error was occurred when executing function in news subject.")
+            ex.printStackTrace()
         }
+    }
+
+    private fun notifyNews(
+        context: Context,
+        newsItem: Any
+    ) {
+        when (newsItem) {
+            is NewsGlobalItem -> {
+                notifyNewsGlobal(
+                    context = context,
+                    newsItem = newsItem
+                )
+            }
+            is NewsSubjectItem -> {
+                notifyNewsSubject(
+                    context = context,
+                    newsItem = newsItem
+                )
+            }
+            else -> {
+                // TODO: Can't convert here!
+            }
+        }
+    }
+
+    private fun notifyNewsGlobal(
+        context: Context,
+        newsItem: NewsGlobalItem
+    ) {
+        NotificationsUtil.showNewsNotification(
+            context = context,
+            channelId = "notification.id.news.global",
+            newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
+            newsTitle = "News Global",
+            newsDescription = newsItem.title,
+            jsonData = Gson().toJson(newsItem)
+        )
+    }
+
+    private fun notifyNewsSubject(
+        context: Context,
+        newsItem: NewsSubjectItem
+    ) {
+        // Affected classrooms
+        var affectedClassrooms = ""
+        newsItem.affectedClass.forEach { className ->
+            if (affectedClassrooms.isEmpty()) {
+                affectedClassrooms = className.subjectName
+            } else {
+                affectedClassrooms += ", ${className.subjectName}"
+            }
+            var first = true
+            for (item in className.codeList) {
+                if (first) {
+                    affectedClassrooms += " ("
+                    first = false
+                } else {
+                    affectedClassrooms += ", "
+                }
+                affectedClassrooms += "${item.studentYearId}.${item.classId}"
+            }
+            affectedClassrooms += ")"
+        }
+
+        // Title will make announcement about subjects instead of lecturer
+        val notifyTitle = when (newsItem.lessonStatus) {
+            LessonStatus.Leaving -> {
+                String.format(
+                    "New %s lesson with %s",
+                    "Leaving",
+                    affectedClassrooms
+                )
+            }
+            LessonStatus.MakeUp -> {
+                String.format(
+                    "New %s lesson with %s",
+                    "Make up",
+                    affectedClassrooms
+                )
+            }
+            else -> {
+                String.format(
+                    "New announcement with %s",
+                    affectedClassrooms
+                )
+            }
+        }
+
+        val notifyContentList = arrayListOf<String>()
+        // Lecturer
+        notifyContentList.add(
+            String.format(
+                "Lecturer: %s",
+                newsItem.lecturerName
+            )
+        )
+        // Date and lessons
+        if (
+            newsItem.lessonStatus == LessonStatus.Leaving ||
+            newsItem.lessonStatus == LessonStatus.MakeUp
+        ) {
+            // Date & lessons
+            notifyContentList.add(
+                String.format(
+                    "On %s at lesson(s) %s",
+                    CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy"),
+                    if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)"
+                )
+            )
+            // Make-up room
+            if (newsItem.lessonStatus == LessonStatus.MakeUp) {
+                // Make up in room
+                notifyContentList.add(
+                    String.format(
+                        "Room will make up: %s",
+                        newsItem.affectedRoom
+                    )
+                )
+            }
+        } else {
+            notifyContentList.add(newsItem.contentString)
+        }
+
+        NotificationsUtil.showNewsNotification(
+            context = this,
+            channelId = "notification.id.news.subject",
+            newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
+            newsTitle = notifyTitle,
+            newsDescription = when (settings.newsBackgroundParseNewsSubject) {
+                true -> notifyContentList.joinToString("\n")
+                false -> newsItem.contentString
+            },
+            jsonData = Gson().toJson(newsItem)
+        )
     }
 
     override fun onCompleted(result: ProcessState) {
@@ -475,7 +525,13 @@ class NewsUpdateService : BaseService(
             intervalInMinute = settings.newsBackgroundDuration,
             scheduleStart = null,
             scheduleEnd = null,
-            pendingIntent = pendingIntent
+            pendingIntent = pendingIntent,
+            onDone = {
+                Log.d(
+                    "NewsBackgroundService",
+                    String.format("Scheduled service to run at %s.", getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"))
+                )
+            }
         )
     }
 
@@ -500,10 +556,7 @@ class NewsUpdateService : BaseService(
                     context,
                     1234,
                     intent,
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        PendingIntent.FLAG_IMMUTABLE
-                    }
-                    else PendingIntent.FLAG_UPDATE_CURRENT
+                    PendingIntent.FLAG_UPDATE_CURRENT
                 )
             }
 
@@ -511,11 +564,12 @@ class NewsUpdateService : BaseService(
         }
 
         fun cancelSchedule(
-            context: Context
+            context: Context,
+            onDone: (() -> Unit)? = null
         ) {
             val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
             alarmManager.cancel(getPendingIntentForBackground(context))
-            Log.d("NewsService", "Cancelled run")
+            onDone?.let { it() }
         }
     }
 }

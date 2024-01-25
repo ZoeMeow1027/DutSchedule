@@ -223,6 +223,8 @@ class MainViewModel @Inject constructor(
                 }
             }
 
+            newsBase.lastModifiedDate = System.currentTimeMillis()
+
             // TODO: Remove here!
             fileModuleRepository.saveCacheNewsGlobal(newsBase)
 
@@ -318,6 +320,9 @@ class MainViewModel @Inject constructor(
                     newsBase.pageCurrent = 2
                 }
             }
+
+            newsBase.lastModifiedDate = System.currentTimeMillis()
+
             // TODO: Remove here!
             fileModuleRepository.saveCacheNewsSubject(newsBase)
 
@@ -334,7 +339,10 @@ class MainViewModel @Inject constructor(
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutAccountRepository.getSubjectSchedule(
                 accountSession.value.data,
-                SchoolYearItem(year = 22, semester = 1)
+                SchoolYearItem(
+                    year = appSettings.value.currentSchoolYear.year,
+                    semester = appSettings.value.currentSchoolYear.semester
+                )
             )
         },
         onAfterRefresh = { saveSettings() }
@@ -345,7 +353,10 @@ class MainViewModel @Inject constructor(
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutAccountRepository.getSubjectFee(
                 accountSession.value.data,
-                SchoolYearItem(year = 22, semester = 1)
+                SchoolYearItem(
+                    year = appSettings.value.currentSchoolYear.year,
+                    semester = appSettings.value.currentSchoolYear.semester
+                )
             )
         },
         onAfterRefresh = { saveSettings() }

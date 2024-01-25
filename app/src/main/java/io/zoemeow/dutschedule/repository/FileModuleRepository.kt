@@ -2,15 +2,12 @@ package io.zoemeow.dutschedule.repository
 
 import android.content.Context
 import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonPrimitive
-import com.google.gson.JsonSerializationContext
-import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.news.NewsCache
+import io.zoemeow.dutschedule.model.news.NewsSearchHistory
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import java.io.File
 
@@ -25,7 +22,8 @@ class FileModuleRepository(
     private val PATH_APPSETTINGS = "${context.filesDir.path}/settings.json"
     private val PATH_ACCOUNT = "${context.filesDir.path}/account.json"
     private val PATH_CACHE_ACCOUNT = "${context.filesDir.path}/cache_account.json"
-    
+    private val PATH_HISTORY_NEWSSEARCH = "${context.filesDir.path}/history_news_search.json"
+
     fun saveAppSettings(
         appSettings: AppSettings
     ) {
@@ -122,5 +120,28 @@ class FileModuleRepository(
             ex.printStackTrace()
             return NewsCache()
         }
+    }
+
+    fun getNewsSearchHistory(): ArrayList<NewsSearchHistory> {
+        val file = File(PATH_HISTORY_NEWSSEARCH)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val objItem = Gson().fromJson<ArrayList<NewsSearchHistory>>(
+                    text,
+                    (object : TypeToken<ArrayList<NewsSearchHistory>>() {}.type)
+                )
+                this.close()
+                return objItem
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return ArrayList()
+        }
+    }
+
+    fun saveNewsSearchHistory(data: ArrayList<NewsSearchHistory>) {
+        val file = File(PATH_HISTORY_NEWSSEARCH)
+        file.writeText(Gson().toJson(data))
     }
 }
