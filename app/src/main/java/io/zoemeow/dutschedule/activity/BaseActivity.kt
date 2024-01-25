@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
@@ -160,6 +161,10 @@ abstract class BaseActivity: ComponentActivity() {
     )
 
     fun getMainViewModel(): MainViewModel {
+        if (!isMainViewModelInitialized()) {
+            // Initialize MainViewModel if this isn't initialized before.
+            mainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        }
         return mainViewModel
     }
 

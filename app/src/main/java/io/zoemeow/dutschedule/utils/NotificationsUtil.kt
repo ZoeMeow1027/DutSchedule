@@ -14,7 +14,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import io.zoemeow.dutschedule.R
-import io.zoemeow.dutschedule.activity.NewsDetailActivity
+import io.zoemeow.dutschedule.activity.NewsActivity
 
 class NotificationsUtil {
     companion object {
@@ -81,7 +81,7 @@ class NotificationsUtil {
             createNotificationChannelWithSilentSettings(
                 activity = activity,
                 id = "notification.id.service",
-                name = "News Update Service",
+                name = "News Background Update Service",
                 description = "This will ensure this service will able to run in background. You can turn off this notification if you don't want show them."
             )
         }
@@ -94,12 +94,13 @@ class NotificationsUtil {
             newsDescription: String,
             jsonData: String
         ) {
-            val notificationIntent = Intent(context, NewsDetailActivity::class.java).also {
-                it.action = when (channelId) {
+            val notificationIntent = Intent(context, NewsActivity::class.java).also {
+                it.action = "activity_detail"
+                it.putExtra("type", when (channelId) {
                     "notification.id.news.global" -> "news_global"
                     "notification.id.news.subject" -> "news_subject"
                     else -> ""
-                }
+                })
                 it.putExtra("data", jsonData)
             }
 

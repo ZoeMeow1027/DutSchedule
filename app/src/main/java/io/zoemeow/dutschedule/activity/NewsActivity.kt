@@ -2,11 +2,11 @@ package io.zoemeow.dutschedule.activity
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -26,6 +27,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,17 +56,21 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.AndroidEntryPoint
 import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
+import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
+import io.zoemeow.dutschedule.ui.component.news.NewsDetailScreen
 import io.zoemeow.dutschedule.ui.component.news.NewsListPage
 import io.zoemeow.dutschedule.ui.component.news.NewsSearchOptionAndHistory
 import io.zoemeow.dutschedule.ui.component.news.NewsSearchResult
+import io.zoemeow.dutschedule.utils.openLink
 import io.zoemeow.dutschedule.viewmodel.NewsSearchViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -92,6 +98,15 @@ class NewsActivity : BaseActivity() {
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,
                     contentColor = contentColor,
+                )
+            }
+
+            "activity_detail" -> {
+                NewsDetailView(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
                 )
             }
 
@@ -269,9 +284,10 @@ class NewsActivity : BaseActivity() {
                                     context.startActivity(
                                         Intent(
                                             context,
-                                            NewsDetailActivity::class.java
+                                            NewsActivity::class.java
                                         ).also {
-                                            it.action = "news_global"
+                                            it.action = "activity_detail"
+                                            it.putExtra("type", "news_global")
                                             it.putExtra("data", Gson().toJson(newsItem))
                                         })
                                 },
@@ -299,9 +315,10 @@ class NewsActivity : BaseActivity() {
                                     context.startActivity(
                                         Intent(
                                             context,
-                                            NewsDetailActivity::class.java
+                                            NewsActivity::class.java
                                         ).also {
-                                            it.action = "news_subject"
+                                            it.action = "activity_detail"
+                                            it.putExtra("type", "news_subject")
                                             it.putExtra("data", Gson().toJson(newsItem))
                                         })
                                 },
@@ -323,7 +340,7 @@ class NewsActivity : BaseActivity() {
         )
     }
 
-    @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun SearchView(
         context: Context,
@@ -453,10 +470,10 @@ class NewsActivity : BaseActivity() {
                         context.startActivity(
                             Intent(
                                 context,
-                                NewsDetailActivity::class.java
+                                NewsActivity::class.java
                             ).also {
-                                it.action =
-                                    if (newsSearchViewModel.type.value == NewsType.Subject) "news_subject" else "news_global"
+                                it.action = "activity_detail"
+                                it.putExtra("type", if (newsSearchViewModel.type.value == NewsType.Subject) "news_subject" else "news_global")
                                 it.putExtra("data", Gson().toJson(item))
                             })
                     }
@@ -489,6 +506,104 @@ class NewsActivity : BaseActivity() {
                         dismissFocus()
                     }
                 )
+            }
+        )
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun NewsDetailView(
+        context: Context,
+        snackBarHostState: SnackbarHostState,
+        containerColor: Color,
+        contentColor: Color
+    ) {
+        val newsType = intent.getStringExtra("type")
+        val newsData = intent.getStringExtra("data")
+
+        Scaffold(
+            modifier = Modifier.fillMaxSize(),
+            snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            containerColor = containerColor,
+            contentColor = contentColor,
+            topBar = {
+                TopAppBar(
+                    title = { Text("News detail") },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+                    navigationIcon = {
+                        IconButton(
+                            onClick = {
+                                setResult(RESULT_OK)
+                                finish()
+                            },
+                            content = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    "",
+                                    modifier = Modifier.size(25.dp)
+                                )
+                            }
+                        )
+                    },
+                )
+            },
+            floatingActionButton = {
+                if (newsType == "news_subject") {
+                    ExtendedFloatingActionButton(
+                        content = {
+                            Row {
+                                Icon(Icons.Default.Add, "Add to news filter")
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text("Add to news filter")
+                            }
+                        },
+                        onClick = {
+                            try {
+//                                (Gson().fromJson<NewsSubjectItem>(newsData, object : TypeToken<NewsSubjectItem>() {}.type).also {
+//                                    getMainViewModel().appSettings.value.newsFilterList.add()
+//                                }
+                                // TODO: Develop a add news filter function for news subject detail.
+                                showSnackBar("This function is in development. Check back soon.")
+                            } catch (ex: Exception) {
+                                ex.printStackTrace()
+                                showSnackBar("We can't add this subject in this news to your filter! You can instead add manually them.")
+                            }
+                        }
+                    )
+                }
+            },
+            content = {
+                when (newsType) {
+                    "news_global" -> {
+                        NewsDetailScreen(
+                            padding = it,
+                            newsItem = Gson().fromJson(newsData, object : TypeToken<NewsGlobalItem>() {}.type),
+                            newsType = NewsType.Global,
+                            linkClicked = { link ->
+                                openLink(
+                                    url = link,
+                                    context = this,
+                                    customTab = getMainViewModel().appSettings.value.openLinkInsideApp
+                                )
+                            }
+                        )
+                    }
+                    "news_subject" -> {
+                        NewsDetailScreen(
+                            padding = it,
+                            newsItem = Gson().fromJson(newsData, object : TypeToken<NewsSubjectItem>() {}.type) as NewsGlobalItem,
+                            newsType = NewsType.Subject,
+                            linkClicked = { link ->
+                                openLink(
+                                    url = link,
+                                    context = this,
+                                    customTab = getMainViewModel().appSettings.value.openLinkInsideApp
+                                )
+                            }
+                        )
+                    }
+                    else -> { }
+                }
             }
         )
     }

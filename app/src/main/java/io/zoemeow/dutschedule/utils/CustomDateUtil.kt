@@ -53,9 +53,6 @@ class CustomDateUtil {
         }
 
         fun unixToDuration(unix: Long = System.currentTimeMillis()): String {
-            val unixDuration = (System.currentTimeMillis() - unix) / 1000
-            val dateDuration: ArrayList<String> = ArrayList()
-
             val duration = (System.currentTimeMillis() - unix).toDuration(DurationUnit.MILLISECONDS)
 
             return when (duration.inWholeHours) {
@@ -69,42 +66,6 @@ class CustomDateUtil {
                     TimeAgo.using(unix)
                 }
             }
-
-            val date = unixDuration / 60 / 60 / 24
-            val day = date % 365
-            val month = date % 30
-            val year = date / 365
-
-            dateDuration.add("ago")
-            if (day > 0) {
-                dateDuration.add("$day day${if (day.toInt() != 1 ) "s" else ""}")
-            }
-            if (month > 0) {
-                dateDuration.add("$month month${if (month.toInt() != 1) "s" else ""}")
-            }
-            if (year > 0) {
-                dateDuration.add("$year year${if (year.toInt() != 1) "s" else ""}")
-            }
-
-            return if (day.toInt() == 0 && month.toInt() == 0 && year.toInt() == 0) {
-                "Today"
-            } else {
-                dateDuration.reversed().joinToString(separator = " ")
-            }
-
-//            return when {
-//                // Years
-//                unixDuration / 60 / 60 / 24 / 365 > 0 ->
-//                    "${unixDuration / 60 / 60 / 24 / 365} year${if (unixDuration / 60 / 60 / 24 / 365 > 1) "s" else ""} ago"
-//                // Months
-//                unixDuration / 60 / 60 / 24 / 30 > 0 ->
-//                    "${unixDuration / 60 / 60 / 24 / 30} month${if (unixDuration / 60 / 60 / 24 / 30 > 1) "s" else ""} ago"
-//                // Days
-//                unixDuration / 60 / 60 / 24 > 0 ->
-//                    "${unixDuration / 60 / 60 / 24} day${if (unixDuration / 60 / 60 / 24 > 1) "s" else ""} ago"
-//                // Less than a day
-//                else -> "Today"
-//            }
         }
 
         @SuppressLint("SimpleDateFormat")

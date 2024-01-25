@@ -199,13 +199,13 @@ class SettingsActivity : BaseActivity() {
                                         .padding(20.dp),
                                     content = {
                                         Text(
-                                            "New Making up announcement from (A person)",
+                                            "New Making up lesson in a subject",
                                             style = MaterialTheme.typography.titleLarge,
                                             modifier = Modifier.padding(bottom = 5.dp)
                                         )
                                         Text(
                                             when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
-                                                true -> "Subject(s) affected: ...\nDate affected: ...\nLesson(s) affected: ...\nRoom will make up: ..."
+                                                true -> "Lecturer: ...\nOn ... at lesson(s) ...\nRoom will make up: ..."
                                                 false -> "Person messaged: Class will MAKED UP at lesson 1-4, date: dd/MM/yyyy, at room A123"
                                             }
                                         )
@@ -333,18 +333,6 @@ class SettingsActivity : BaseActivity() {
                                     onClick = {
                                         val intent = Intent(context, SettingsActivity::class.java)
                                         intent.action = "settings_newsfilter"
-                                        context.startActivity(intent)
-                                    }
-                                )
-                                OptionItem(
-                                    title = "New parse method on notification",
-                                    description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
-                                        true -> "Enabled (special notification for news subject)"
-                                        false -> "Disabled (regular notification)"
-                                    },
-                                    onClick = {
-                                        val intent = Intent(context, SettingsActivity::class.java)
-                                        intent.action = "settings_newssubjectnewparse"
                                         context.startActivity(intent)
                                     }
                                 )
@@ -865,6 +853,18 @@ class SettingsActivity : BaseActivity() {
                                     ),
                                     onClick = {
                                         dialogSchoolYear.value = true
+                                    }
+                                )
+                                OptionItem(
+                                    title = "New parse method on notification",
+                                    description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
+                                        true -> "Enabled (special notification for news subject)"
+                                        false -> "Disabled (regular notification for news subject)"
+                                    },
+                                    onClick = {
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        intent.action = "settings_newssubjectnewparse"
+                                        context.startActivity(intent)
                                     }
                                 )
                             }

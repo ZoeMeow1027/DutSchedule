@@ -33,7 +33,7 @@ data class AppSettings(
     val newsBackgroundDuration: Int = 0,
 
     @SerializedName("appsettings.newsbackground.parsenewssubject")
-    val newsBackgroundParseNewsSubject: Boolean = true,
+    val newsBackgroundParseNewsSubject: Boolean = false,
 
     @SerializedName("appsettings.globalvariables.schoolyear")
     val currentSchoolYear: SchoolYearItem = SchoolYearItem(),

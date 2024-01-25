@@ -3,20 +3,24 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
-## 2.0-draft13 (940)
-- **Important note**:
-  - This version may be changed in future because of commiting my current work.
-
+## 2.0-draft13 (951)
 - General:
   - Updated dependencies to latest version.
   - Updated dutwrapper to fix a issue cause resultT4 and resultT10 returned wrong values.
   - Updated LargeTopAppBar container color to transparent again due to recent dependency.
+  - Fixed MainViewModel is not initialized (temporary).
   
 - AccountActivity:
   - Reworked subject result list UI in account training status.
 
 - NewsActivity:
-  - Changed news type and search method to segmentedbutton.
+  - Changed news type and search method to SegmentedButton.
+  - Merge NewsActivity and NewsDetailActivity into one.
+  
+- SettingsActivity:
+  - Moved "New parse method on notification" to "Experiment Settings" because of very experiment.
+  - "New parse method on notification" settings will be turned off at default.
+  - News Background Update Service will show subject name in title by default (for subject news).
 
 ## 2.0-draft12 (933)
 - **Important note**:
