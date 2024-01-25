@@ -38,13 +38,15 @@ For Powershell: ./gradlew build
 
 - This app is only crawl data from sv.dut.udn.vn (web) and modify to friendly view. To make sure you can read news cache when you are offline, app will need save current news and compare to web. So, if news from web deleted, news in app will still here.
 
-### So, I will need to delete old news cache. What should I do?
+### I need to clear old news. What should I do?
 
-- Navigate to settings, find application and delete app cache. App needs to be closed to completely cleared news cache.
+- You just need to refresh news and this will clear and get latest one automatically.
 
 ### I'm got issue with this app. Which place can I reproduce issue for you?
 
 - You can report issue via [Issue tab](https://github.com/ZoeMeow1027/DutSchedule/issues) on this repository. Thank you for your support!
 
-# Credits and Copyright?
-- [Navigate here](CHANGELOG.md).
+# Credits, changelog and license?
+- [Changelog](CHANGELOG.md)
+- [Credit](CREDIT.md)
+- License: [MIT](LICENSE)
