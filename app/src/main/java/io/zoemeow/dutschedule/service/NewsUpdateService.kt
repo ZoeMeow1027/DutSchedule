@@ -224,7 +224,7 @@ class NewsUpdateService : BaseService(
             // Processing news global notifications for notify here!
             newsFiltered.forEach { newsGroup ->
                 newsGroup.itemList.forEach { newsItem ->
-                    notifyNews(this, newsItem)
+                    notifyNewsGlobal(this, newsItem)
                 }
             }
             Log.d("NewsBackgroundService", "Done executing function in news global.")
@@ -368,7 +368,7 @@ class NewsUpdateService : BaseService(
                     // notifyRequired and notify variable
 
                     if (notifyRequired) {
-                        notifyNews(this, newsItem)
+                        notifyNewsSubject(this, newsItem)
                     }
                 }
             }
@@ -376,29 +376,6 @@ class NewsUpdateService : BaseService(
         } catch (ex: Exception) {
             Log.w("NewsBackgroundService", "An error was occurred when executing function in news subject.")
             ex.printStackTrace()
-        }
-    }
-
-    private fun notifyNews(
-        context: Context,
-        newsItem: Any
-    ) {
-        when (newsItem) {
-            is NewsGlobalItem -> {
-                notifyNewsGlobal(
-                    context = context,
-                    newsItem = newsItem
-                )
-            }
-            is NewsSubjectItem -> {
-                notifyNewsSubject(
-                    context = context,
-                    newsItem = newsItem
-                )
-            }
-            else -> {
-                // TODO: Can't convert here!
-            }
         }
     }
 
