@@ -397,97 +397,105 @@ class NewsUpdateService : BaseService(
         context: Context,
         newsItem: NewsSubjectItem
     ) {
-        // Affected classrooms
-        var affectedClassrooms = ""
-        newsItem.affectedClass.forEach { className ->
-            if (affectedClassrooms.isEmpty()) {
-                affectedClassrooms = className.subjectName
-            } else {
-                affectedClassrooms += ", ${className.subjectName}"
-            }
-            var first = true
-            for (item in className.codeList) {
-                if (first) {
-                    affectedClassrooms += " ("
-                    first = false
+        if (settings.newsBackgroundParseNewsSubject) {
+            // Affected classrooms
+            var affectedClassrooms = ""
+            newsItem.affectedClass.forEach { className ->
+                if (affectedClassrooms.isEmpty()) {
+                    affectedClassrooms = className.subjectName
                 } else {
-                    affectedClassrooms += ", "
+                    affectedClassrooms += ", ${className.subjectName}"
                 }
-                affectedClassrooms += "${item.studentYearId}.${item.classId}"
+                var first = true
+                for (item in className.codeList) {
+                    if (first) {
+                        affectedClassrooms += " ("
+                        first = false
+                    } else {
+                        affectedClassrooms += ", "
+                    }
+                    affectedClassrooms += "${item.studentYearId}.${item.classId}"
+                }
+                affectedClassrooms += ")"
             }
-            affectedClassrooms += ")"
-        }
 
-        // Title will make announcement about subjects instead of lecturer
-        val notifyTitle = when (newsItem.lessonStatus) {
-            LessonStatus.Leaving -> {
-                String.format(
-                    "New %s lesson with %s",
-                    "Leaving",
-                    affectedClassrooms
-                )
+            // Title will make announcement about subjects instead of lecturer
+            val notifyTitle = when (newsItem.lessonStatus) {
+                LessonStatus.Leaving -> {
+                    String.format(
+                        "New %s lesson with %s",
+                        "Leaving",
+                        affectedClassrooms
+                    )
+                }
+                LessonStatus.MakeUp -> {
+                    String.format(
+                        "New %s lesson with %s",
+                        "Make up",
+                        affectedClassrooms
+                    )
+                }
+                else -> {
+                    String.format(
+                        "New announcement with %s",
+                        affectedClassrooms
+                    )
+                }
             }
-            LessonStatus.MakeUp -> {
-                String.format(
-                    "New %s lesson with %s",
-                    "Make up",
-                    affectedClassrooms
-                )
-            }
-            else -> {
-                String.format(
-                    "New announcement with %s",
-                    affectedClassrooms
-                )
-            }
-        }
 
-        val notifyContentList = arrayListOf<String>()
-        // Lecturer
-        notifyContentList.add(
-            String.format(
-                "Lecturer: %s",
-                newsItem.lecturerName
-            )
-        )
-        // Date and lessons
-        if (
-            newsItem.lessonStatus == LessonStatus.Leaving ||
-            newsItem.lessonStatus == LessonStatus.MakeUp
-        ) {
-            // Date & lessons
+            val notifyContentList = arrayListOf<String>()
+            // Lecturer
             notifyContentList.add(
                 String.format(
-                    "On %s at lesson(s) %s",
-                    CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy"),
-                    if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)"
+                    "Lecturer: %s",
+                    newsItem.lecturerName
                 )
             )
-            // Make-up room
-            if (newsItem.lessonStatus == LessonStatus.MakeUp) {
-                // Make up in room
+            // Date and lessons
+            if (
+                newsItem.lessonStatus == LessonStatus.Leaving ||
+                newsItem.lessonStatus == LessonStatus.MakeUp
+            ) {
+                // Date & lessons
                 notifyContentList.add(
                     String.format(
-                        "Room will make up: %s",
-                        newsItem.affectedRoom
+                        "On %s at lesson(s) %s",
+                        CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy"),
+                        if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)"
                     )
                 )
+                // Make-up room
+                if (newsItem.lessonStatus == LessonStatus.MakeUp) {
+                    // Make up in room
+                    notifyContentList.add(
+                        String.format(
+                            "Room will make up: %s",
+                            newsItem.affectedRoom
+                        )
+                    )
+                }
+            } else {
+                notifyContentList.add(newsItem.contentString)
             }
-        } else {
-            notifyContentList.add(newsItem.contentString)
-        }
 
-        NotificationsUtil.showNewsNotification(
-            context = this,
-            channelId = "notification.id.news.subject",
-            newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
-            newsTitle = notifyTitle,
-            newsDescription = when (settings.newsBackgroundParseNewsSubject) {
-                true -> notifyContentList.joinToString("\n")
-                false -> newsItem.contentString
-            },
-            jsonData = Gson().toJson(newsItem)
-        )
+            NotificationsUtil.showNewsNotification(
+                context = context,
+                channelId = "notification.id.news.subject",
+                newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
+                newsTitle = notifyTitle,
+                newsDescription = notifyContentList.joinToString("\n"),
+                jsonData = Gson().toJson(newsItem)
+            )
+        } else {
+            NotificationsUtil.showNewsNotification(
+                context = context,
+                channelId = "notification.id.news.subject",
+                newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
+                newsTitle = newsItem.title,
+                newsDescription = newsItem.contentString,
+                jsonData = Gson().toJson(newsItem)
+            )
+        }
     }
 
     override fun onCompleted(result: ProcessState) {

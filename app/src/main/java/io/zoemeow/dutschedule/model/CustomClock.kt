@@ -54,30 +54,26 @@ class CustomClock : Serializable {
     }
 
     // Get current lesson by current time.
-    // -3: Unknown
-    // -2: Lesson not started
-    // -1: Noon break
-    // 0: Lesson finished
-    fun toDUTLesson(): Int {
+    fun toDUTLesson2(): DUTLessons {
         return when {
-            this < CustomClock(7, 0) -> -2
-            this < CustomClock(8, 0) -> 1
-            this < CustomClock(9, 0) -> 2
-            this < CustomClock(10, 0) -> 3
-            this < CustomClock(11, 0) -> 4
-            this < CustomClock(12, 0) -> 5
-            this < CustomClock(12, 30) -> -1
-            this < CustomClock(13, 30) -> 6
-            this < CustomClock(14, 30) -> 7
-            this < CustomClock(15, 30) -> 8
-            this < CustomClock(16, 30) -> 9
-            this < CustomClock(17, 30) -> 10
-            this < CustomClock(18, 15) -> 11
-            this < CustomClock(19, 10) -> 12
-            this < CustomClock(19, 55) -> 13
-            this < CustomClock(20, 30) -> 14
-            this >= CustomClock(20, 30) -> 0
-            else -> -3
+            this < CustomClock(7, 0) -> DUTLessons.notStartedYet
+            this < CustomClock(8, 0) -> DUTLessons.lesson1
+            this < CustomClock(9, 0) -> DUTLessons.lesson2
+            this < CustomClock(10, 0) -> DUTLessons.lesson3
+            this < CustomClock(11, 0) -> DUTLessons.lesson4
+            this < CustomClock(12, 0) -> DUTLessons.lesson5
+            this < CustomClock(12, 30) -> DUTLessons.noonBreak
+            this < CustomClock(13, 30) -> DUTLessons.lesson6
+            this < CustomClock(14, 30) -> DUTLessons.lesson7
+            this < CustomClock(15, 30) -> DUTLessons.lesson8
+            this < CustomClock(16, 30) -> DUTLessons.lesson9
+            this < CustomClock(17, 30) -> DUTLessons.lesson10
+            this < CustomClock(18, 15) -> DUTLessons.lesson11
+            this < CustomClock(19, 10) -> DUTLessons.lesson12
+            this < CustomClock(19, 55) -> DUTLessons.lesson13
+            this < CustomClock(20, 30) -> DUTLessons.lesson14
+            this >= CustomClock(20, 30) -> DUTLessons.doneToday
+            else -> DUTLessons.unknown
         }
     }
 

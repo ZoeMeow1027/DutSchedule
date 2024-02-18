@@ -53,62 +53,71 @@ class MainViewModel @Inject constructor(
         // Before run
         before?.let { it() }
 
-        // If ProcessState.Successful and last run doesn't last 5 minutes, ignore.
-        // Otherwise will continue
-        if (!accountSession.value.isSuccessfulRequestExpired()) {
-            // After run
-            after?.let { it(accountSession.value.processState == ProcessState.Successful) }
+        try {
+            // If ProcessState.Successful and last run doesn't last 5 minutes, ignore.
+            // Otherwise will continue
+            if (!accountSession.value.isSuccessfulRequestExpired()) {
+                // After run
+                after?.let { it(accountSession.value.processState == ProcessState.Successful) }
 
-            return
-        }
+                return
+            }
 
-        // If data exist, merge it to accountSession
-        data?.let {
-            accountSession.value = accountSession.value.clone(
-                data = accountSession.value.data.clone(
-                    accountAuth = AccountAuth(
-                        username = it.username,
-                        password = it.password
-                    )
-                )
-            )
-        }
-
-        accountSession.value = accountSession.value.clone(
-            processState = ProcessState.Running
-        )
-        val response = dutAccountRepository.login(
-            accountSession.value.data,
-            forceLogin = true,
-            onSessionChanged = { sessionId, timestamp ->
+            // If data exist, merge it to accountSession
+            data?.let {
                 accountSession.value = accountSession.value.clone(
                     data = accountSession.value.data.clone(
-                        sessionId = sessionId,
-                        sessionLastRequest = timestamp
-                    ),
-                    lastRequest = timestamp
-                )
-            }
-        )
-        when (response) {
-            true -> {
-                accountSession.value = accountSession.value.clone(
-                    processState = ProcessState.Successful
+                        accountAuth = AccountAuth(
+                            username = it.username,
+                            password = it.password
+                        )
+                    )
                 )
             }
 
-            false -> {
-                accountSession.value = accountSession.value.clone(
-                    processState = ProcessState.Failed
-                )
+            accountSession.value = accountSession.value.clone(
+                processState = ProcessState.Running
+            )
+            val response = dutAccountRepository.login(
+                accountSession.value.data,
+                forceLogin = true,
+                onSessionChanged = { sessionId, timestamp ->
+                    accountSession.value = accountSession.value.clone(
+                        data = accountSession.value.data.clone(
+                            sessionId = sessionId,
+                            sessionLastRequest = timestamp
+                        ),
+                        lastRequest = timestamp
+                    )
+                }
+            )
+            when (response) {
+                true -> {
+                    accountSession.value = accountSession.value.clone(
+                        processState = ProcessState.Successful
+                    )
+                }
+
+                false -> {
+                    accountSession.value = accountSession.value.clone(
+                        processState = ProcessState.Failed
+                    )
+                }
             }
+
+            // After run
+            after?.let { it(accountSession.value.processState == ProcessState.Successful) }
+        } catch (_: Exception) {
+            accountSession.value = accountSession.value.clone(
+                processState = ProcessState.Failed
+            )
+
+            // After run with thrown
+            after?.let { it(false) }
         }
 
         // Save settings
         saveSettings()
-
-        // After run
-        after?.let { it(accountSession.value.processState == ProcessState.Successful) }
     }
 
     fun accountLogout(
@@ -118,27 +127,31 @@ class MainViewModel @Inject constructor(
         if (accountSession.value.processState == ProcessState.Running)
             return
 
-        // Delete all account sessions
-        accountSession.value = accountSession.value.clone(
-            lastRequest = 0,
-            processState = ProcessState.NotRunYet,
-            data = AccountSession(),
-        )
+        try {
+            // Delete all account sessions. This will always be true.
+            accountSession.value = accountSession.value.clone(
+                lastRequest = 0,
+                processState = ProcessState.NotRunYet,
+                data = AccountSession(),
+            )
 
-        // Delete data after logout
-//        accountInformation.value = VariableTimestamp(
-//            data = null
-//        )
-        accountInformation2.resetToDefault()
+            // Clear all user cache data
+            accountInformation.resetToDefault()
+            subjectSchedule.data.value = null
+            subjectFee.data.value = null
+            accountTrainingStatus.data.value = null
+
+            // After run
+            after?.let { it(true) }
+        } catch (_: Exception) {
+            after?.let { it(false) }
+        }
 
         // Save settings
         saveSettings()
-
-        // After run
-        after?.let { it(true) }
     }
 
-    val newsGlobal2 = ProcessVariable<NewsCache<NewsGlobalItem>>(
+    val newsGlobal = ProcessVariable<NewsCache<NewsGlobalItem>>(
         onRefresh = { baseData, arg ->
             val newsBase = baseData ?: NewsCache<NewsGlobalItem>()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
@@ -236,7 +249,7 @@ class MainViewModel @Inject constructor(
         }
     )
 
-    val newsSubject2 = ProcessVariable<NewsCache<NewsSubjectItem>>(
+    val newsSubject = ProcessVariable<NewsCache<NewsSubjectItem>>(
         onRefresh = { baseData, arg ->
             val newsBase = baseData ?: NewsCache<NewsSubjectItem>()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
@@ -334,7 +347,7 @@ class MainViewModel @Inject constructor(
         }
     )
 
-    val subjectSchedule2 = ProcessVariable<List<SubjectScheduleItem>>(
+    val subjectSchedule = ProcessVariable<List<SubjectScheduleItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutAccountRepository.getSubjectSchedule(
@@ -348,7 +361,7 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
-    val subjectFee2 = ProcessVariable<List<SubjectFeeItem>>(
+    val subjectFee = ProcessVariable<List<SubjectFeeItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutAccountRepository.getSubjectFee(
@@ -362,7 +375,7 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
-    val accountInformation2 = ProcessVariable<AccountInformation>(
+    val accountInformation = ProcessVariable<AccountInformation>(
         onRefresh = { _, _ ->
             return@ProcessVariable dutAccountRepository.getAccountInformation(
                 accountSession.value.data
@@ -371,7 +384,7 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
-    val accountTrainingStatus2 = ProcessVariable<AccountTrainingStatus>(
+    val accountTrainingStatus = ProcessVariable<AccountTrainingStatus>(
         onRefresh = { _, _ ->
             return@ProcessVariable dutAccountRepository.getAccountTrainingStatus(
                 accountSession.value.data
@@ -380,9 +393,13 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
-    val currentSchoolWeek2 = ProcessVariable<DutSchoolYearItem?>(
+    val currentSchoolWeek = ProcessVariable<DutSchoolYearItem?>(
         onRefresh = { _, _ ->
-            return@ProcessVariable Utils.getCurrentSchoolWeek()
+            try {
+                return@ProcessVariable Utils.getCurrentSchoolWeek()
+            } catch (_: Exception) {
+                return@ProcessVariable null
+            }
         }
     )
 
@@ -399,10 +416,10 @@ class MainViewModel @Inject constructor(
         launchOnScope(
             script = {
                 fileModuleRepository.getCacheNewsGlobal().also {
-                    newsGlobal2.data.value = it
+                    newsGlobal.data.value = it
                 }
                 fileModuleRepository.getCacheNewsSubject().also {
-                    newsSubject2.data.value = it
+                    newsSubject.data.value = it
                 }
             }
         )
@@ -441,20 +458,20 @@ class MainViewModel @Inject constructor(
         runOnStartup(
             invokeOnCompleted = {
                 loadNewsCache()
-                currentSchoolWeek2.refreshData(force = true)
+                currentSchoolWeek.refreshData(force = true)
                 launchOnScope(script = {
-                    newsGlobal2.refreshData(
+                    newsGlobal.refreshData(
                         force = true,
                         args = mapOf("newsfetchtype" to NewsFetchType.FirstPage.value.toString())
                     )
-                    newsSubject2.refreshData(
+                    newsSubject.refreshData(
                         force = true,
                         args = mapOf("newsfetchtype" to NewsFetchType.FirstPage.value.toString())
                     )
                     accountLogin(after = {
                         if (it) {
-                            subjectSchedule2.refreshData()
-                            accountInformation2.refreshData()
+                            subjectSchedule.refreshData()
+                            accountInformation.refreshData()
                         }
                     })
                 })
