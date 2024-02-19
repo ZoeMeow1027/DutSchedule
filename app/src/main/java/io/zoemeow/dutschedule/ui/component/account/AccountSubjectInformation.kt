@@ -16,7 +16,7 @@ import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.zoemeow.dutschedule.utils.CustomDateUtil
 
 @Composable
-fun AccountSubjectInformation(
+fun SubjectInformation(
     modifier: Modifier = Modifier,
     item: SubjectScheduleItem,
     onClick: (() -> Unit)? = null,

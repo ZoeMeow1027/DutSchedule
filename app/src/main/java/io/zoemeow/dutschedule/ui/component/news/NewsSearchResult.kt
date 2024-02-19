@@ -1,7 +1,9 @@
 package io.zoemeow.dutschedule.ui.component.news
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,25 +30,50 @@ fun NewsSearchResult(
     onEndOfList: (() -> Unit)? = null,
     onItemClicked: ((NewsGlobalItem) -> Unit)? = null
 ) {
-    LazyColumn(
-        modifier = modifier
-            .endOfListReached(
-                lazyListState = lazyListState,
-                endOfListReached = {
-                    onEndOfList?.let { it() }
-                }
-            ),
-        verticalArrangement = if (newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        state = lazyListState,
-        content = {
-            if (processState == ProcessState.Running) {
-                item {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+    Column(modifier = modifier) {
+        if (processState == ProcessState.Running) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+        if (newsList.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                when (processState) {
+                    ProcessState.Running -> {
+                        Text(
+                            "Fetching news. Please wait...",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    ProcessState.NotRunYet -> {
+                        Text(
+                            "Tap search on top to get started.",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    else -> {
+                        Text(
+                            "No available news matches your search. Try again with new query.",
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
-            when {
-                (newsList.isNotEmpty()) -> {
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .endOfListReached(
+                        lazyListState = lazyListState,
+                        endOfListReached = {
+                            onEndOfList?.let { it() }
+                        }
+                    ),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                state = lazyListState,
+                content = {
                     items(newsList) { item ->
                         NewsListItem(
                             title = item.title,
@@ -60,31 +87,8 @@ fun NewsSearchResult(
                         Spacer(modifier = Modifier.size(3.dp))
                     }
                 }
-                (processState == ProcessState.Running) -> {
-                    item {
-                        Text(
-                            "Fetching news. Please wait...",
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-                (processState == ProcessState.NotRunYet) -> {
-                    item {
-                        Text(
-                            "Tap search on top to get started.",
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-                else -> {
-                    item {
-                        Text(
-                            "No available news matches your search. Try again with new query.",
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
+            )
         }
-    )
+
+    }
 }

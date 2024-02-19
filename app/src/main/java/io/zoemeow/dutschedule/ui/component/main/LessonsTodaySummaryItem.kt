@@ -21,12 +21,12 @@ fun LessonTodaySummaryItem(
 ) {
     fun affectedListStringBuilder(): String {
         val result = arrayListOf<String>()
-        val currentLesson = CustomClock.getCurrent().toDUTLesson()
+        val currentLesson = CustomClock.getCurrent().toDUTLesson2()
         affectedList.forEach { item ->
             val childResult = String.format(
                 "%s (%s)",
                 item.name,
-                item.subjectStudy.scheduleList.filter { it.lesson.end >= currentLesson }.joinToString(
+                item.subjectStudy.scheduleList.filter { it.lesson.end >= currentLesson.lesson }.joinToString(
                     separator = ", ",
                     transform = { String.format("%d-%d", it.lesson.start, it.lesson.end) }
                 )
@@ -48,9 +48,9 @@ fun LessonTodaySummaryItem(
                 String.format(
                     "You have %d%s lesson%s today:",
                     affectedList.size,
-                    when (CustomClock.getCurrent().toDUTLesson()) {
-                        -3, -2 -> ""
-                        else -> " remaining"
+                    when {
+                        (CustomClock.getCurrent().toDUTLesson2().lesson in 1.0..14.0) -> " remaining"
+                        else -> ""
                     },
                     if (affectedList.size != 1) "s" else ""
                 ),

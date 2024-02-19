@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.model.helpandexternallink.HelpLinkInfo
 import io.zoemeow.dutschedule.ui.component.helpandexternallink.HelpLinkClickable
-import io.zoemeow.dutschedule.utils.openLink
 
 @AndroidEntryPoint
 class HelpActivity : BaseActivity() {

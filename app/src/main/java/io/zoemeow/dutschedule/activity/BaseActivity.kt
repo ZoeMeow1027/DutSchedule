@@ -1,13 +1,17 @@
 package io.zoemeow.dutschedule.activity
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.browser.customtabs.CustomTabColorSchemeParams
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
@@ -170,7 +174,7 @@ abstract class BaseActivity: ComponentActivity() {
 
     fun getControlBackgroundAlpha(): Float {
         return when (mainViewModel.appSettings.value.backgroundImage != BackgroundImageOption.None) {
-            true -> 0.7f
+            true -> mainViewModel.appSettings.value.componentOpacity
             false -> 1f
             // true -> return mainViewModel.appSettings.value.
         }
@@ -203,6 +207,30 @@ abstract class BaseActivity: ComponentActivity() {
                     if (actionText != null) action?.let { it() }
                 }
                 else -> { }
+            }
+        }
+    }
+
+    fun openLink(
+        url: String,
+        context: Context,
+        customTab: Boolean = true
+    ) {
+        when (customTab) {
+            false -> {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+            }
+
+            true -> {
+                val builder = CustomTabsIntent.Builder()
+                val defaultColors = CustomTabColorSchemeParams.Builder().build()
+                builder.setDefaultColorSchemeParams(defaultColors)
+
+                val customTabsIntent = builder.build()
+                customTabsIntent.launchUrl(context, Uri.parse(url))
             }
         }
     }

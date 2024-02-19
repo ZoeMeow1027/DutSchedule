@@ -46,13 +46,7 @@ fun DateAndTimeSummaryItem(
                             "School year: %s - Week: %s\nCurrent lesson: %s",
                             currentSchoolWeek?.schoolYear ?: "(unknown)",
                             currentSchoolWeek?.week?.toString() ?: "(unknown)",
-                            when (CustomClock.getCurrent().toDUTLesson()) {
-                                -3 -> "(unknown)"
-                                -2 -> "Not started yet"
-                                -1 -> "Breaking on noon..."
-                                0 -> "Done for today!"
-                                else -> CustomClock.getCurrent().toDUTLesson().toString()
-                            }
+                            CustomClock.getCurrent().toDUTLesson2().name
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier

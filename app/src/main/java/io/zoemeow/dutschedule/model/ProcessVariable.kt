@@ -18,7 +18,7 @@ data class ProcessVariable<T>(
     val onAfterRefresh: ((Boolean) -> Unit)? = null
 ) {
     private fun isExpired(): Boolean {
-        return (lastRequest.value + expiredDuration) < System.currentTimeMillis()
+        return (lastRequest.longValue + expiredDuration) < System.currentTimeMillis()
     }
 
     private fun isSuccessfulRequestExpired(): Boolean {
@@ -31,7 +31,7 @@ data class ProcessVariable<T>(
     fun resetToDefault() {
         if (processState.value != ProcessState.Running) {
             processState.value = ProcessState.NotRunYet
-            lastRequest.value = 0
+            lastRequest.longValue = 0
             data.value = null
         }
     }
@@ -71,7 +71,7 @@ data class ProcessVariable<T>(
             },
             invokeOnCompleted = { throwable ->
                 throwable?.printStackTrace()
-                lastRequest.value = System.currentTimeMillis()
+                lastRequest.longValue = System.currentTimeMillis()
                 processState.value = if (throwable != null) ProcessState.Failed else ProcessState.Successful
                 after?.let { it(throwable == null) }
                 onAfterRefresh?.let { it(throwable == null) }

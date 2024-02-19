@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewsSearchViewModel @Inject constructor(
-    private val fileModuleRepository: FileModuleRepository
+    private val fileModuleRepository: FileModuleRepository,
+    private val dutNewsRepository: DutNewsRepository
 ): ViewModel() {
     //<editor-fold desc="Config variables">
     // Search query
@@ -77,25 +78,25 @@ class NewsSearchViewModel @Inject constructor(
                 }
                 if (type.value == NewsType.Subject) {
                     newsList.addAll(
-                        DutNewsRepository.getNewsSubject(
-                            if (startOver) 1 else newsPage.value,
+                        dutNewsRepository.getNewsSubject(
+                            if (startOver) 1 else newsPage.intValue,
                             searchType = method.value,
                             searchQuery = query.value
                         )
                     )
                 } else {
                     newsList.addAll(
-                        DutNewsRepository.getNewsGlobal(
-                            if (startOver) 1 else newsPage.value,
+                        dutNewsRepository.getNewsGlobal(
+                            if (startOver) 1 else newsPage.intValue,
                             searchType = method.value,
                             searchQuery = query.value
                         )
                     )
                 }
                 if (startOver) {
-                    newsPage.value = 2
+                    newsPage.intValue = 2
                 } else {
-                    newsPage.value += 1
+                    newsPage.intValue += 1
                 }
 
                 progress.value = ProcessState.Successful
@@ -110,7 +111,7 @@ class NewsSearchViewModel @Inject constructor(
             val d = searchHistory.first { p -> p.isEqual(query) }
             searchHistory.remove(d)
         }
-        searchHistory.add(0, query);
+        searchHistory.add(0, query)
         fileModuleRepository.saveNewsSearchHistory(data = ArrayList(searchHistory))
     }
 

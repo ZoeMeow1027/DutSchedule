@@ -54,27 +54,17 @@ fun NewsSearchOptionAndHistory(
     onClearHistoryTriggered: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
 ) {
-    fun dismiss() {
-        onDismiss?.let { it() }
-    }
-
     AnimatedVisibility(
         visibleState = isVisible,
         enter = fadeIn(),
         exit = fadeOut(),
         content = {
             Surface(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable {
-                        dismiss()
-                    },
+                modifier = Modifier.fillMaxSize(),
                 color = backgroundColor,
                 content = {
                     Column(
-                        modifier = modifier.clickable {
-                            dismiss()
-                        },
+                        modifier = modifier.fillMaxSize(),
                         content = {
                             Text(
                                 "Search method",
