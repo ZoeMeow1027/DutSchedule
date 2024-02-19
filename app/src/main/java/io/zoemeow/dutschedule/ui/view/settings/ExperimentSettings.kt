@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.activity.SettingsActivity
+import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
+import io.zoemeow.dutschedule.ui.component.base.DividerItem
 import io.zoemeow.dutschedule.ui.component.base.OptionItem
 import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogSchoolYearSettings
@@ -82,7 +85,7 @@ fun SettingsActivity.ExperimentSettings(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .padding(top = 10.dp),
-                        text = "Global variables settings",
+                        text = "Global variable settings",
                         content = {
                             OptionItem(
                                 title = "Current school year settings",
@@ -101,6 +104,15 @@ fun SettingsActivity.ExperimentSettings(
                                     dialogSchoolYear.value = true
                                 }
                             )
+                        }
+                    )
+                    DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
+                    ContentRegion(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 10.dp),
+                        text = "Notifications",
+                        content = {
                             OptionItem(
                                 title = "New parse method on notification",
                                 description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
@@ -111,6 +123,60 @@ fun SettingsActivity.ExperimentSettings(
                                     val intent = Intent(context, SettingsActivity::class.java)
                                     intent.action = "settings_newssubjectnewparse"
                                     context.startActivity(intent)
+                                }
+                            )
+                        }
+                    )
+                    DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
+                    ContentRegion(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 10.dp),
+                        text = "Appearance",
+                        content = {
+                            OptionItem(
+                                title = "Background opacity",
+                                description = String.format(
+                                    "%2.0f%% %s",
+                                    (getMainViewModel().appSettings.value.backgroundImageOpacity * 100),
+                                    if (getMainViewModel().appSettings.value.backgroundImage == BackgroundImageOption.None) {
+                                        "(You need enable background image to take effect)"
+                                    } else ""
+                                ),
+                                onClick = {
+                                    showSnackBar("This option is in development. Check back soon.", true)
+                                    /* TODO: Implement here: Background opacity */
+                                }
+                            )
+                            OptionItem(
+                                title = "Component opacity",
+                                description = String.format(
+                                    "%2.0f%% %s",
+                                    (getMainViewModel().appSettings.value.componentOpacity * 100),
+                                    if (getMainViewModel().appSettings.value.backgroundImage == BackgroundImageOption.None) {
+                                        "(You need enable background image to take effect)"
+                                    } else ""
+                                ),
+                                onClick = {
+                                    showSnackBar("This option is in development. Check back soon.", true)
+                                    /* TODO: Implement here: Component opacity */
+                                }
+                            )
+                        }
+                    )
+                    DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
+                    ContentRegion(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 10.dp),
+                        text = "Troubleshooting",
+                        content = {
+                            OptionItem(
+                                title = "Debug log (not work yet)",
+                                description = "Get debug log for this application to troubleshoot issues.",
+                                onClick = {
+                                    showSnackBar("This option is in development. Check back soon.", true)
+                                    /* TODO: Implement here: Debug log */
                                 }
                             )
                         }

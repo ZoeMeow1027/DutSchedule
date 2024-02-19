@@ -3,6 +3,7 @@ package io.zoemeow.dutschedule.ui.view.main
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -53,6 +54,7 @@ fun MainActivity.MainViewTabbed(
                     mapOf(
                         "News" to painterResource(id = R.drawable.ic_baseline_newspaper_24),
                         "Account" to Icons.Default.AccountCircle,
+                        "Notifications" to Icons.Default.Notifications,
                         "Settings" to Icons.Default.Settings
                     ).forEach(
                         action = {

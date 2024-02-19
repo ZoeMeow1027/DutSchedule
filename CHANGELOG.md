@@ -3,10 +3,13 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
-## 2.0-draft15 (971)
+## Known issues:
+- `Your current wallpaper` option in app background settings will be disabled on Android 14. You can check why in `Issue` tab in repository.
 
+## 2.0-draft15 (971)
 - Others:
   - NewsBackgroundUpdateService will now start if phone is booted.
+  - Make a solution to fix issue #18.
   - Move all views in all activities to `ui\view`.
   - Merge OpenLink in `utils` into BaseActivity.
 

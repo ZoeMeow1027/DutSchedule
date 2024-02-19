@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.ui.view.main
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,13 +12,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -69,42 +70,63 @@ fun MainActivity.MainViewDashboard(
                     alpha = getControlBackgroundAlpha()
                 ),
                 actions = {
-                    IconButton(
-                        onClick = { newsClicked?.let { it() } },
+                    BadgedBox(
+                        modifier = Modifier.padding(start = 15.dp, end = 15.dp)
+                            .clickable { newsClicked?.let { it() } },
+                        badge = {
+                            // Badge { }
+                        },
                         content = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_baseline_newspaper_24),
                                 "News",
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(end = 7.dp),
+                                modifier = Modifier.size(27.dp)
                             )
                         }
                     )
-                    IconButton(
-                        onClick = { settingsClicked?.let { it() } },
+                    BadgedBox(
+                        modifier = Modifier.padding(end = 15.dp)
+                            .clickable { settingsClicked?.let { it() } },
+                        badge = {
+                            // Badge { }
+                        },
                         content = {
                             Icon(
                                 Icons.Default.Settings,
                                 "Settings",
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(end = 7.dp),
+                                modifier = Modifier.size(27.dp)
                             )
                         }
                     )
-                    IconButton(
-                        onClick = { externalLinkClicked?.let { it() } },
+                    BadgedBox(
+                        modifier = Modifier.padding(end = 15.dp)
+                            .clickable { externalLinkClicked?.let { it() } },
+                        badge = {
+                            // Badge { }
+                        },
                         content = {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_baseline_web_24),
                                 "External links",
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(end = 7.dp),
+                                modifier = Modifier.size(27.dp)
                             )
                         }
                     )
+//                    BadgedBox(
+//                        modifier = Modifier.padding(end = 15.dp),
+//                        badge = {
+//                            Badge {
+//                                Text("0")
+//                            }
+//                        },
+//                        content = {
+//                            Icon(
+//                                imageVector = Icons.Default.Notifications,
+//                                "Notifications",
+//                                modifier = Modifier.size(27.dp),
+//                            )
+//                        }
+//                    )
                 },
                 floatingActionButton = {
                     ExtendedFloatingActionButton(

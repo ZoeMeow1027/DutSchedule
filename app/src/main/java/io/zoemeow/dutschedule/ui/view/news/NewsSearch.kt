@@ -5,7 +5,6 @@ import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -91,31 +89,13 @@ fun NewsActivity.NewsSearch(
                             Text("Type here to search")
                         },
                         trailingIcon = {
-                            Column {
+                            if (isSearchFocused.targetState) {
                                 IconButton(
                                     content = {
                                         Icon(Icons.Default.Clear, "")
                                     },
                                     onClick = {
                                         newsSearchViewModel.query.value = ""
-                                    }
-                                )
-                                IconButton(
-                                    modifier = Modifier.padding(start = 5.dp),
-                                    onClick = {
-                                        dismissFocus()
-                                        newsSearchViewModel.invokeSearch(startOver = true)
-                                    },
-                                    enabled = newsSearchViewModel.progress.value != ProcessState.Running,
-                                    content = {
-                                        if (newsSearchViewModel.progress.value == ProcessState.Running) {
-                                            CircularProgressIndicator(
-                                                // modifier = Modifier.size(24.dp),
-                                                strokeWidth = 3.dp
-                                            )
-                                        } else {
-                                            Icon(Icons.Default.Search, "Search/Refresh search")
-                                        }
                                     }
                                 )
                             }
@@ -150,6 +130,19 @@ fun NewsActivity.NewsSearch(
                                 "",
                                 modifier = Modifier.size(25.dp)
                             )
+                        }
+                    )
+                },
+                actions = {
+                    IconButton(
+                        // modifier = Modifier.padding(start = 5.dp),
+                        onClick = {
+                            dismissFocus()
+                            newsSearchViewModel.invokeSearch(startOver = true)
+                        },
+                        enabled = newsSearchViewModel.progress.value != ProcessState.Running,
+                        content = {
+                            Icon(Icons.Default.Search, "Search/Refresh search")
                         }
                     )
                 }

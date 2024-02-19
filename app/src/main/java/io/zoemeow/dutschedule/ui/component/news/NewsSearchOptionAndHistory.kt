@@ -55,7 +55,6 @@ fun NewsSearchOptionAndHistory(
     onDismiss: (() -> Unit)? = null
 ) {
     AnimatedVisibility(
-        modifier = modifier,
         visibleState = isVisible,
         enter = fadeIn(),
         exit = fadeOut(),
@@ -65,6 +64,7 @@ fun NewsSearchOptionAndHistory(
                 color = backgroundColor,
                 content = {
                     Column(
+                        modifier = modifier.fillMaxSize(),
                         content = {
                             Text(
                                 "Search method",
