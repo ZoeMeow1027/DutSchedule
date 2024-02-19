@@ -24,6 +24,7 @@ import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.repository.DutAccountRepository
 import io.zoemeow.dutschedule.repository.DutNewsRepository
+import io.zoemeow.dutschedule.repository.DutStatusRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val fileModuleRepository: FileModuleRepository,
+    private val dutNewsRepository: DutNewsRepository,
+    private val dutStatusRepository: DutStatusRepository,
     private val dutAccountRepository: DutAccountRepository
 ) : ViewModel() {
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
@@ -41,6 +44,10 @@ class MainViewModel @Inject constructor(
         VariableTimestamp(data = AccountSession())
     )
 
+    /**
+     * Login account to this application.
+     * @param data: Login information.
+     */
     fun accountLogin(
         data: AccountAuth? = null,
         before: (() -> Unit)? = null,
@@ -100,7 +107,7 @@ class MainViewModel @Inject constructor(
 
                 false -> {
                     accountSession.value = accountSession.value.clone(
-                        processState = ProcessState.Failed
+                        processState = ProcessState.NotRunYet
                     )
                 }
             }
@@ -120,6 +127,9 @@ class MainViewModel @Inject constructor(
         saveSettings()
     }
 
+    /**
+     * Logout account in this application from server.
+     */
     fun accountLogout(
         after: ((Boolean) -> Unit)? = null,
     ) {
@@ -151,13 +161,18 @@ class MainViewModel @Inject constructor(
         saveSettings()
     }
 
+    /**
+     * Refresh or clear news global.
+     *
+     * @param newsfetchtype Following NewsFetchType enum class.
+     */
     val newsGlobal = ProcessVariable<NewsCache<NewsGlobalItem>>(
         onRefresh = { baseData, arg ->
             val newsBase = baseData ?: NewsCache<NewsGlobalItem>()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsGlobal(
+            val newsFromInternet = dutNewsRepository.getNewsGlobal(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsBase.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -249,13 +264,18 @@ class MainViewModel @Inject constructor(
         }
     )
 
+    /**
+     * Refresh or clear news subject.
+     *
+     * @param newsfetchtype Following NewsFetchType enum class.
+     */
     val newsSubject = ProcessVariable<NewsCache<NewsSubjectItem>>(
         onRefresh = { baseData, arg ->
             val newsBase = baseData ?: NewsCache<NewsSubjectItem>()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsSubject(
+            val newsFromInternet = dutNewsRepository.getNewsSubject(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsBase.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -347,6 +367,9 @@ class MainViewModel @Inject constructor(
         }
     )
 
+    /**
+     * Subject schedule cache for current logged in account.
+     */
     val subjectSchedule = ProcessVariable<List<SubjectScheduleItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
@@ -361,6 +384,9 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
+    /**
+     * Subject fee cache for current logged in account.
+     */
     val subjectFee = ProcessVariable<List<SubjectFeeItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
@@ -375,6 +401,9 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
+    /**
+     * Account information cache for current logged in account.
+     */
     val accountInformation = ProcessVariable<AccountInformation>(
         onRefresh = { _, _ ->
             return@ProcessVariable dutAccountRepository.getAccountInformation(
@@ -384,6 +413,9 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
+    /**
+     * Account training status cache for current logged in account.
+     */
     val accountTrainingStatus = ProcessVariable<AccountTrainingStatus>(
         onRefresh = { _, _ ->
             return@ProcessVariable dutAccountRepository.getAccountTrainingStatus(
@@ -393,6 +425,9 @@ class MainViewModel @Inject constructor(
         onAfterRefresh = { saveSettings() }
     )
 
+    /**
+     * Get current school week if possible.
+     */
     val currentSchoolWeek = ProcessVariable<DutSchoolYearItem?>(
         onRefresh = { _, _ ->
             try {
@@ -403,6 +438,16 @@ class MainViewModel @Inject constructor(
         }
     )
 
+    val isDutSchoolServerReachable = ProcessVariable<Any>(
+        data = mutableStateOf(null),
+        onRefresh = { _, _ ->
+
+        }
+    )
+
+    /**
+     * Save all current settings to file in storage.
+     */
     fun saveSettings() {
         launchOnScope(
             script = {
@@ -412,6 +457,9 @@ class MainViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Load all cache if possible for offline reading.
+     */
     private fun loadNewsCache() {
         launchOnScope(
             script = {

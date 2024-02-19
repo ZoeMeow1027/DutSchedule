@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.zoemeow.dutschedule.repository.DutAccountRepository
 import io.zoemeow.dutschedule.repository.DutNewsRepository
+import io.zoemeow.dutschedule.repository.DutStatusRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import javax.inject.Singleton
 
@@ -31,5 +32,11 @@ object AppModule {
     @Singleton
     fun provideFileModuleRepository(@ApplicationContext context: Context): FileModuleRepository {
         return FileModuleRepository(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDutStatusRepository(): DutStatusRepository {
+        return DutStatusRepository()
     }
 }

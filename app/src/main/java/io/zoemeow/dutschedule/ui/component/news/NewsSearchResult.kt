@@ -1,7 +1,9 @@
 package io.zoemeow.dutschedule.ui.component.news
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,7 +38,7 @@ fun NewsSearchResult(
                     onEndOfList?.let { it() }
                 }
             ),
-        verticalArrangement = if (newsList.isNotEmpty()) Arrangement.Top else Arrangement.Center,
+        verticalArrangement = if (newsList.isNotEmpty() && processState != ProcessState.Running) Arrangement.Top else Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         state = lazyListState,
         content = {
@@ -62,25 +64,43 @@ fun NewsSearchResult(
                 }
                 (processState == ProcessState.Running) -> {
                     item {
-                        Text(
-                            "Fetching news. Please wait...",
-                            textAlign = TextAlign.Center
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                            content = {
+                                Text(
+                                    "Fetching news. Please wait...",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         )
                     }
                 }
                 (processState == ProcessState.NotRunYet) -> {
                     item {
-                        Text(
-                            "Tap search on top to get started.",
-                            textAlign = TextAlign.Center
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                            content = {
+                                Text(
+                                    "Tap search on top to get started.",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         )
                     }
                 }
                 else -> {
                     item {
-                        Text(
-                            "No available news matches your search. Try again with new query.",
-                            textAlign = TextAlign.Center
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                            content = {
+                                Text(
+                                    "No available news matches your search. Try again with new query.",
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         )
                     }
                 }

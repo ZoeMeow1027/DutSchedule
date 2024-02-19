@@ -3,6 +3,13 @@
 - This will save changelog for application. Feel free to report issues, fork or contribute this project :))
 - You can also view file changed at [https://github.com/ZoeMeow1027/DutSchedule/commits](https://github.com/ZoeMeow1027/DutSchedule/commits).
 
+## 2.0-draft15 (971)
+
+- Others:
+  - NewsBackgroundUpdateService will now start if phone is booted.
+  - Move all views in all activities to `ui\view`.
+  - Merge OpenLink in `utils` into BaseActivity.
+
 ## 2.0-draft14 (954)
 - NewsBackgroundUpdateService:
   - Fixed a issue cause news subject parsed as news global.

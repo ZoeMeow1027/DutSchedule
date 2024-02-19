@@ -27,13 +27,15 @@ import io.zoemeow.dutschedule.utils.calcMD5
 class NewsUpdateService : BaseService(
     nNotifyId = "notification.id.service",
     nTitle = "News service is running",
-    nContent = "A task is running to get news list from sv.dut.udn.vn. This task will take a few minutes..."
+    nContent = "A task is running to get news list from sv.dut.udn.vn. This might take a few minutes..."
 ) {
     private lateinit var file: FileModuleRepository
+    private lateinit var dutNewsRepository: DutNewsRepository
     private lateinit var settings: AppSettings
 
     override fun onInitialize() {
         file = FileModuleRepository(this)
+        dutNewsRepository = DutNewsRepository()
         settings = file.getAppSettings()
     }
 
@@ -131,7 +133,7 @@ class NewsUpdateService : BaseService(
             }
 
             // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsGlobal(
+            val newsFromInternet = dutNewsRepository.getNewsGlobal(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsCache.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -247,7 +249,7 @@ class NewsUpdateService : BaseService(
             }
 
             // Get news from internet
-            val newsFromInternet = DutNewsRepository.getNewsSubject(
+            val newsFromInternet = dutNewsRepository.getNewsSubject(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsCache.pageCurrent
                     NewsFetchType.FirstPage -> 1
