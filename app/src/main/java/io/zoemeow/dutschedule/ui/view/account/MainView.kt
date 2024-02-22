@@ -7,8 +7,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -95,8 +98,7 @@ fun AccountActivity.MainView(
                     .verticalScroll(rememberScrollState()),
                 content = {
                     when (getMainViewModel().accountSession.value.processState) {
-                        ProcessState.NotRunYet,
-                        ProcessState.Failed -> {
+                        ProcessState.NotRunYet -> {
                             LoginBannerNotLoggedIn(
                                 opacity = getControlBackgroundAlpha(),
                                 padding = PaddingValues(10.dp),
@@ -105,13 +107,40 @@ fun AccountActivity.MainView(
                                 },
                             )
                         }
+                        ProcessState.Failed -> {
+                            ButtonBase(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                                modifierInside = Modifier.padding(vertical = 7.dp),
+                                content = { Text("Try to login again") },
+                                horizontalArrangement = Arrangement.Start,
+                                opacity = getControlBackgroundAlpha(),
+                                clicked = {
+                                    getMainViewModel().accountReLogin()
+                                }
+                            )
+                            ButtonBase(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                                modifierInside = Modifier.padding(vertical = 7.dp),
+                                content = { Text("Logout") },
+                                horizontalArrangement = Arrangement.Start,
+                                opacity = getControlBackgroundAlpha(),
+                                clicked = {
+                                    logoutDialogVisible.value = true
+                                }
+                            )
+                        }
                         ProcessState.Running -> {
-                            Column(
-                                modifier = Modifier.fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
+                            Row(
+                                modifier = Modifier.fillMaxWidth().height(120.dp).padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
                                 content = {
                                     CircularProgressIndicator()
+                                    Spacer(modifier = Modifier.size(5.dp))
+                                    Text("Logging in...")
                                 }
                             )
                         }
@@ -133,7 +162,6 @@ fun AccountActivity.MainView(
                                 modifierInside = Modifier.padding(vertical = 7.dp),
                                 content = { Text("Subject Information") },
                                 horizontalArrangement = Arrangement.Start,
-                                isOutlinedButton = true,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
                                     val intent = Intent(context, AccountActivity::class.java)
@@ -148,7 +176,6 @@ fun AccountActivity.MainView(
                                 modifierInside = Modifier.padding(vertical = 7.dp),
                                 content = { Text("Subject Fee") },
                                 horizontalArrangement = Arrangement.Start,
-                                isOutlinedButton = true,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
                                     val intent = Intent(context, AccountActivity::class.java)
@@ -163,7 +190,6 @@ fun AccountActivity.MainView(
                                 modifierInside = Modifier.padding(vertical = 7.dp),
                                 content = { Text("Account Information") },
                                 horizontalArrangement = Arrangement.Start,
-                                isOutlinedButton = true,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
                                     val intent = Intent(context, AccountActivity::class.java)
@@ -178,7 +204,6 @@ fun AccountActivity.MainView(
                                 modifierInside = Modifier.padding(vertical = 7.dp),
                                 content = { Text("Account Training Result") },
                                 horizontalArrangement = Arrangement.Start,
-                                isOutlinedButton = true,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
                                     val intent = Intent(context, AccountActivity::class.java)
@@ -193,7 +218,6 @@ fun AccountActivity.MainView(
                                 modifierInside = Modifier.padding(vertical = 7.dp),
                                 content = { Text("Logout") },
                                 horizontalArrangement = Arrangement.Start,
-                                isOutlinedButton = true,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
                                     logoutDialogVisible.value = true

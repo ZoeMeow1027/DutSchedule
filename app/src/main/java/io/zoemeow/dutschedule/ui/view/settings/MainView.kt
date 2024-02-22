@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.ui.view.settings
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -45,6 +46,7 @@ import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppBackgroundSettings
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppThemeSettings
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogFetchNewsInBackgroundSettings
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -202,6 +204,21 @@ fun SettingsActivity.MainView(
                             .padding(top = 10.dp),
                         text = "Miscellaneous settings",
                         content = {
+                            OptionItem(
+                                title = "App language",
+                                description = Locale.getDefault().displayName,
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
+                                        intent.data = Uri.fromParts("package", context.packageName, null)
+                                        context.startActivity(intent)
+                                    } else {
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        intent.action = "settings_languagesettings"
+                                        context.startActivity(intent)
+                                    }
+                                }
+                            )
                             OptionItem(
                                 title = "Application permissions",
                                 description = "Click here for allow and manage app permissions you granted.",

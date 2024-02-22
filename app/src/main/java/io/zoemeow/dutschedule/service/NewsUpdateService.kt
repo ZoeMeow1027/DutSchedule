@@ -10,6 +10,7 @@ import com.google.gson.Gson
 import io.dutwrapper.dutwrapper.model.enums.LessonStatus
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
+import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
@@ -17,7 +18,7 @@ import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
-import io.zoemeow.dutschedule.repository.DutNewsRepository
+import io.zoemeow.dutschedule.repository.DutRequestRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import io.zoemeow.dutschedule.utils.CustomDateUtil
 import io.zoemeow.dutschedule.utils.CustomDateUtil.Companion.getCurrentDateAndTimeToString
@@ -30,12 +31,12 @@ class NewsUpdateService : BaseService(
     nContent = "A task is running to get news list from sv.dut.udn.vn. This might take a few minutes..."
 ) {
     private lateinit var file: FileModuleRepository
-    private lateinit var dutNewsRepository: DutNewsRepository
+    private lateinit var dutRequestRepository: DutRequestRepository
     private lateinit var settings: AppSettings
 
     override fun onInitialize() {
         file = FileModuleRepository(this)
-        dutNewsRepository = DutNewsRepository()
+        dutRequestRepository = DutRequestRepository()
         settings = file.getAppSettings()
     }
 
@@ -133,7 +134,7 @@ class NewsUpdateService : BaseService(
             }
 
             // Get news from internet
-            val newsFromInternet = dutNewsRepository.getNewsGlobal(
+            val newsFromInternet = dutRequestRepository.getNewsGlobal(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsCache.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -249,7 +250,7 @@ class NewsUpdateService : BaseService(
             }
 
             // Get news from internet
-            val newsFromInternet = dutNewsRepository.getNewsSubject(
+            val newsFromInternet = dutRequestRepository.getNewsSubject(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsCache.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -389,7 +390,7 @@ class NewsUpdateService : BaseService(
             context = context,
             channelId = "notification.id.news.global",
             newsMD5 = "${newsItem.date}_${newsItem.title}".calcMD5(),
-            newsTitle = "News Global",
+            newsTitle = context.getString(R.string.service_newsbackgroundservice_newsglobal_title),
             newsDescription = newsItem.title,
             jsonData = Gson().toJson(newsItem)
         )
@@ -425,21 +426,21 @@ class NewsUpdateService : BaseService(
             val notifyTitle = when (newsItem.lessonStatus) {
                 LessonStatus.Leaving -> {
                     String.format(
-                        "New %s lesson with %s",
-                        "Leaving",
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_title_noannouncement),
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_title_noannouncement_leaving),
                         affectedClassrooms
                     )
                 }
                 LessonStatus.MakeUp -> {
                     String.format(
-                        "New %s lesson with %s",
-                        "Make up",
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_title_noannouncement),
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_title_noannouncement_makeup),
                         affectedClassrooms
                     )
                 }
                 else -> {
                     String.format(
-                        "New announcement with %s",
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_title_announcement),
                         affectedClassrooms
                     )
                 }
@@ -449,7 +450,7 @@ class NewsUpdateService : BaseService(
             // Lecturer
             notifyContentList.add(
                 String.format(
-                    "Lecturer: %s",
+                    context.getString(R.string.service_newsbackgroundservice_newssubject_lecturer),
                     newsItem.lecturerName
                 )
             )
@@ -461,7 +462,7 @@ class NewsUpdateService : BaseService(
                 // Date & lessons
                 notifyContentList.add(
                     String.format(
-                        "On %s at lesson(s) %s",
+                        context.getString(R.string.service_newsbackgroundservice_newssubject_date),
                         CustomDateUtil.dateUnixToString(newsItem.affectedDate, "dd/MM/yyyy"),
                         if (newsItem.affectedLesson != null) newsItem.affectedLesson.toString() else "(unknown)"
                     )
@@ -471,7 +472,7 @@ class NewsUpdateService : BaseService(
                     // Make up in room
                     notifyContentList.add(
                         String.format(
-                            "Room will make up: %s",
+                            context.getString(R.string.service_newsbackgroundservice_newssubject_room),
                             newsItem.affectedRoom
                         )
                     )

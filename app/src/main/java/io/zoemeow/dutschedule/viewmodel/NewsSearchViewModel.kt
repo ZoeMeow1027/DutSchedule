@@ -11,7 +11,7 @@ import io.dutwrapper.dutwrapper.model.enums.NewsType
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsSearchHistory
-import io.zoemeow.dutschedule.repository.DutNewsRepository
+import io.zoemeow.dutschedule.repository.DutRequestRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NewsSearchViewModel @Inject constructor(
     private val fileModuleRepository: FileModuleRepository,
-    private val dutNewsRepository: DutNewsRepository
+    private val dutRequestRepository: DutRequestRepository
 ): ViewModel() {
     //<editor-fold desc="Config variables">
     // Search query
@@ -78,7 +78,7 @@ class NewsSearchViewModel @Inject constructor(
                 }
                 if (type.value == NewsType.Subject) {
                     newsList.addAll(
-                        dutNewsRepository.getNewsSubject(
+                        dutRequestRepository.getNewsSubject(
                             if (startOver) 1 else newsPage.intValue,
                             searchType = method.value,
                             searchQuery = query.value
@@ -86,7 +86,7 @@ class NewsSearchViewModel @Inject constructor(
                     )
                 } else {
                     newsList.addAll(
-                        dutNewsRepository.getNewsGlobal(
+                        dutRequestRepository.getNewsGlobal(
                             if (startOver) 1 else newsPage.intValue,
                             searchType = method.value,
                             searchQuery = query.value

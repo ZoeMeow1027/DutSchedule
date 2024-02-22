@@ -14,8 +14,8 @@ android {
         applicationId "io.zoemeow.dutschedule"
         minSdk 21
         targetSdkVersion 34
-        versionCode 971
-        versionName "2.0-draft15"
+        versionCode 1005
+        versionName "2.0-draft16"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -55,8 +55,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
     implementation 'androidx.activity:activity-compose:1.8.2'
     implementation platform('androidx.compose:compose-bom:2023.10.01')
-    implementation "androidx.compose.ui:ui:1.6.0-rc01"
-    implementation "androidx.compose.ui:ui-tooling-preview:1.6.0-rc01"
+    implementation "androidx.compose.ui:ui:1.6.1"
+    implementation "androidx.compose.ui:ui-tooling-preview:1.6.1"
     implementation 'androidx.compose.material3:material3'
     implementation platform('androidx.compose:compose-bom:2023.10.01')
     implementation 'androidx.compose.ui:ui-graphics'
@@ -64,15 +64,18 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation platform('androidx.compose:compose-bom:2023.10.01')
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.6.0-rc01"
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.6.1"
     androidTestImplementation platform('androidx.compose:compose-bom:2023.10.01')
-    debugImplementation "androidx.compose.ui:ui-tooling:1.6.0-rc01"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:1.6.0-rc01"
+    debugImplementation "androidx.compose.ui:ui-tooling:1.6.1"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:1.6.1"
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.appcompat:appcompat-resources:1.6.1"
+
 
     // implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.1.0'
 
     // https://mvnrepository.com/artifact/androidx.navigation/navigation-compose
-    implementation 'androidx.navigation:navigation-compose:2.7.6'
+    implementation 'androidx.navigation:navigation-compose:2.7.7'
 
     // https://mvnrepository.com/artifact/androidx.lifecycle/lifecycle-viewmodel-ktx
     runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
@@ -80,10 +83,10 @@ dependencies {
     runtimeOnly 'androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0'
 
     // https://mvnrepository.com/artifact/androidx.fragment/fragment-ktx
-    runtimeOnly 'androidx.fragment:fragment-ktx:1.7.0-alpha08'
+    runtimeOnly 'androidx.fragment:fragment-ktx:1.7.0-alpha10'
 
     // https://mvnrepository.com/artifact/androidx.compose.material3/material3
-    runtimeOnly 'androidx.compose.material3:material3:1.2.0-beta02'
+    runtimeOnly 'androidx.compose.material3:material3:1.2.0'
 
     // AlarmManager for restart service after closed
     // Required to avoid crash on Android 12 - API 31
@@ -91,7 +94,7 @@ dependencies {
     implementation 'androidx.work:work-runtime-ktx:2.9.0'
 
     // https://mvnrepository.com/artifact/androidx.compose.material/material-icons-extended
-    runtimeOnly 'androidx.compose.material:material-icons-extended:1.6.0-rc01'
+    runtimeOnly 'androidx.compose.material:material-icons-extended:1.6.1'
 
     // Google Dagger/Hilt
     implementation 'com.google.dagger:hilt-android:2.49'
@@ -118,7 +121,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
 
     // Android Browser (use WebView in app) - https://mvnrepository.com/artifact/androidx.browser/browser
-    implementation 'androidx.browser:browser:1.8.0-beta01'
+    implementation 'androidx.browser:browser:1.8.0-beta02'
 
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.12'

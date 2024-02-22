@@ -130,7 +130,7 @@ fun AccountActivity.AccountInformation(
                                     "Training program plan" to (data.trainingProgramPlan ?: "(unknown)"),
                                     "School email" to (data.schoolEmail ?: "(unknown)"),
                                 )
-                                Text("Click and hold a text field to show option to copy it.")
+                                Text("Click and hold a text field, select all and click Copy to copy it.\nIf you want to edit any information below, you need do it in DUT Information System web.")
                                 Spacer(modifier = Modifier.size(5.dp))
                                 Column(
                                     modifier = Modifier

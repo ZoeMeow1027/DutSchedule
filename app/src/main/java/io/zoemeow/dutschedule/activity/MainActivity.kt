@@ -54,13 +54,13 @@ class MainActivity : BaseActivity() {
             containerColor = containerColor,
             contentColor = contentColor,
             newsClicked = {
-                context.startActivity(Intent(this, NewsActivity::class.java))
+                context.startActivity(Intent(context, NewsActivity::class.java))
             },
             accountClicked = {
-                context.startActivity(Intent(this, AccountActivity::class.java))
+                context.startActivity(Intent(context, AccountActivity::class.java))
             },
             settingsClicked = {
-                context.startActivity(Intent(this, SettingsActivity::class.java))
+                context.startActivity(Intent(context, SettingsActivity::class.java))
             },
             externalLinkClicked = {
                 val intent = Intent(context, HelpActivity::class.java)
@@ -100,7 +100,7 @@ class MainActivity : BaseActivity() {
 //                AffectedLessonsSummaryItem(
 //                    padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
 //                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
-//                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule2.processState.value == ProcessState.Running,
+//                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.processState.value == ProcessState.Running,
 //                    clicked = {},
 //                    affectedList = arrayListOf("ie1i0921d - i029di12", "ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12","ie1i0921d - i029di12"),
 //                    opacity = getControlBackgroundAlpha()
@@ -129,6 +129,115 @@ class MainActivity : BaseActivity() {
                     },
                     opacity = getControlBackgroundAlpha()
                 )
+//                Text(
+//                    "Navigation",
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(top = 15.dp, bottom = 10.dp, start = 15.dp, end = 15.dp),
+//                    textAlign = TextAlign.Start,
+//                    style = MaterialTheme.typography.titleMedium
+//                )
+//                FlowRow(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(bottom = 10.dp, start = 15.dp, end = 15.dp),
+//                    maxItemsInEachRow = 2,
+//                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+//                    content = {
+//                        NavButton(
+//                            modifier = Modifier.weight(0.5f).padding(bottom = 10.dp),
+//                            opacity = getControlBackgroundAlpha(),
+//                            badgeText = null,
+//                            badgeContent = {
+//                                Icon(
+//                                    painter = painterResource(id = R.drawable.ic_baseline_newspaper_24),
+//                                    "News",
+//                                    modifier = Modifier.size(27.dp)
+//                                )
+//                            },
+//                            clicked = {
+//                                context.startActivity(Intent(context, NewsActivity::class.java))
+//                            },
+//                            title = "News",
+//                            description = null
+//                        )
+//                        NavButton(
+//                            modifier = Modifier.weight(0.5f).padding(bottom = 10.dp),
+//                            opacity = getControlBackgroundAlpha(),
+//                            badgeText = null,
+//                            badgeContent = {
+//                                when (getMainViewModel().accountSession.value.processState) {
+//                                    ProcessState.Running -> CircularProgressIndicator(
+//                                        modifier = Modifier.size(27.dp),
+//                                        strokeWidth = 3.dp
+//                                    )
+//                                    else -> Icon(
+//                                        Icons.Outlined.AccountCircle,
+//                                        "Account",
+//                                        modifier = Modifier.size(27.dp)
+//                                    )
+//                                }
+//                            },
+//                            clicked = {
+//                                context.startActivity(Intent(context, AccountActivity::class.java))
+//                            },
+//                            title = "Account",
+//                            description = getMainViewModel().accountSession.value.let {
+//                                when (it.processState) {
+//                                    ProcessState.NotRunYet -> "Not logged in"
+//                                    ProcessState.Running -> "Fetching..."
+//                                    ProcessState.Failed -> when (it.data.accountAuth.username == null) {
+//                                        true -> "Not logged in"
+//                                        false -> String.format(
+//                                            "%s (expired)",
+//                                            it.data.accountAuth.username
+//                                        )
+//                                    }
+//                                    else -> it.data.accountAuth.username ?: "Unknown"
+//                                }
+//                            }
+//                        )
+//                        NavButton(
+//                            modifier = Modifier.weight(0.5f).padding(bottom = 10.dp),
+//                            opacity = getControlBackgroundAlpha(),
+//                            badgeText = when (getMainViewModel().accountSession.value.processState) {
+//                                ProcessState.Failed -> ""
+//                                else -> null
+//                            },
+//                            badgeContent = {
+//                                Icon(
+//                                    painter = painterResource(id = R.drawable.ic_baseline_web_24),
+//                                    "External links",
+//                                    modifier = Modifier.size(27.dp)
+//                                )
+//                            },
+//                            clicked = {
+//                                val intent = Intent(context, HelpActivity::class.java)
+//                                intent.action = "view_externallink"
+//                                context.startActivity(intent)
+//                            },
+//                            title = "External links",
+//                            description = null
+//                        )
+//                        NavButton(
+//                            modifier = Modifier.weight(0.5f).padding(bottom = 10.dp),
+//                            opacity = getControlBackgroundAlpha(),
+//                            badgeText = null,
+//                            badgeContent = {
+//                                Icon(
+//                                    Icons.Default.Settings,
+//                                    "Settings",
+//                                    modifier = Modifier.size(27.dp)
+//                                )
+//                            },
+//                            clicked = {
+//                                context.startActivity(Intent(context, SettingsActivity::class.java))
+//                            },
+//                            title = "Settings",
+//                            description = null
+//                        )
+//                    }
+//                )
             }
         )
     }

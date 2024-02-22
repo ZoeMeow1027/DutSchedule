@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import dagger.hilt.android.AndroidEntryPoint
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.ui.view.settings.ExperimentSettings
+import io.zoemeow.dutschedule.ui.view.settings.LanguageSettings
 import io.zoemeow.dutschedule.ui.view.settings.MainView
 import io.zoemeow.dutschedule.ui.view.settings.NewsFilterSettings
 import io.zoemeow.dutschedule.ui.view.settings.ParseNewsSubjectNotification
@@ -63,6 +64,15 @@ class SettingsActivity : BaseActivity() {
 
             "settings_experimentsettings" -> {
                 ExperimentSettings(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
+            }
+
+            "settings_languagesettings" -> {
+                LanguageSettings(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,

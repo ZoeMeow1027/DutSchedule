@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DutSchedule</string>
+    <string name="notification_announcement_title">Thông báo ứng dụng</string>
+    <string name="notification_announcement_description">Kênh này sẽ gửi thông báo cập nhật quan trọng của ứng dụng cho bạn.</string>
+    <string name="notification_newsglobal_title">Tin tức chung</string>
+    <string name="notification_newsglobal_description">Kênh này sẽ gửi thông báo mới trong \"Thông báo chung\" trên sv.dut.udn.vn.</string>
+    <string name="notification_newssubject_title">Tin tức lớp học phần</string>
+    <string name="notification_newssubject_description">Kênh này sẽ gửi thông báo mới trong \"Thông báo lớp học phần\" trên sv.dut.udn.vn.</string>
+    <string name="notification_newsbackgroundupdateservice_title">Dịch vụ cập nhật tin tức trong nền</string>
+    <string name="notification_newsbackgroundupdateservice_description">Kênh này sẽ đảm bảo dịch vụ này có thể chạy trong nền. Bạn có thể tắt thông báo này nếu bạn không muốn hiển thị chúng.</string>
+    <string name="service_newsbackgroundservice_newsglobal_title">Thông báo chung</string>
+    <string name="service_newsbackgroundservice_newssubject_title_announcement">Thông báo mới với %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement" formatted="false">Thông báo %s với %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement_leaving">nghỉ học</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement_makeup">học bù</string>
+    <string name="service_newsbackgroundservice_newssubject_lecturer">Giảng viên: %s</string>
+    <string name="service_newsbackgroundservice_newssubject_date" formatted="false">Vào ngày %s với tiết học %s</string>
+    <string name="service_newsbackgroundservice_newssubject_room">Phòng sẽ học bù: %s</string>
+</resources>

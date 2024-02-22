@@ -1,3 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">DutSchedule</string>
+    <string name="notification_announcement_title">App updates</string>
+    <string name="notification_announcement_description">This will send you app recommend and important updates.</string>
+    <string name="notification_newsglobal_title">News Global</string>
+    <string name="notification_newsglobal_description">This will receive new messages in \"Thông báo chung\" on sv.dut.udn.vn.</string>
+    <string name="notification_newssubject_title">News Subject</string>
+    <string name="notification_newssubject_description">This will receive new messages in \"Thông báo lớp học phần\" on sv.dut.udn.vn.</string>
+    <string name="notification_newsbackgroundupdateservice_title">News Background Update Service</string>
+    <string name="notification_newsbackgroundupdateservice_description">This will ensure this service will able to run in background. You can turn off this notification if you don\'t want show it.</string>
+    <string name="service_newsbackgroundservice_newsglobal_title">News global</string>
+    <string name="service_newsbackgroundservice_newssubject_title_announcement">New announcement with %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement" formatted="false">%s lesson(s) with %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement_leaving">Leaving</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement_makeup">Making up</string>
+    <string name="service_newsbackgroundservice_newssubject_lecturer">Lecturer: %s</string>
+    <string name="service_newsbackgroundservice_newssubject_date" formatted="false">On %s at lesson(s) %s</string>
+    <string name="service_newsbackgroundservice_newssubject_room">Room will make up: %s</string>
 </resources>

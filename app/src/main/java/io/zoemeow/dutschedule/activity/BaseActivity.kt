@@ -42,6 +42,7 @@ import io.zoemeow.dutschedule.viewmodel.MainViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+
 abstract class BaseActivity: ComponentActivity() {
     companion object {
         private lateinit var mainViewModel: MainViewModel

@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
+import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.news.NewsSearchHistory
@@ -22,6 +23,7 @@ class FileModuleRepository(
     private val PATH_APPSETTINGS = "${context.filesDir.path}/settings.json"
     private val PATH_ACCOUNT = "${context.filesDir.path}/account.json"
     private val PATH_CACHE_ACCOUNT = "${context.filesDir.path}/cache_account.json"
+    private val PATH_NOTIFICATION_HISTORY = "${context.filesDir.path}/notification_history.json"
     private val PATH_HISTORY_NEWSSEARCH = "${context.filesDir.path}/history_news_search.json"
 
     fun saveAppSettings(
@@ -142,6 +144,29 @@ class FileModuleRepository(
 
     fun saveNewsSearchHistory(data: ArrayList<NewsSearchHistory>) {
         val file = File(PATH_HISTORY_NEWSSEARCH)
+        file.writeText(Gson().toJson(data))
+    }
+
+    fun getNotificationHistory(): ArrayList<NotificationHistory> {
+        val file = File(PATH_NOTIFICATION_HISTORY)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val objItem = Gson().fromJson<ArrayList<NotificationHistory>>(
+                    text,
+                    (object : TypeToken<ArrayList<NotificationHistory>>() {}.type)
+                )
+                this.close()
+                return objItem
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return ArrayList()
+        }
+    }
+
+    fun saveNotificationHistory(data: ArrayList<NotificationHistory>) {
+        val file = File(PATH_NOTIFICATION_HISTORY)
         file.writeText(Gson().toJson(data))
     }
 }
