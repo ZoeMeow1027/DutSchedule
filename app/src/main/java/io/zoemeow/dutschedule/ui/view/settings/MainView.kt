@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.BuildConfig
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.activity.SettingsActivity
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
+import io.zoemeow.dutschedule.model.AppPermissionInfo
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DividerItem
@@ -116,7 +116,7 @@ fun SettingsActivity.MainView(
                                     else -> "Disabled"
                                 },
                                 onClick = {
-                                    if (PermissionRequestActivity.isPermissionGranted(PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM, context)) {
+                                    if (PermissionRequestActivity.isPermissionGranted(AppPermissionInfo.PERMISSION_SCHEDULE_EXACT_ALARM, context)) {
                                         dialogFetchNews.value = true
                                     } else {
                                         showSnackBar(
@@ -125,7 +125,7 @@ fun SettingsActivity.MainView(
                                             actionText = "Open",
                                             action = {
                                                 context.startActivity(
-                                                    PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM.extraAction
+                                                    AppPermissionInfo.PERMISSION_SCHEDULE_EXACT_ALARM.extraAction
                                                 )
                                             }
                                         )
@@ -325,7 +325,7 @@ fun SettingsActivity.MainView(
                 }
                 BackgroundImageOption.YourCurrentWallpaper -> {
                     val compPer = PermissionRequestActivity.isPermissionGranted(
-                        PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
+                        AppPermissionInfo.PERMISSION_MANAGE_EXTERNAL_STORAGE,
                         context = context
                     )
                     if (compPer) {
@@ -340,7 +340,7 @@ fun SettingsActivity.MainView(
                             actionText = "Grant",
                             action = {
                                 context.startActivity(
-                                    PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE.extraAction
+                                    AppPermissionInfo.PERMISSION_MANAGE_EXTERNAL_STORAGE.extraAction
                                 )
                             }
                         )

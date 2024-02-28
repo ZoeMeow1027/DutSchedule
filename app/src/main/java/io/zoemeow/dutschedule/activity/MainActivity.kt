@@ -4,8 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dagger.hilt.android.AndroidEntryPoint
@@ -13,14 +18,16 @@ import io.zoemeow.dutschedule.model.CustomClock
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.service.BaseService
-import io.zoemeow.dutschedule.service.NewsUpdateService
+import io.zoemeow.dutschedule.service.NewsBackgroundUpdateService
 import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
+import io.zoemeow.dutschedule.ui.component.main.notification.NotificationHistoryBottomSheet
 import io.zoemeow.dutschedule.ui.view.main.MainViewDashboard
 import io.zoemeow.dutschedule.utils.CustomDateUtil
 import io.zoemeow.dutschedule.utils.NotificationsUtil
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -33,7 +40,7 @@ import kotlin.time.Duration.Companion.days
 class MainActivity : BaseActivity() {
     @Composable
     override fun OnPreloadOnce() {
-        NewsUpdateService.cancelSchedule(
+        NewsBackgroundUpdateService.cancelSchedule(
             context = this,
             onDone = {
                 Log.d("NewsBackgroundService", "Cancelled schedule")
@@ -42,6 +49,7 @@ class MainActivity : BaseActivity() {
         NotificationsUtil.initializeNotificationChannel(this)
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun OnMainView(
         context: Context,
@@ -49,10 +57,29 @@ class MainActivity : BaseActivity() {
         containerColor: Color,
         contentColor: Color
     ) {
+        val isNotificationOpened = remember { mutableStateOf(false) }
+        val notificationModalBottomSheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        )
+        val notificationSheetScope = rememberCoroutineScope()
+
         MainViewDashboard(
             snackBarHostState = snackBarHostState,
             containerColor = containerColor,
             contentColor = contentColor,
+            notificationList = getMainViewModel().notificationHistory,
+            notificationClicked = {
+                // TODO: Notification list requested
+//                if (!isNotificationOpened.value) {
+//                    isNotificationOpened.value = true
+//                }
+                notificationSheetScope.launch {
+                    if (!isNotificationOpened.value) {
+                        isNotificationOpened.value = true
+                    }
+                    notificationModalBottomSheetState.expand()
+                }
+            },
             newsClicked = {
                 context.startActivity(Intent(context, NewsActivity::class.java))
             },
@@ -240,6 +267,13 @@ class MainActivity : BaseActivity() {
 //                )
             }
         )
+        NotificationHistoryBottomSheet(
+            visible = isNotificationOpened.value,
+            sheetState = notificationModalBottomSheetState,
+            onDismiss = { isNotificationOpened.value = false },
+            onClearItem = { },
+            onClearAll = { }
+        )
     }
 
     private fun getNews(byWeek: Boolean = false): Int {
@@ -270,7 +304,7 @@ class MainActivity : BaseActivity() {
 
     override fun onStop() {
         Log.d("MainActivity", "MainActivity is being stopped")
-        NewsUpdateService.cancelSchedule(
+        NewsBackgroundUpdateService.cancelSchedule(
             context = this,
             onDone = {
                 Log.d("NewsBackgroundService", "Cancelled schedule")
@@ -280,8 +314,8 @@ class MainActivity : BaseActivity() {
             Log.d("NewsBackgroundService", "Started service")
             BaseService.startService(
                 context = this,
-                intent = Intent(applicationContext, NewsUpdateService::class.java).also {
-                    it.action = "news.service.action.fetchallpage1background"
+                intent = Intent(applicationContext, NewsBackgroundUpdateService::class.java).also {
+                    it.action = "news.service.action.fetchallpage1background.skipfirst"
                 }
             )
         }

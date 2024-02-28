@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.MainActivity
+import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.ProcessState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -48,10 +49,12 @@ fun MainActivity.MainViewDashboard(
     snackBarHostState: SnackbarHostState,
     containerColor: Color,
     contentColor: Color,
+    notificationList: List<NotificationHistory>,
     newsClicked: (() -> Unit)? = null,
     accountClicked: (() -> Unit)? = null,
     settingsClicked: (() -> Unit)? = null,
     externalLinkClicked: (() -> Unit)? = null,
+    notificationClicked: (() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -122,10 +125,13 @@ fun MainActivity.MainViewDashboard(
                         }
                     )
                     BadgedBox(
-                        modifier = Modifier.padding(end = 15.dp),
+                        modifier = Modifier.padding(end = 15.dp)
+                            .clickable { notificationClicked?.let { it() } },
                         badge = {
-                            Badge {
-                                Text("0")
+                            if (notificationList.isNotEmpty()) {
+                                Badge {
+                                    Text(notificationList.size.toString())
+                                }
                             }
                         },
                         content = {

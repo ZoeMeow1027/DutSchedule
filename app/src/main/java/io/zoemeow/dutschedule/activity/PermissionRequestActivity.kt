@@ -38,12 +38,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionInfo
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
+import io.zoemeow.dutschedule.model.AppPermissionInfo
 import io.zoemeow.dutschedule.ui.component.permissionrequest.PermissionInformation
 
 class PermissionRequestActivity : BaseActivity() {
-    private val permissionStatusList = mutableStateListOf<PermissionInfo>()
+    private val permissionStatusList = mutableStateListOf<AppPermissionInfo>()
 
     @Composable
     override fun OnPreloadOnce() {
@@ -52,7 +51,7 @@ class PermissionRequestActivity : BaseActivity() {
 
     private fun reloadPermissionStatus() {
         permissionStatusList.clear()
-        permissionStatusList.addAll(PermissionList.getAllRequiredPermissions())
+        permissionStatusList.addAll(AppPermissionInfo.getAllRequiredPermissions())
     }
 
     @Composable
@@ -208,7 +207,7 @@ class PermissionRequestActivity : BaseActivity() {
 
     companion object {
         // https://stackoverflow.com/questions/73620790/android-13-how-to-request-write-external-storage
-        fun isPermissionGranted(permissionInfo: PermissionInfo, context: Context): Boolean {
+        fun isPermissionGranted(permissionInfo: AppPermissionInfo, context: Context): Boolean {
             // MANAGE_EXTERNAL_STORAGE
             if (permissionInfo.code == "android.permission.MANAGE_EXTERNAL_STORAGE") {
                 return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {

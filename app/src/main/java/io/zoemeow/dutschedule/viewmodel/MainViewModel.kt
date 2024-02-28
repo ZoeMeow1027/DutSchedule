@@ -467,6 +467,15 @@ class MainViewModel @Inject constructor(
         )
     }
 
+    fun reloadNotification() {
+        launchOnScope(
+            script = {
+                notificationHistory.clear()
+                notificationHistory.addAll(fileModuleRepository.getNotificationHistory())
+            }
+        )
+    }
+
     /**
      * Load all cache if possible for offline reading.
      */
@@ -517,6 +526,7 @@ class MainViewModel @Inject constructor(
             invokeOnCompleted = {
                 loadNewsCache()
                 currentSchoolWeek.refreshData(force = true)
+                reloadNotification()
                 launchOnScope(script = {
                     newsGlobal.refreshData(
                         force = true,

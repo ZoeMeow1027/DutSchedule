@@ -10,11 +10,10 @@
     <string name="notification_newsbackgroundupdateservice_title">Dịch vụ cập nhật tin tức trong nền</string>
     <string name="notification_newsbackgroundupdateservice_description">Kênh này sẽ đảm bảo dịch vụ này có thể chạy trong nền. Bạn có thể tắt thông báo này nếu bạn không muốn hiển thị chúng.</string>
     <string name="service_newsbackgroundservice_newsglobal_title">Thông báo chung</string>
-    <string name="service_newsbackgroundservice_newssubject_title_announcement">Thông báo mới với %s</string>
-    <string name="service_newsbackgroundservice_newssubject_title_noannouncement" formatted="false">Thông báo %s với %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_announcement">Thông báo mới của %s về %s</string>
+    <string name="service_newsbackgroundservice_newssubject_title_noannouncement" formatted="false">Thông báo %s của %s về %s</string>
     <string name="service_newsbackgroundservice_newssubject_title_noannouncement_leaving">nghỉ học</string>
     <string name="service_newsbackgroundservice_newssubject_title_noannouncement_makeup">học bù</string>
-    <string name="service_newsbackgroundservice_newssubject_lecturer">Giảng viên: %s</string>
     <string name="service_newsbackgroundservice_newssubject_date" formatted="false">Vào ngày %s với tiết học %s</string>
     <string name="service_newsbackgroundservice_newssubject_room">Phòng sẽ học bù: %s</string>
 </resources>

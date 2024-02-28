@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import io.zoemeow.dutschedule.di.AppModule
 import io.zoemeow.dutschedule.service.BaseService
-import io.zoemeow.dutschedule.service.NewsUpdateService
+import io.zoemeow.dutschedule.service.NewsBackgroundUpdateService
 
 class BootCompletedReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -21,7 +21,7 @@ class BootCompletedReceiver: BroadcastReceiver() {
                     // Start service here
                     BaseService.startService(
                         context = context,
-                        intent = Intent(context, NewsUpdateService::class.java).also {
+                        intent = Intent(context, NewsBackgroundUpdateService::class.java).also {
                             it.action = "news.service.action.fetchallpage1background"
                         }
                     )

@@ -103,7 +103,7 @@
             </intent-filter>
         </receiver>
         <service
-            android:name=".service.NewsUpdateService"
+            android:name=".service.NewsBackgroundUpdateService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="shortService"
