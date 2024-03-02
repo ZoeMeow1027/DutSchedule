@@ -98,7 +98,7 @@ class DutRequestRepository {
     ): Boolean {
         return when {
             (accountSession.sessionId != null && System.currentTimeMillis() - accountSession.sessionLastRequest >= (1000 * 60 * 5) && Account.isLoggedIn(accountSession.sessionId) && !forceLogin) -> true
-            (accountSession.accountAuth.username != null && accountSession.accountAuth.password != null) -> {
+            (accountSession.accountAuth.isValidLogin()) -> {
                 val sessionId = generateNewSessionId()
                 val timestamp = System.currentTimeMillis()
 

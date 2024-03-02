@@ -34,9 +34,6 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.activity.AccountActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.account.AccountSubjectFeeInformation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,18 +74,10 @@ fun AccountActivity.SubjectFee(
             )
         },
         floatingActionButton = {
-            if (getMainViewModel().subjectFee.processState.value != ProcessState.Running) {
+            if (getMainViewModel().accountSession.subjectFee.processState.value != ProcessState.Running) {
                 FloatingActionButton(
                     onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            getMainViewModel().accountLogin(
-                                after = {
-                                    if (it) {
-                                        getMainViewModel().subjectFee.refreshData(force = true)
-                                    }
-                                }
-                            )
-                        }
+                        getMainViewModel().accountSession.fetchSubjectFee(force = true)
                     },
                     content = {
                         Icon(Icons.Default.Refresh, "Refresh")
@@ -102,7 +91,7 @@ fun AccountActivity.SubjectFee(
                     .fillMaxSize()
                     .padding(padding),
                 content = {
-                    if (getMainViewModel().subjectFee.processState.value == ProcessState.Running) {
+                    if (getMainViewModel().accountSession.subjectFee.processState.value == ProcessState.Running) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Column(
@@ -124,7 +113,7 @@ fun AccountActivity.SubjectFee(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top,
                         content = {
-                            getMainViewModel().subjectFee.data.value?.forEach { item ->
+                            getMainViewModel().accountSession.subjectFee.data.forEach { item ->
                                 AccountSubjectFeeInformation(
                                     modifier = Modifier.padding(bottom = 10.dp),
                                     item = item,
@@ -142,15 +131,7 @@ fun AccountActivity.SubjectFee(
     val hasRun = remember { mutableStateOf(false) }
     run {
         if (!hasRun.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                getMainViewModel().accountLogin(
-                    after = {
-                        if (it) {
-                            getMainViewModel().subjectFee.refreshData()
-                        }
-                    }
-                )
-            }
+            getMainViewModel().accountSession.fetchSubjectFee()
             hasRun.value = true
         }
     }

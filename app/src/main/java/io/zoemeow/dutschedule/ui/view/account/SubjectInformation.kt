@@ -37,9 +37,6 @@ import io.zoemeow.dutschedule.activity.AccountActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.account.AccountSubjectMoreInformation
 import io.zoemeow.dutschedule.ui.component.account.SubjectInformation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,18 +79,10 @@ fun AccountActivity.SubjectInformation(
             )
         },
         floatingActionButton = {
-            if (getMainViewModel().subjectSchedule.processState.value != ProcessState.Running) {
+            if (getMainViewModel().accountSession.subjectSchedule.processState.value != ProcessState.Running) {
                 FloatingActionButton(
                     onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            getMainViewModel().accountLogin(
-                                after = {
-                                    if (it) {
-                                        getMainViewModel().subjectSchedule.refreshData(force = true)
-                                    }
-                                }
-                            )
-                        }
+                        getMainViewModel().accountSession.fetchSubjectSchedule(force = true)
                     },
                     content = {
                         Icon(Icons.Default.Refresh, "Refresh")
@@ -107,7 +96,7 @@ fun AccountActivity.SubjectInformation(
                     .fillMaxSize()
                     .padding(padding),
                 content = {
-                    if (getMainViewModel().subjectSchedule.processState.value == ProcessState.Running) {
+                    if (getMainViewModel().accountSession.subjectSchedule.processState.value == ProcessState.Running) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Column(
@@ -129,7 +118,7 @@ fun AccountActivity.SubjectInformation(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top,
                         content = {
-                            getMainViewModel().subjectSchedule.data.value?.forEach { item ->
+                            getMainViewModel().accountSession.subjectSchedule.data.forEach { item ->
                                 SubjectInformation(
                                     modifier = Modifier.padding(bottom = 7.dp),
                                     item = item,
@@ -176,15 +165,7 @@ fun AccountActivity.SubjectInformation(
     val hasRun = remember { mutableStateOf(false) }
     run {
         if (!hasRun.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                getMainViewModel().accountLogin(
-                    after = {
-                        if (it) {
-                            getMainViewModel().subjectSchedule.refreshData()
-                        }
-                    }
-                )
-            }
+            getMainViewModel().accountSession.fetchSubjectSchedule()
             hasRun.value = true
         }
     }

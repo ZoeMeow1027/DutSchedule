@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -8,20 +9,13 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dutwrapper.dutwrapper.Utils
-import io.dutwrapper.dutwrapper.model.accounts.AccountInformation
-import io.dutwrapper.dutwrapper.model.accounts.SubjectFeeItem
-import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
-import io.dutwrapper.dutwrapper.model.accounts.trainingresult.AccountTrainingStatus
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
+import io.zoemeow.dutschedule.model.DUTAccountSession
 import io.zoemeow.dutschedule.model.NotificationHistory
-import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.ProcessVariable
-import io.zoemeow.dutschedule.model.VariableTimestamp
-import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.model.account.AccountSession
-import io.zoemeow.dutschedule.model.account.SchoolYearItem
 import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
@@ -40,142 +34,22 @@ class MainViewModel @Inject constructor(
     private val dutRequestRepository: DutRequestRepository,
 ) : ViewModel() {
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
-    val accountSession: MutableState<VariableTimestamp<AccountSession>> = mutableStateOf(
-        VariableTimestamp(data = AccountSession())
+
+    val accountSession: DUTAccountSession = DUTAccountSession(
+        dutRequestRepository = dutRequestRepository,
+        onEventSent = { eventId ->
+            when (eventId) {
+                1 -> {
+                    Log.d("app", "triggered saved login")
+                    saveSettings()
+                }
+                2, 3, 4, 5 -> {
+                    // TODO: Save account cache here!
+                    // saveSettings()
+                }
+            }
+        }
     )
-
-    /**
-     * Re-login your account on sv.dut.udn.vn
-     */
-    fun accountReLogin() {
-        launchOnScope(
-            script = {
-                accountLogin(after = { result ->
-                    if (result) {
-                        subjectSchedule.refreshData()
-                        accountInformation.refreshData()
-                    }
-                })
-            }
-        )
-    }
-
-    /**
-     * Login account to this application.
-     * @param data: Login information.
-     */
-    fun accountLogin(
-        data: AccountAuth? = null,
-        before: (() -> Unit)? = null,
-        after: ((Boolean) -> Unit)? = null
-    ) {
-        // If current process is running, ignore this run.
-        if (accountSession.value.processState == ProcessState.Running)
-            return
-
-        // Before run
-        before?.let { it() }
-
-        try {
-            // If ProcessState.Successful and last run doesn't last 5 minutes, ignore.
-            // Otherwise will continue
-            if (!accountSession.value.isSuccessfulRequestExpired()) {
-                // After run
-                after?.let { it(accountSession.value.processState == ProcessState.Successful) }
-
-                return
-            }
-
-            // If data exist, merge it to accountSession
-            data?.let {
-                accountSession.value = accountSession.value.clone(
-                    data = accountSession.value.data.clone(
-                        accountAuth = AccountAuth(
-                            username = it.username,
-                            password = it.password
-                        )
-                    )
-                )
-            }
-
-            accountSession.value = accountSession.value.clone(
-                processState = ProcessState.Running
-            )
-            val response = dutRequestRepository.login(
-                accountSession.value.data,
-                forceLogin = true,
-                onSessionChanged = { sessionId, timestamp ->
-                    accountSession.value = accountSession.value.clone(
-                        data = accountSession.value.data.clone(
-                            sessionId = sessionId,
-                            sessionLastRequest = timestamp
-                        ),
-                        lastRequest = timestamp
-                    )
-                }
-            )
-            when (response) {
-                true -> {
-                    accountSession.value = accountSession.value.clone(
-                        processState = ProcessState.Successful
-                    )
-                }
-
-                false -> {
-                    accountSession.value = accountSession.value.clone(
-                        processState = ProcessState.NotRunYet
-                    )
-                }
-            }
-
-            // After run
-            after?.let { it(accountSession.value.processState == ProcessState.Successful) }
-        } catch (_: Exception) {
-            accountSession.value = accountSession.value.clone(
-                processState = ProcessState.Failed
-            )
-
-            // After run with thrown
-            after?.let { it(false) }
-        }
-
-        // Save settings
-        saveSettings()
-    }
-
-    /**
-     * Logout account in this application from server.
-     */
-    fun accountLogout(
-        after: ((Boolean) -> Unit)? = null,
-    ) {
-        // If current process is running, ignore this run.
-        if (accountSession.value.processState == ProcessState.Running)
-            return
-
-        try {
-            // Delete all account sessions. This will always be true.
-            accountSession.value = accountSession.value.clone(
-                lastRequest = 0,
-                processState = ProcessState.NotRunYet,
-                data = AccountSession(),
-            )
-
-            // Clear all user cache data
-            accountInformation.resetToDefault()
-            subjectSchedule.data.value = null
-            subjectFee.data.value = null
-            accountTrainingStatus.data.value = null
-
-            // After run
-            after?.let { it(true) }
-        } catch (_: Exception) {
-            after?.let { it(false) }
-        }
-
-        // Save settings
-        saveSettings()
-    }
 
     /**
      * Refresh or clear news global.
@@ -184,7 +58,7 @@ class MainViewModel @Inject constructor(
      */
     val newsGlobal = ProcessVariable<NewsCache<NewsGlobalItem>>(
         onRefresh = { baseData, arg ->
-            val newsBase = baseData ?: NewsCache<NewsGlobalItem>()
+            val newsBase = baseData ?: NewsCache()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
@@ -288,7 +162,7 @@ class MainViewModel @Inject constructor(
      */
     val newsSubject = ProcessVariable<NewsCache<NewsSubjectItem>>(
         onRefresh = { baseData, arg ->
-            val newsBase = baseData ?: NewsCache<NewsSubjectItem>()
+            val newsBase = baseData ?: NewsCache()
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
@@ -385,64 +259,6 @@ class MainViewModel @Inject constructor(
     )
 
     /**
-     * Subject schedule cache for current logged in account.
-     */
-    val subjectSchedule = ProcessVariable<ArrayList<SubjectScheduleItem>>(
-        onRefresh = { _, _ ->
-            // TODO: Remember change year and semester here!
-            return@ProcessVariable dutRequestRepository.getSubjectSchedule(
-                accountSession.value.data,
-                SchoolYearItem(
-                    year = appSettings.value.currentSchoolYear.year,
-                    semester = appSettings.value.currentSchoolYear.semester
-                )
-            )
-        },
-        onAfterRefresh = { saveSettings() }
-    )
-
-    /**
-     * Subject fee cache for current logged in account.
-     */
-    val subjectFee = ProcessVariable<ArrayList<SubjectFeeItem>>(
-        onRefresh = { _, _ ->
-            // TODO: Remember change year and semester here!
-            return@ProcessVariable dutRequestRepository.getSubjectFee(
-                accountSession.value.data,
-                SchoolYearItem(
-                    year = appSettings.value.currentSchoolYear.year,
-                    semester = appSettings.value.currentSchoolYear.semester
-                )
-            )
-        },
-        onAfterRefresh = { saveSettings() }
-    )
-
-    /**
-     * Account information cache for current logged in account.
-     */
-    val accountInformation = ProcessVariable<AccountInformation>(
-        onRefresh = { _, _ ->
-            return@ProcessVariable dutRequestRepository.getAccountInformation(
-                accountSession.value.data
-            )
-        },
-        onAfterRefresh = { saveSettings() }
-    )
-
-    /**
-     * Account training status cache for current logged in account.
-     */
-    val accountTrainingStatus = ProcessVariable<AccountTrainingStatus>(
-        onRefresh = { _, _ ->
-            return@ProcessVariable dutRequestRepository.getAccountTrainingStatus(
-                accountSession.value.data
-            )
-        },
-        onAfterRefresh = { saveSettings() }
-    )
-
-    /**
      * Get current school week if possible.
      */
     val currentSchoolWeek = ProcessVariable<DutSchoolYearItem?>(
@@ -474,8 +290,8 @@ class MainViewModel @Inject constructor(
         launchOnScope(
             script = {
                 fileModuleRepository.saveAppSettings(appSettings.value)
-                fileModuleRepository.saveAccountSession(accountSession.value.data)
-                fileModuleRepository.saveAccountSubjectScheduleCache(subjectSchedule.data.value ?: arrayListOf())
+                fileModuleRepository.saveAccountSession(accountSession.getAccountSession() ?: AccountSession())
+                fileModuleRepository.saveAccountSubjectScheduleCache(ArrayList(accountSession.getSubjectScheduleCache()))
             }
         )
     }
@@ -516,10 +332,10 @@ class MainViewModel @Inject constructor(
                     }
                 }
 
-                // Get account subject schedule
-                fileModuleRepository.getAccountSubjectScheduleCache().also {
-                    subjectSchedule.data.value = it
-                }
+                // TODO: Get account subject schedule from cache
+//                fileModuleRepository.getAccountSubjectScheduleCache().also {
+//                    subjectSchedule.data.value = it
+//                }
             }
         )
     }
@@ -545,10 +361,8 @@ class MainViewModel @Inject constructor(
         runOnStartupEnabled.value = false
 
         appSettings.value = fileModuleRepository.getAppSettings()
-        accountSession.value = VariableTimestamp(
-            lastRequest = 0,
-            data = fileModuleRepository.getAccountSession()
-        )
+        accountSession.setAccountSession(fileModuleRepository.getAccountSession())
+        accountSession.setSchoolYear(schoolYearItem = appSettings.value.currentSchoolYear)
 
         invokeOnCompleted?.let { it() }
     }
@@ -559,6 +373,7 @@ class MainViewModel @Inject constructor(
                 loadCache()
                 currentSchoolWeek.refreshData(force = true)
                 reloadNotification()
+                accountSession.reLogin(force = true)
                 launchOnScope(script = {
                     newsGlobal.refreshData(
                         force = true,
@@ -568,12 +383,6 @@ class MainViewModel @Inject constructor(
                         force = true,
                         args = mapOf("newsfetchtype" to NewsFetchType.FirstPage.value.toString())
                     )
-                    accountLogin(after = {
-                        if (it) {
-                            subjectSchedule.refreshData()
-                            accountInformation.refreshData()
-                        }
-                    })
                 })
             }
         )

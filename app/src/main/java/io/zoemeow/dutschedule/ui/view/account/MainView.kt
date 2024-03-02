@@ -97,7 +97,7 @@ fun AccountActivity.MainView(
                     .padding(it)
                     .verticalScroll(rememberScrollState()),
                 content = {
-                    when (getMainViewModel().accountSession.value.processState) {
+                    when (getMainViewModel().accountSession.accountSession.processState.value) {
                         ProcessState.NotRunYet -> {
                             LoginBannerNotLoggedIn(
                                 opacity = getControlBackgroundAlpha(),
@@ -117,7 +117,7 @@ fun AccountActivity.MainView(
                                 horizontalArrangement = Arrangement.Start,
                                 opacity = getControlBackgroundAlpha(),
                                 clicked = {
-                                    getMainViewModel().accountReLogin()
+                                    getMainViewModel().accountSession.reLogin()
                                 }
                             )
                             ButtonBase(
@@ -145,7 +145,7 @@ fun AccountActivity.MainView(
                             )
                         }
                         ProcessState.Successful -> {
-                            getMainViewModel().accountInformation.let { accInfo ->
+                            getMainViewModel().accountSession.accountInformation.let { accInfo ->
                                 AccountInfoBanner(
                                     opacity = getControlBackgroundAlpha(),
                                     padding = PaddingValues(10.dp),
@@ -235,41 +235,39 @@ fun AccountActivity.MainView(
         loginClicked = { username, password, rememberLogin ->
             run {
                 CoroutineScope(Dispatchers.IO).launch {
-                    getMainViewModel().accountLogin(
-                        data = AccountAuth(
-                            username = username,
-                            password = password,
-                            rememberLogin = rememberLogin
-                        ),
-                        before = {
-                            loginDialogEnabled.value = false
-                            showSnackBar(
-                                text = "Logging you in...",
-                                clearPrevious = true,
-                            )
-                        },
-                        after = {
-                            when (it) {
-                                true -> {
-                                    loginDialogEnabled.value = true
-                                    loginDialogVisible.value = false
-                                    showSnackBar(
-                                        text = "Successfully logged in!",
-                                        clearPrevious = true,
-                                    )
-                                    getMainViewModel().accountInformation.refreshData(force = true)
-                                }
-                                false -> {
-                                    loginDialogEnabled.value = true
-                                    showSnackBar(
-                                        text = "Login failed! Please check your login information and try again.",
-                                        clearPrevious = true,
-                                    )
-                                }
-                            }
-                        }
+                    loginDialogEnabled.value = false
+                    showSnackBar(
+                        text = "Logging you in...",
+                        clearPrevious = true,
                     )
                 }
+                getMainViewModel().accountSession.login(
+                    accountAuth = AccountAuth(
+                        username = username,
+                        password = password,
+                        rememberLogin = rememberLogin
+                    ),
+                    onCompleted = {
+                        when (it) {
+                            true -> {
+                                loginDialogEnabled.value = true
+                                loginDialogVisible.value = false
+                                getMainViewModel().accountSession.reLogin()
+                                showSnackBar(
+                                    text = "Successfully logged in!",
+                                    clearPrevious = true,
+                                )
+                            }
+                            false -> {
+                                loginDialogEnabled.value = true
+                                showSnackBar(
+                                    text = "Login failed! Please check your login information and try again.",
+                                    clearPrevious = true,
+                                )
+                            }
+                        }
+                    }
+                )
             }
         },
         cancelRequested = {
@@ -287,9 +285,9 @@ fun AccountActivity.MainView(
         canDismiss = true,
         logoutClicked = {
             run {
-                getMainViewModel().accountLogout(
-                    after = {
-                        logoutDialogVisible.value = false
+                loginDialogVisible.value = false
+                getMainViewModel().accountSession.logout(
+                    onCompleted = {
                         showSnackBar(
                             text = "Successfully logout!",
                             clearPrevious = true,

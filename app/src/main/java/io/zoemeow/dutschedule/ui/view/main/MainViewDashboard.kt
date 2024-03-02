@@ -155,9 +155,9 @@ fun MainActivity.MainViewDashboard(
                                         "Account",
                                         style = MaterialTheme.typography.titleSmall
                                     )
-                                    getMainViewModel().accountSession.value.let {
+                                    getMainViewModel().accountSession.accountSession.processState.value.let {
                                         Text(
-                                            when (it.processState) {
+                                            when (it) {
                                                 ProcessState.NotRunYet -> "Not logged in"
                                                 ProcessState.Running -> "Fetching..."
 //                                                ProcessState.Failed -> when (it.data.accountAuth.username == null) {
@@ -167,7 +167,7 @@ fun MainActivity.MainViewDashboard(
 //                                                        it.data.accountAuth.username
 //                                                    )
 //                                                }
-                                                else -> it.data.accountAuth.username ?: "unknown"
+                                                else -> getMainViewModel().accountSession.accountSession.data.value?.accountAuth?.username ?: "unknown"
                                             },
                                             style = MaterialTheme.typography.bodySmall
                                         )
@@ -178,12 +178,12 @@ fun MainActivity.MainViewDashboard(
                         icon = {
                             BadgedBox(
                                 badge = {
-                                    if (getMainViewModel().accountSession.value.processState == ProcessState.Failed) {
+                                    if (getMainViewModel().accountSession.accountSession.processState.value == ProcessState.Failed) {
                                         Badge { Text("!") }
                                     }
                                 },
                                 content = {
-                                    when (getMainViewModel().accountSession.value.processState) {
+                                    when (getMainViewModel().accountSession.accountSession.processState.value) {
                                         ProcessState.Running -> CircularProgressIndicator(
                                             modifier = Modifier.size(26.dp),
                                             strokeWidth = 3.dp

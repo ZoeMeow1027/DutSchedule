@@ -33,9 +33,6 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.activity.AccountActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,18 +73,10 @@ fun AccountActivity.AccountInformation(
             )
         },
         floatingActionButton = {
-            if (getMainViewModel().accountInformation.processState.value != ProcessState.Running) {
+            if (getMainViewModel().accountSession.accountInformation.processState.value != ProcessState.Running) {
                 FloatingActionButton(
                     onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            getMainViewModel().accountLogin(
-                                after = {
-                                    if (it) {
-                                        getMainViewModel().accountInformation.refreshData(force = true)
-                                    }
-                                }
-                            )
-                        }
+                        getMainViewModel().accountSession.fetchAccountInformation(force = true)
                     },
                     content = {
                         Icon(Icons.Default.Refresh, "Refresh")
@@ -101,7 +90,7 @@ fun AccountActivity.AccountInformation(
                     .fillMaxSize()
                     .padding(padding),
                 content = {
-                    if (getMainViewModel().accountInformation.processState.value == ProcessState.Running) {
+                    if (getMainViewModel().accountSession.accountInformation.processState.value == ProcessState.Running) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Column(
@@ -112,7 +101,7 @@ fun AccountActivity.AccountInformation(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Top,
                         content = {
-                            getMainViewModel().accountInformation.data.value?.let { data ->
+                            getMainViewModel().accountSession.accountInformation.data.value?.let { data ->
                                 val mapPersonalInfo = mapOf(
                                     "Name" to (data.name ?: "(unknown)"),
                                     "Date of birth" to (data.dateOfBirth ?: "(unknown)"),

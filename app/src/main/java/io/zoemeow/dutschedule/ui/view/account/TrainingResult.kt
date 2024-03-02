@@ -40,9 +40,6 @@ import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.base.OutlinedTextBox
 import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,16 +81,10 @@ fun AccountActivity.TrainingResult(
             )
         },
         floatingActionButton = {
-            if (getMainViewModel().accountTrainingStatus.processState.value != ProcessState.Running) {
+            if (getMainViewModel().accountSession.accountTrainingStatus.processState.value != ProcessState.Running) {
                 FloatingActionButton(
                     onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            getMainViewModel().accountLogin(
-                                after = {
-                                    if (it) { getMainViewModel().accountTrainingStatus.refreshData(force = true) }
-                                }
-                            )
-                        }
+                        getMainViewModel().accountSession.fetchAccountTrainingStatus(force = true)
                     },
                     content = {
                         Icon(Icons.Default.Refresh, "Refresh")
@@ -107,7 +98,7 @@ fun AccountActivity.TrainingResult(
                     .fillMaxSize()
                     .padding(padding),
                 content = {
-                    if (getMainViewModel().accountTrainingStatus.processState.value == ProcessState.Running) {
+                    if (getMainViewModel().accountSession.accountTrainingStatus.processState.value == ProcessState.Running) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Column(
@@ -117,7 +108,7 @@ fun AccountActivity.TrainingResult(
                         verticalArrangement = Arrangement.Top,
                         horizontalAlignment = Alignment.Start,
                         content = {
-                            getMainViewModel().accountTrainingStatus.data.value?.let {
+                            getMainViewModel().accountSession.accountTrainingStatus.data.value?.let {
                                 fun graduateStatus(): String {
                                     val owned = ArrayList<String>()
                                     val missing = ArrayList<String>()
@@ -259,15 +250,7 @@ fun AccountActivity.TrainingResult(
     val hasRun = remember { mutableStateOf(false) }
     run {
         if (!hasRun.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                getMainViewModel().accountLogin(
-                    after = {
-                        if (it) {
-                            getMainViewModel().accountTrainingStatus.refreshData()
-                        }
-                    }
-                )
-            }
+            getMainViewModel().accountSession.fetchAccountTrainingStatus()
             hasRun.value = true
         }
     }

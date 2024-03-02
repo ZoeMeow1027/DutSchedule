@@ -24,4 +24,8 @@ data class AccountAuth(
             rememberLogin = rememberLogin ?: this.rememberLogin,
         )
     }
+
+    fun isValidLogin(): Boolean {
+        return this.username != null && this.password != null
+    }
 }

@@ -24,4 +24,8 @@ data class AccountSession(
             sessionLastRequest = sessionLastRequest ?: this.sessionLastRequest
         )
     }
+
+    fun isValidLogin(): Boolean {
+        return accountAuth.isValidLogin()
+    }
 }

@@ -178,22 +178,16 @@ fun AccountActivity.TrainingSubjectResult(
                                 Icon(Icons.Default.Search, "Search")
                             }
                         )
-                    } else null
+                    }
                 }
             )
         },
         floatingActionButton = {
-            if (getMainViewModel().accountTrainingStatus.processState.value != ProcessState.Running) {
+            if (getMainViewModel().accountSession.accountTrainingStatus.processState.value != ProcessState.Running) {
                 FloatingActionButton(
                     onClick = {
                         clearAllFocusAndHideKeyboard()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            getMainViewModel().accountLogin(
-                                after = {
-                                    if (it) { getMainViewModel().accountTrainingStatus.refreshData(force = true) }
-                                }
-                            )
-                        }
+                        getMainViewModel().accountSession.fetchAccountTrainingStatus(force = true)
                     },
                     content = {
                         Icon(Icons.Default.Refresh, "Refresh")
@@ -209,7 +203,7 @@ fun AccountActivity.TrainingSubjectResult(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top,
                 content = {
-                    if (getMainViewModel().accountTrainingStatus.processState.value == ProcessState.Running) {
+                    if (getMainViewModel().accountSession.accountTrainingStatus.processState.value == ProcessState.Running) {
                         LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                     }
                     Column(
@@ -256,7 +250,7 @@ fun AccountActivity.TrainingSubjectResult(
                                                     schYearOption.value = false
                                                 }
                                             )
-                                            (getMainViewModel().accountTrainingStatus.data.value?.subjectResultList?.map { it.schoolYear }?.toList()?.distinct()?.reversed() ?: listOf()).forEach {
+                                            (getMainViewModel().accountSession.accountTrainingStatus.data.value?.subjectResultList?.map { it.schoolYear }?.toList()?.distinct()?.reversed() ?: listOf()).forEach {
                                                 DropdownMenuItem(
                                                     modifier = Modifier.background(
                                                         color = when (schYearOptionText.value == it) {
@@ -313,7 +307,7 @@ fun AccountActivity.TrainingSubjectResult(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Top,
                                 content = {
-                                    getMainViewModel().accountTrainingStatus.data.value?.subjectResultList?.filter {
+                                    getMainViewModel().accountSession.accountTrainingStatus.data.value?.subjectResultList?.filter {
                                             p ->
                                         (schYearOptionText.value == "All school year items" || p.schoolYear == schYearOptionText.value) &&
                                                 (searchQuery.value.isEmpty()
@@ -339,7 +333,7 @@ fun AccountActivity.TrainingSubjectResult(
                                                 TableCell(
                                                     modifier = Modifier.fillMaxHeight(),
                                                     backgroundColor = MaterialTheme.colorScheme.background.copy(alpha = getControlBackgroundAlpha()),
-                                                    text = "${subjectItem.name}",
+                                                    text = subjectItem.name,
                                                     contentAlign = Alignment.CenterStart,
                                                     textAlign = TextAlign.Start,
                                                     weight = 0.6f
@@ -410,15 +404,7 @@ fun AccountActivity.TrainingSubjectResult(
     val hasRun = remember { mutableStateOf(false) }
     run {
         if (!hasRun.value) {
-            CoroutineScope(Dispatchers.IO).launch {
-                getMainViewModel().accountLogin(
-                    after = {
-                        if (it) {
-                            getMainViewModel().accountTrainingStatus.refreshData()
-                        }
-                    }
-                )
-            }
+            getMainViewModel().accountSession.fetchAccountTrainingStatus()
             hasRun.value = true
         }
     }

@@ -69,7 +69,7 @@ class MainActivity : BaseActivity() {
             contentColor = contentColor,
             notificationList = getMainViewModel().notificationHistory,
             notificationClicked = {
-                // TODO: Notification list requested
+                // Notification list requested
                 notificationSheetScope.launch {
                     if (!isNotificationOpened.value) {
                         isNotificationOpened.value = true
@@ -100,11 +100,11 @@ class MainActivity : BaseActivity() {
                 )
                 LessonTodaySummaryItem(
                     padding = PaddingValues(bottom = 10.dp, start = 15.dp, end = 15.dp),
-                    hasLoggedIn = getMainViewModel().accountSession.value.processState == ProcessState.Successful,
-                    isLoading = getMainViewModel().accountSession.value.processState == ProcessState.Running || getMainViewModel().subjectSchedule.processState.value == ProcessState.Running,
+                    hasLoggedIn = getMainViewModel().accountSession.accountSession.processState.value == ProcessState.Successful,
+                    isLoading = getMainViewModel().accountSession.accountSession.processState.value == ProcessState.Running || getMainViewModel().accountSession.subjectSchedule.processState.value == ProcessState.Running,
                     clicked = {
-                        getMainViewModel().accountLogin(
-                            after = {
+                        getMainViewModel().accountSession.reLogin(
+                            onCompleted = {
                                 if (it) {
                                     val intent = Intent(context, AccountActivity::class.java)
                                     intent.action = "subject_schedule"
@@ -113,12 +113,12 @@ class MainActivity : BaseActivity() {
                             }
                         )
                     },
-                    affectedList = getMainViewModel().subjectSchedule.data.value?.filter { subSch ->
+                    affectedList = getMainViewModel().accountSession.subjectSchedule.data.filter { subSch ->
                         subSch.subjectStudy.scheduleList.any { schItem -> schItem.dayOfWeek + 1 == CustomDateUtil.getCurrentDayOfWeek() } &&
                                 subSch.subjectStudy.scheduleList.any { schItem ->
                                     schItem.lesson.end >= CustomClock.getCurrent().toDUTLesson2().lesson
                                 }
-                    }?.toList() ?: listOf(),
+                    }.toList(),
                     opacity = getControlBackgroundAlpha()
                 )
 //                AffectedLessonsSummaryItem(
