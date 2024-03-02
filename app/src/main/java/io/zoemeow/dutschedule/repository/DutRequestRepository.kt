@@ -154,7 +154,7 @@ class DutRequestRepository {
     fun getSubjectSchedule(
         accountSession: AccountSession,
         schoolYearItem: SchoolYearItem
-    ): List<SubjectScheduleItem>? {
+    ): ArrayList<SubjectScheduleItem>? {
         return try {
             if (Account.isLoggedIn(accountSession.sessionId)) {
                 Account.getSubjectSchedule(
@@ -172,7 +172,7 @@ class DutRequestRepository {
     fun getSubjectFee(
         accountSession: AccountSession,
         schoolYearItem: SchoolYearItem
-    ): List<SubjectFeeItem>? {
+    ): ArrayList<SubjectFeeItem>? {
         return try {
             if (Account.isLoggedIn(accountSession.sessionId)) {
                 Account.getSubjectFee(

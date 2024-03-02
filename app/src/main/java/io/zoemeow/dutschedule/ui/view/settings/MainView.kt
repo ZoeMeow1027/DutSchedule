@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.BuildConfig
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.activity.SettingsActivity
-import io.zoemeow.dutschedule.model.AppPermissionInfo
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DividerItem
@@ -116,17 +115,17 @@ fun SettingsActivity.MainView(
                                     else -> "Disabled"
                                 },
                                 onClick = {
-                                    if (PermissionRequestActivity.isPermissionGranted(AppPermissionInfo.PERMISSION_SCHEDULE_EXACT_ALARM, context)) {
+                                    if (PermissionRequestActivity.checkPermissionScheduleExactAlarm(context).isGranted) {
                                         dialogFetchNews.value = true
                                     } else {
                                         showSnackBar(
-                                            text = "You need to enable Alarms & reminders in Android app settings to use this feature.",
+                                            text = "You need to enable Alarms & Reminders in Android app settings to use this feature.",
                                             clearPrevious = true,
                                             actionText = "Open",
                                             action = {
-                                                context.startActivity(
-                                                    AppPermissionInfo.PERMISSION_SCHEDULE_EXACT_ALARM.extraAction
-                                                )
+                                                Intent(context, PermissionRequestActivity::class.java).also {
+                                                    context.startActivity(it)
+                                                }
                                             }
                                         )
                                     }
@@ -324,10 +323,7 @@ fun SettingsActivity.MainView(
                         )
                 }
                 BackgroundImageOption.YourCurrentWallpaper -> {
-                    val compPer = PermissionRequestActivity.isPermissionGranted(
-                        AppPermissionInfo.PERMISSION_MANAGE_EXTERNAL_STORAGE,
-                        context = context
-                    )
+                    val compPer = PermissionRequestActivity.checkPermissionManageExternalStorage().isGranted
                     if (compPer) {
                         getMainViewModel().appSettings.value =
                             getMainViewModel().appSettings.value.clone(
@@ -335,13 +331,13 @@ fun SettingsActivity.MainView(
                             )
                     } else {
                         showSnackBar(
-                            text = "You need to grant All files access in Application permission to use this feature. You can use \"Choose a image from media\" without this permission.",
+                            text = "You need to grant All files access in application permission to use this feature. You can use \"Choose a image from media\" without this permission.",
                             clearPrevious = true,
                             actionText = "Grant",
                             action = {
-                                context.startActivity(
-                                    AppPermissionInfo.PERMISSION_MANAGE_EXTERNAL_STORAGE.extraAction
-                                )
+                                Intent(context, PermissionRequestActivity::class.java).also {
+                                    context.startActivity(it)
+                                }
                             }
                         )
                     }

@@ -3,8 +3,10 @@ package io.zoemeow.dutschedule.repository
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
+import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
 import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.account.AccountSession
 import io.zoemeow.dutschedule.model.news.NewsCache
@@ -22,9 +24,10 @@ class FileModuleRepository(
     private val PATH_CACHE_NEWSSUBJECT = "${context.filesDir.path}/cache_news_subject.json"
     private val PATH_APPSETTINGS = "${context.filesDir.path}/settings.json"
     private val PATH_ACCOUNT = "${context.filesDir.path}/account.json"
-    private val PATH_CACHE_ACCOUNT = "${context.filesDir.path}/cache_account.json"
-    private val PATH_NOTIFICATION_HISTORY = "${context.filesDir.path}/notification_history.json"
+    private val PATH_ACCOUNT_SUBJECTSCHEDULE_CACHE = "${context.filesDir.path}/account.subjectschedule.cache.json"
+    private val PATH_NOTIFICATION_HISTORY = "${context.filesDir.path}/notification.cache.json"
     private val PATH_HISTORY_NEWSSEARCH = "${context.filesDir.path}/history_news_search.json"
+    private val PATH_SCHOOLYEAR_CACHE = "${context.filesDir.path}/schoolyear.cache.json"
 
     fun saveAppSettings(
         appSettings: AppSettings
@@ -168,5 +171,52 @@ class FileModuleRepository(
     fun saveNotificationHistory(data: ArrayList<NotificationHistory>) {
         val file = File(PATH_NOTIFICATION_HISTORY)
         file.writeText(Gson().toJson(data))
+    }
+
+    fun getAccountSubjectScheduleCache(): ArrayList<SubjectScheduleItem> {
+        val file = File(PATH_ACCOUNT_SUBJECTSCHEDULE_CACHE)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val objItem = Gson().fromJson<ArrayList<SubjectScheduleItem>>(
+                    text,
+                    (object : TypeToken<ArrayList<SubjectScheduleItem>>() {}.type)
+                )
+                this.close()
+                return objItem
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return ArrayList()
+        }
+    }
+
+    fun saveAccountSubjectScheduleCache(data: ArrayList<SubjectScheduleItem>) {
+        val file = File(PATH_ACCOUNT_SUBJECTSCHEDULE_CACHE)
+        file.writeText(Gson().toJson(data))
+    }
+
+    fun getSchoolYearCache(): Map<String, String?>? {
+        val file = File(PATH_SCHOOLYEAR_CACHE)
+        try {
+            file.bufferedReader().apply {
+                val text = this.use { it.readText() }
+                val objItem = Gson().fromJson<Map<String, String?>>(
+                    text,
+                    (object : TypeToken<Map<String, String?>>() {}.type)
+                )
+                this.close()
+                return objItem
+            }
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return mapOf("data" to null, "lastrequest" to null)
+        }
+    }
+
+    fun saveSchoolYearCache(data: DutSchoolYearItem?, lastRequest: Long) {
+        val file = File(PATH_SCHOOLYEAR_CACHE)
+        val dataMap = mapOf("data" to Gson().toJson(data), "lastrequest" to lastRequest)
+        file.writeText(Gson().toJson(dataMap))
     }
 }

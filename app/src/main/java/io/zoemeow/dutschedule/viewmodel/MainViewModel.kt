@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dutwrapper.dutwrapper.Utils
 import io.dutwrapper.dutwrapper.model.accounts.AccountInformation
@@ -385,7 +387,7 @@ class MainViewModel @Inject constructor(
     /**
      * Subject schedule cache for current logged in account.
      */
-    val subjectSchedule = ProcessVariable<List<SubjectScheduleItem>>(
+    val subjectSchedule = ProcessVariable<ArrayList<SubjectScheduleItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutRequestRepository.getSubjectSchedule(
@@ -402,7 +404,7 @@ class MainViewModel @Inject constructor(
     /**
      * Subject fee cache for current logged in account.
      */
-    val subjectFee = ProcessVariable<List<SubjectFeeItem>>(
+    val subjectFee = ProcessVariable<ArrayList<SubjectFeeItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
             return@ProcessVariable dutRequestRepository.getSubjectFee(
@@ -450,8 +452,18 @@ class MainViewModel @Inject constructor(
             } catch (_: Exception) {
                 return@ProcessVariable null
             }
+        },
+        onAfterRefresh = {
+            saveCurrentSchoolWeekCache()
         }
     )
+
+    private fun saveCurrentSchoolWeekCache() {
+        fileModuleRepository.saveSchoolYearCache(
+            data = currentSchoolWeek.data.value,
+            lastRequest = currentSchoolWeek.lastRequest.longValue
+        )
+    }
 
     val notificationHistory = mutableStateListOf<NotificationHistory>()
 
@@ -463,6 +475,7 @@ class MainViewModel @Inject constructor(
             script = {
                 fileModuleRepository.saveAppSettings(appSettings.value)
                 fileModuleRepository.saveAccountSession(accountSession.value.data)
+                fileModuleRepository.saveAccountSubjectScheduleCache(subjectSchedule.data.value ?: arrayListOf())
             }
         )
     }
@@ -479,14 +492,33 @@ class MainViewModel @Inject constructor(
     /**
      * Load all cache if possible for offline reading.
      */
-    private fun loadNewsCache() {
+    private fun loadCache() {
         launchOnScope(
             script = {
+                // Get all news cache
                 fileModuleRepository.getCacheNewsGlobal().also {
                     newsGlobal.data.value = it
                 }
                 fileModuleRepository.getCacheNewsSubject().also {
                     newsSubject.data.value = it
+                }
+
+                // Get school year cache
+                fileModuleRepository.getSchoolYearCache().also {
+                    if (it != null) {
+                        try {
+                            currentSchoolWeek.data.value = Gson().fromJson(
+                                it["data"] ?: "",
+                                (object : TypeToken<DutSchoolYearItem?>() {}.type)
+                            )
+                            currentSchoolWeek.lastRequest.longValue = (it["lastrequest"] ?: "0").toLong()
+                        } catch (_: Exception) { }
+                    }
+                }
+
+                // Get account subject schedule
+                fileModuleRepository.getAccountSubjectScheduleCache().also {
+                    subjectSchedule.data.value = it
                 }
             }
         )
@@ -524,7 +556,7 @@ class MainViewModel @Inject constructor(
     init {
         runOnStartup(
             invokeOnCompleted = {
-                loadNewsCache()
+                loadCache()
                 currentSchoolWeek.refreshData(force = true)
                 reloadNotification()
                 launchOnScope(script = {

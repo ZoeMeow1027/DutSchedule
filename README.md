@@ -1,12 +1,11 @@
 # DutSchedule
 
-A unofficial Android app about Da Nang University of technology to provide better UI from [sv.dut.udn.vn](http://sv.dut.udn.vn) on mobile.
+A unofficial Android app to provide better UI from [sv.dut.udn.vn](http://sv.dut.udn.vn).
 
 # Version
 
 - Release version: [![https://github.com/ZoeMeow1027/DutSchedule](https://img.shields.io/github/v/release/ZoeMeow1027/DutSchedule)](https://github.com/ZoeMeow1027/DutSchedule/releases)
 - Pre-release version: [![https://github.com/ZoeMeow1027/DutSchedule/tree/draft](https://img.shields.io/github/v/tag/ZoeMeow1027/DutSchedule?label=pre-release%20tag)](https://github.com/ZoeMeow1027/DutSchedule/tree/draft)
-- You can [view change log](CHANGELOG.md) for this project.
 - Badge provided by [https://shields.io/](https://shields.io/).
 
 # Features & Screenshots?
@@ -19,9 +18,10 @@ A unofficial Android app about Da Nang University of technology to provide bette
 
 # Build app yourself
 
-- If you open project with Android Studio, make sure your IDE support [Gradle 8.0 or latest](https://gradle.org/releases/). This can be fixed by upgrading your IDE. After that, just build and run app normally as you do with another Android project.
-
-- If you want to build app without IDE, just type command as you build another gradle project (note that you need to install [Gradle 8.0 or latest](https://gradle.org/releases/) first, otherwise this didn't work):
+- Required Gradle: 8.5
+  - Older version of Gradle will be failed while building.
+- If you open project with Android Studio, make sure your IDE support Gradle [Gradle](https://gradle.org/releases/) above, which can be fixed by upgrading your IDE. After that, just build and run app normally as you do with another Android project.
+- If you want to build app without IDE, just type command as you build another gradle project (note that you need to [Gradle](https://gradle.org/releases/) installed first):
 
 ```
 Build: gradlew build
@@ -32,7 +32,10 @@ For Powershell: ./gradlew build
 
 ### Where can I found app changelog?
 
-- [Here](https://github.com/ZoeMeow1027/DutSchedule/commits). You will need to change branch if you want to view changelog for stable/draft version.
+If you want to:
+- View major changes: [Click here](CHANGELOG.md).
+- View entire source code changes, [click here](https://github.com/ZoeMeow1027/DutSchedule/commits).
+  - You will need to change branch if you want to view changelog for stable/draft version.
 
 ### Why some news in application is different from sv.dut.udn.vn?
 
@@ -40,11 +43,19 @@ For Powershell: ./gradlew build
 
 ### I need to clear old news. What should I do?
 
-- You just need to refresh news and this will clear and get latest one automatically.
+- You just need to refresh news and this will clear old and get latest one automatically.
 
 ### I'm got issue with this app. Which place can I reproduce issue for you?
 
-- You can report issue via [Issue tab](https://github.com/ZoeMeow1027/DutSchedule/issues) on this repository. Thank you for your support!
+- You can report issue via [Issue tab](https://github.com/ZoeMeow1027/DutSchedule/issues) on this repository.
+
+# Known issues
+
+If you found a issue, you can report this via [issue tab](https://github.com/ZoeMeow1027/DutSchedule/issues) on this repository.
+- Global news and subject news were shown not correctly.
+  - You just need to refresh news and this will clear old and get latest one automatically.
+- Can't get current wallpaper as my app background wallpaper.
+  - On Android 14, Google is restricted for getting current wallpaper on Android 14 or later. This issue will be delayed very loong until a posible fix. You can [see why here](https://github.com/ZoeMeow1027/DutSchedule/issues/19).
 
 # Credits, changelog and license?
 - [Changelog](CHANGELOG.md)

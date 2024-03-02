@@ -70,9 +70,6 @@ class MainActivity : BaseActivity() {
             notificationList = getMainViewModel().notificationHistory,
             notificationClicked = {
                 // TODO: Notification list requested
-//                if (!isNotificationOpened.value) {
-//                    isNotificationOpened.value = true
-//                }
                 notificationSheetScope.launch {
                     if (!isNotificationOpened.value) {
                         isNotificationOpened.value = true

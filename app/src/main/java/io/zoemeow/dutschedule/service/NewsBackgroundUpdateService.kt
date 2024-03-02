@@ -17,12 +17,12 @@ import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
-import io.zoemeow.dutschedule.model.AppPermissionInfo
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.repository.DutRequestRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import io.zoemeow.dutschedule.utils.CustomDateUtil
+import io.zoemeow.dutschedule.utils.CustomDateUtil.Companion.dateUnixToString
 import io.zoemeow.dutschedule.utils.CustomDateUtil.Companion.getCurrentDateAndTimeToString
 import io.zoemeow.dutschedule.utils.NotificationsUtil
 import io.zoemeow.dutschedule.utils.calcMD5
@@ -230,7 +230,7 @@ class NewsBackgroundUpdateService : BaseService(
 
             // Check if any news need to be notify here using newsFiltered!
             // If no notification permission, aborting...
-            if (!PermissionRequestActivity.isPermissionGranted(AppPermissionInfo.PERMISSION_NOTIFICATION, this)) {
+            if (!PermissionRequestActivity.checkPermissionNotification(this).isGranted) {
                 return
             }
 
@@ -346,7 +346,7 @@ class NewsBackgroundUpdateService : BaseService(
 
             // Check if any news need to be notify here using newsFiltered!
             // If no notification permission, aborting...
-            if (!PermissionRequestActivity.isPermissionGranted(AppPermissionInfo.PERMISSION_NOTIFICATION, this)) {
+            if (!PermissionRequestActivity.checkPermissionNotification(this).isGranted) {
                 return
             }
 
@@ -593,7 +593,15 @@ class NewsBackgroundUpdateService : BaseService(
             onDone = {
                 Log.d(
                     "NewsBackgroundService",
-                    String.format("Scheduled service to run at %s.", getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"))
+                    String.format(
+                        "Scheduled service to run at %s. Next run: %s.",
+                        getCurrentDateAndTimeToString("dd/MM/yyyy HH:mm:ss"),
+                        dateUnixToString(
+                            System.currentTimeMillis() + settings.newsBackgroundDuration * 60 * 1000,
+                            "dd/MM/yyyy HH:mm:ss",
+                            "GMT+7"
+                        )
+                    )
                 )
             }
         )
