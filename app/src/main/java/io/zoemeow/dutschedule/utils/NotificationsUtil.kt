@@ -63,26 +63,26 @@ class NotificationsUtil {
             createNotificationChannelWithDefaultSettings(
                 activity = activity,
                 id = "notification.id.announcement",
-                name = "Announcement",
-                description = "This will send you app recommend and important updates."
+                name = activity.getString(R.string.notification_announcement_title),
+                description = activity.getString(R.string.notification_announcement_description)
             )
             createNotificationChannelWithDefaultSettings(
                 activity = activity,
                 id = "notification.id.news.global",
-                name = "News Global",
-                description = "This will receive new messages in \"Thông báo chung\" on sv.dut.udn.vn"
+                name = activity.getString(R.string.notification_newsglobal_title),
+                description = activity.getString(R.string.notification_newsglobal_description)
             )
             createNotificationChannelWithDefaultSettings(
                 activity = activity,
                 id = "notification.id.news.subject",
-                name = "News Subject",
-                description = "This will receive new messages in \"Thông báo lớp học phần\" on sv.dut.udn.vn"
+                name = activity.getString(R.string.notification_newssubject_title),
+                description = activity.getString(R.string.notification_newssubject_description)
             )
             createNotificationChannelWithSilentSettings(
                 activity = activity,
                 id = "notification.id.service",
-                name = "News Background Update Service",
-                description = "This will ensure this service will able to run in background. You can turn off this notification if you don't want show them."
+                name = activity.getString(R.string.notification_newsbackgroundupdateservice_title),
+                description = activity.getString(R.string.notification_newsbackgroundupdateservice_description)
             )
         }
 

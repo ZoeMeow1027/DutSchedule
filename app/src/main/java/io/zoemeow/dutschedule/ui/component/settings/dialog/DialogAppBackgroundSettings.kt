@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.activity.SettingsActivity
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.ui.component.base.DialogBase
 import io.zoemeow.dutschedule.ui.component.base.DialogRadioButton
@@ -61,10 +60,7 @@ fun SettingsActivity.DialogAppBackgroundSettings(
                                     "\n(This option is unavailable on Android 14)"
                                 }
                                 // Permission is not granted.
-                                (!PermissionRequestActivity.isPermissionGranted(
-                                    PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
-                                    context = context
-                                )) -> {
+                                (!PermissionRequestActivity.checkPermissionManageExternalStorage().isGranted) -> {
                                     "\n(You need to grant access all file permission)"
                                 }
                                 // Else, no exception
@@ -74,10 +70,7 @@ fun SettingsActivity.DialogAppBackgroundSettings(
                         selected = value == BackgroundImageOption.YourCurrentWallpaper,
                         onClick = {
                             val compSdk = Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-                            val compPer = PermissionRequestActivity.isPermissionGranted(
-                                PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
-                                context = context
-                            )
+                            val compPer = PermissionRequestActivity.checkPermissionManageExternalStorage().isGranted
                             if (compSdk && compPer) {
                                 onDismiss()
                                 onValueChanged(BackgroundImageOption.YourCurrentWallpaper)

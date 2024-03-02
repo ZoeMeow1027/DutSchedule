@@ -17,4 +17,13 @@ data class SchoolYearItem(
             semester = semester ?: this.semester
         )
     }
+
+    override fun toString(): String {
+        return String.format(
+            "School year: 20%2d-20%2d - Semester: %s",
+            year,
+            year + 1,
+            if (semester == 3) "Summer semester" else semester.toString()
+        )
+    }
 }

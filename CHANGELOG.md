@@ -6,6 +6,27 @@
 ## Known issues:
 - `Your current wallpaper` option in app background settings will be disabled on Android 14. You can check why in `Issue` tab in repository.
 
+## 2.0-draft16 (1063)
+- AccountActivity:
+  - Add option to refresh login when previous is failed.
+  - SubjectInformation and SubjectFee will now show current school year and semester.
+
+- SettingsActivity:
+  - Add LanguageActivity for switching language. On Android 13 and later, this will open System App Language instead.
+
+- Others:
+  - Fixed permissions are required incorrectly in Android 14.
+  - Reduce codes about permissions.
+  - Renamed ~~NewsUpdateService~~ to `NewsBackgroundUpdateService~~.
+  - Merge `PermissionItem` and `PermissionList` into one.
+  - Update dependencies to latest version.
+  - Add multi language support.
+    - This feature is not done yet.
+    - Default is English (en-US).
+  - Merge all DUT repositories into one.
+  - Notification history
+    - This feature is not done yet.
+
 ## 2.0-draft15 (971)
 - Others:
   - NewsBackgroundUpdateService will now start if phone is booted.

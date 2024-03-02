@@ -1,5 +1,7 @@
 package io.zoemeow.dutschedule.activity
 
+import android.Manifest
+import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -38,12 +40,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionInfo
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.ui.component.permissionrequest.PermissionInformation
 
 class PermissionRequestActivity : BaseActivity() {
-    private val permissionStatusList = mutableStateListOf<PermissionInfo>()
+    private val permissionStatusList = mutableStateListOf<PermissionCheckResult>()
 
     @Composable
     override fun OnPreloadOnce() {
@@ -52,7 +52,7 @@ class PermissionRequestActivity : BaseActivity() {
 
     private fun reloadPermissionStatus() {
         permissionStatusList.clear()
-        permissionStatusList.addAll(PermissionList.getAllRequiredPermissions())
+        permissionStatusList.addAll(getAllPermissions(this))
     }
 
     @Composable
@@ -77,10 +77,7 @@ class PermissionRequestActivity : BaseActivity() {
                 context.startActivity(intent)
             },
             permissionRequest = {
-                permissionRequestLauncher.launch(listOf(it).toTypedArray())
-            },
-            permissionExtraAction = {
-                context.startActivity(it)
+                requestPermission(it)
             }
         )
     }
@@ -94,8 +91,7 @@ class PermissionRequestActivity : BaseActivity() {
         contentColor: Color,
         navIconClicked: (() -> Unit)? = null,
         fabClicked: (() -> Unit)? = null,
-        permissionRequest: ((String) -> Unit)? = null,
-        permissionExtraAction: ((Intent) -> Unit)? = null
+        permissionRequest: ((String) -> Unit)? = null
     ) {
         val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -161,23 +157,18 @@ class PermissionRequestActivity : BaseActivity() {
                             content = {
                                 permissionStatusList.forEach { item ->
                                     PermissionInformation(
-                                        title = "${item.name}${if (!item.required) " (optimal)" else ""}",
+                                        title = item.name,
 //                                        description = "${item.code}\n\n${item.description}",
                                         description = "\n${item.description}",
-                                        isRequired = item.required,
-                                        isGranted = isPermissionGranted(
-                                            item,
-                                            context
-                                        ),
+                                        isRequired = false,
+                                        isGranted = item.isGranted,
                                         padding = PaddingValues(bottom = 10.dp),
                                         opacity = getControlBackgroundAlpha(),
                                         clicked = {
-                                            if (!isPermissionGranted(item, context)) {
-                                                if (item.extraAction == null) {
-                                                    permissionRequest?.let { it(item.code) }
-                                                } else {
-                                                    permissionExtraAction?.let { it(item.extraAction) }
-                                                }
+                                            permissionRequest?.let {
+                                                if (item.isGranted) {
+                                                    showSnackBar("You're already granted this permission!", true)
+                                                } else it(item.code)
                                             }
                                         }
                                     )
@@ -193,9 +184,9 @@ class PermissionRequestActivity : BaseActivity() {
     private val permissionRequestLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
-        val permissionResultList = arrayListOf<Pair<String, Boolean>>()
+        // val permissionResultList = arrayListOf<Pair<String, Boolean>>()
         result.toList().forEach { item ->
-            permissionResultList.add(Pair(item.first, item.second))
+            // permissionResultList.add(Pair(item.first, item.second))
         }
 
         reloadPermissionStatus()
@@ -207,32 +198,99 @@ class PermissionRequestActivity : BaseActivity() {
     }
 
     companion object {
-        // https://stackoverflow.com/questions/73620790/android-13-how-to-request-write-external-storage
-        fun isPermissionGranted(permissionInfo: PermissionInfo, context: Context): Boolean {
-            // MANAGE_EXTERNAL_STORAGE
-            if (permissionInfo.code == "android.permission.MANAGE_EXTERNAL_STORAGE") {
-                return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    Environment.isExternalStorageManager()
-                } else {
-                    return isPermissionGranted(permissionInfo.code, permissionInfo.minSdk, context)
-                }
-            }
-
-            // Another permissions
-            return isPermissionGranted(permissionInfo.code, permissionInfo.minSdk, context)
+        fun getAllPermissions(context: Context): List<PermissionCheckResult> {
+            return listOf(
+                checkPermissionNotification(context),
+                checkPermissionManageExternalStorage(),
+                checkPermissionScheduleExactAlarm(context)
+            )
         }
 
-        private fun isPermissionGranted(
-            permissionCode: String,
-            minSdk: Int,
-            context: Context
-        ): Boolean {
-            if (Build.VERSION.SDK_INT < minSdk)
-                return true
+        fun checkPermissionNotification(context: Context): PermissionCheckResult {
+            return PermissionCheckResult(
+                name = "Notifications",
+                code = "android.permission.POST_NOTIFICATIONS",
+                description = "Allow this app to send new announcements " +
+                        "(news global and news subject) and other for you.",
+                isGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    ContextCompat.checkSelfPermission(
+                        context, Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+                } else true
+            )
+        }
 
-            return ContextCompat.checkSelfPermission(
-                context, permissionCode
-            ) == PackageManager.PERMISSION_GRANTED
+        // https://stackoverflow.com/questions/73620790/android-13-how-to-request-write-external-storage
+        fun checkPermissionManageExternalStorage(): PermissionCheckResult {
+            return PermissionCheckResult(
+                name = "Manage External Storage",
+                code = "android.permission.MANAGE_EXTERNAL_STORAGE",
+                description = "This app will use your current wallpaper as app background wallpaper. " +
+                        "We promise not to upload or modify any data on your device, including your wallpaper. " +
+                        "If you don't want to grant this permission, you can use \"Choose a image from media\" instead.",
+                isGranted = when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ->
+                        Environment.isExternalStorageManager()
+                    else -> true
+                }
+            )
+        }
+
+        fun checkPermissionScheduleExactAlarm(context: Context): PermissionCheckResult {
+            val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            return PermissionCheckResult(
+                name = "Schedule Exact Alarm",
+                code = "android.permission.SCHEDULE_EXACT_ALARM",
+                description = "Allow this app to schedule service to update news in background for you.",
+                isGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    alarmManager.canScheduleExactAlarms()
+                } else true
+            )
+        }
+    }
+
+    data class PermissionCheckResult(
+        val name: String,
+        val code: String,
+        val description: String,
+        val isGranted: Boolean
+    )
+
+    private fun requestPermission(permissionCode: String) {
+        when (permissionCode) {
+            Manifest.permission.SCHEDULE_EXACT_ALARM -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    Intent(
+                        Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        Uri.fromParts("package", packageName, null)
+                    ).also {
+                        this.startActivity(it)
+                    }
+                } else {
+                    // TODO: Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM on Android 11 or older
+                }
+            }
+            // https://stackoverflow.com/questions/73620790/android-13-how-to-request-write-external-storage
+            Manifest.permission.MANAGE_EXTERNAL_STORAGE -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    Intent(
+                        Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                        Uri.fromParts("package", packageName, null)
+                    ).also {
+                        this.startActivity(it)
+                    }
+                } else {
+                    Intent(
+                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", packageName, null)
+                    ).also {
+                        this.startActivity(it)
+                    }
+                }
+            }
+            else -> {
+                permissionRequestLauncher.launch(listOf(permissionCode).toTypedArray())
+            }
         }
     }
 }

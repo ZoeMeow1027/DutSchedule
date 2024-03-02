@@ -2,6 +2,7 @@ package io.zoemeow.dutschedule.ui.view.settings
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -35,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.BuildConfig
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.activity.SettingsActivity
-import io.zoemeow.dutschedule.model.permissionrequest.PermissionList
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.model.settings.ThemeMode
 import io.zoemeow.dutschedule.ui.component.base.DividerItem
@@ -45,6 +45,7 @@ import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppBackgroundSettings
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppThemeSettings
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogFetchNewsInBackgroundSettings
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,17 +115,17 @@ fun SettingsActivity.MainView(
                                     else -> "Disabled"
                                 },
                                 onClick = {
-                                    if (PermissionRequestActivity.isPermissionGranted(PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM, context)) {
+                                    if (PermissionRequestActivity.checkPermissionScheduleExactAlarm(context).isGranted) {
                                         dialogFetchNews.value = true
                                     } else {
                                         showSnackBar(
-                                            text = "You need to enable Alarms & reminders in Android app settings to use this feature.",
+                                            text = "You need to enable Alarms & Reminders in Android app settings to use this feature.",
                                             clearPrevious = true,
                                             actionText = "Open",
                                             action = {
-                                                context.startActivity(
-                                                    PermissionList.PERMISSION_SCHEDULE_EXACT_ALARM.extraAction
-                                                )
+                                                Intent(context, PermissionRequestActivity::class.java).also {
+                                                    context.startActivity(it)
+                                                }
                                             }
                                         )
                                     }
@@ -202,6 +203,21 @@ fun SettingsActivity.MainView(
                             .padding(top = 10.dp),
                         text = "Miscellaneous settings",
                         content = {
+                            OptionItem(
+                                title = "App language",
+                                description = Locale.getDefault().displayName,
+                                onClick = {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        val intent = Intent(Settings.ACTION_APP_LOCALE_SETTINGS)
+                                        intent.data = Uri.fromParts("package", context.packageName, null)
+                                        context.startActivity(intent)
+                                    } else {
+                                        val intent = Intent(context, SettingsActivity::class.java)
+                                        intent.action = "settings_languagesettings"
+                                        context.startActivity(intent)
+                                    }
+                                }
+                            )
                             OptionItem(
                                 title = "Application permissions",
                                 description = "Click here for allow and manage app permissions you granted.",
@@ -307,10 +323,7 @@ fun SettingsActivity.MainView(
                         )
                 }
                 BackgroundImageOption.YourCurrentWallpaper -> {
-                    val compPer = PermissionRequestActivity.isPermissionGranted(
-                        PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE,
-                        context = context
-                    )
+                    val compPer = PermissionRequestActivity.checkPermissionManageExternalStorage().isGranted
                     if (compPer) {
                         getMainViewModel().appSettings.value =
                             getMainViewModel().appSettings.value.clone(
@@ -318,13 +331,13 @@ fun SettingsActivity.MainView(
                             )
                     } else {
                         showSnackBar(
-                            text = "You need to grant All files access in Application permission to use this feature. You can use \"Choose a image from media\" without this permission.",
+                            text = "You need to grant All files access in application permission to use this feature. You can use \"Choose a image from media\" without this permission.",
                             clearPrevious = true,
                             actionText = "Grant",
                             action = {
-                                context.startActivity(
-                                    PermissionList.PERMISSION_MANAGE_EXTERNAL_STORAGE.extraAction
-                                )
+                                Intent(context, PermissionRequestActivity::class.java).also {
+                                    context.startActivity(it)
+                                }
                             }
                         )
                     }

@@ -1,8 +1,11 @@
 package io.zoemeow.dutschedule.viewmodel
 
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dutwrapper.dutwrapper.Utils
 import io.dutwrapper.dutwrapper.model.accounts.AccountInformation
@@ -12,6 +15,7 @@ import io.dutwrapper.dutwrapper.model.accounts.trainingresult.AccountTrainingSta
 import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
+import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.ProcessVariable
 import io.zoemeow.dutschedule.model.VariableTimestamp
@@ -22,9 +26,7 @@ import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.news.NewsFetchType
 import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
-import io.zoemeow.dutschedule.repository.DutAccountRepository
-import io.zoemeow.dutschedule.repository.DutNewsRepository
-import io.zoemeow.dutschedule.repository.DutStatusRepository
+import io.zoemeow.dutschedule.repository.DutRequestRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,14 +37,28 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val fileModuleRepository: FileModuleRepository,
-    private val dutNewsRepository: DutNewsRepository,
-    private val dutStatusRepository: DutStatusRepository,
-    private val dutAccountRepository: DutAccountRepository
+    private val dutRequestRepository: DutRequestRepository,
 ) : ViewModel() {
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
     val accountSession: MutableState<VariableTimestamp<AccountSession>> = mutableStateOf(
         VariableTimestamp(data = AccountSession())
     )
+
+    /**
+     * Re-login your account on sv.dut.udn.vn
+     */
+    fun accountReLogin() {
+        launchOnScope(
+            script = {
+                accountLogin(after = { result ->
+                    if (result) {
+                        subjectSchedule.refreshData()
+                        accountInformation.refreshData()
+                    }
+                })
+            }
+        )
+    }
 
     /**
      * Login account to this application.
@@ -85,7 +101,7 @@ class MainViewModel @Inject constructor(
             accountSession.value = accountSession.value.clone(
                 processState = ProcessState.Running
             )
-            val response = dutAccountRepository.login(
+            val response = dutRequestRepository.login(
                 accountSession.value.data,
                 forceLogin = true,
                 onSessionChanged = { sessionId, timestamp ->
@@ -172,7 +188,7 @@ class MainViewModel @Inject constructor(
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
-            val newsFromInternet = dutNewsRepository.getNewsGlobal(
+            val newsFromInternet = dutRequestRepository.getNewsGlobal(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsBase.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -213,6 +229,7 @@ class MainViewModel @Inject constructor(
                 }
             }
 
+            // Add to current cache
             newsFiltered.forEach { newsGroup ->
                 var itemIndex = 0
                 newsGroup.itemList.forEach { newsItem ->
@@ -275,7 +292,7 @@ class MainViewModel @Inject constructor(
             val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
 
             // Get news from internet
-            val newsFromInternet = dutNewsRepository.getNewsSubject(
+            val newsFromInternet = dutRequestRepository.getNewsSubject(
                 page = when (fetchType) {
                     NewsFetchType.NextPage -> newsBase.pageCurrent
                     NewsFetchType.FirstPage -> 1
@@ -370,10 +387,10 @@ class MainViewModel @Inject constructor(
     /**
      * Subject schedule cache for current logged in account.
      */
-    val subjectSchedule = ProcessVariable<List<SubjectScheduleItem>>(
+    val subjectSchedule = ProcessVariable<ArrayList<SubjectScheduleItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
-            return@ProcessVariable dutAccountRepository.getSubjectSchedule(
+            return@ProcessVariable dutRequestRepository.getSubjectSchedule(
                 accountSession.value.data,
                 SchoolYearItem(
                     year = appSettings.value.currentSchoolYear.year,
@@ -387,10 +404,10 @@ class MainViewModel @Inject constructor(
     /**
      * Subject fee cache for current logged in account.
      */
-    val subjectFee = ProcessVariable<List<SubjectFeeItem>>(
+    val subjectFee = ProcessVariable<ArrayList<SubjectFeeItem>>(
         onRefresh = { _, _ ->
             // TODO: Remember change year and semester here!
-            return@ProcessVariable dutAccountRepository.getSubjectFee(
+            return@ProcessVariable dutRequestRepository.getSubjectFee(
                 accountSession.value.data,
                 SchoolYearItem(
                     year = appSettings.value.currentSchoolYear.year,
@@ -406,7 +423,7 @@ class MainViewModel @Inject constructor(
      */
     val accountInformation = ProcessVariable<AccountInformation>(
         onRefresh = { _, _ ->
-            return@ProcessVariable dutAccountRepository.getAccountInformation(
+            return@ProcessVariable dutRequestRepository.getAccountInformation(
                 accountSession.value.data
             )
         },
@@ -418,7 +435,7 @@ class MainViewModel @Inject constructor(
      */
     val accountTrainingStatus = ProcessVariable<AccountTrainingStatus>(
         onRefresh = { _, _ ->
-            return@ProcessVariable dutAccountRepository.getAccountTrainingStatus(
+            return@ProcessVariable dutRequestRepository.getAccountTrainingStatus(
                 accountSession.value.data
             )
         },
@@ -435,15 +452,20 @@ class MainViewModel @Inject constructor(
             } catch (_: Exception) {
                 return@ProcessVariable null
             }
+        },
+        onAfterRefresh = {
+            saveCurrentSchoolWeekCache()
         }
     )
 
-    val isDutSchoolServerReachable = ProcessVariable<Any>(
-        data = mutableStateOf(null),
-        onRefresh = { _, _ ->
+    private fun saveCurrentSchoolWeekCache() {
+        fileModuleRepository.saveSchoolYearCache(
+            data = currentSchoolWeek.data.value,
+            lastRequest = currentSchoolWeek.lastRequest.longValue
+        )
+    }
 
-        }
-    )
+    val notificationHistory = mutableStateListOf<NotificationHistory>()
 
     /**
      * Save all current settings to file in storage.
@@ -453,6 +475,16 @@ class MainViewModel @Inject constructor(
             script = {
                 fileModuleRepository.saveAppSettings(appSettings.value)
                 fileModuleRepository.saveAccountSession(accountSession.value.data)
+                fileModuleRepository.saveAccountSubjectScheduleCache(subjectSchedule.data.value ?: arrayListOf())
+            }
+        )
+    }
+
+    fun reloadNotification() {
+        launchOnScope(
+            script = {
+                notificationHistory.clear()
+                notificationHistory.addAll(fileModuleRepository.getNotificationHistory())
             }
         )
     }
@@ -460,14 +492,33 @@ class MainViewModel @Inject constructor(
     /**
      * Load all cache if possible for offline reading.
      */
-    private fun loadNewsCache() {
+    private fun loadCache() {
         launchOnScope(
             script = {
+                // Get all news cache
                 fileModuleRepository.getCacheNewsGlobal().also {
                     newsGlobal.data.value = it
                 }
                 fileModuleRepository.getCacheNewsSubject().also {
                     newsSubject.data.value = it
+                }
+
+                // Get school year cache
+                fileModuleRepository.getSchoolYearCache().also {
+                    if (it != null) {
+                        try {
+                            currentSchoolWeek.data.value = Gson().fromJson(
+                                it["data"] ?: "",
+                                (object : TypeToken<DutSchoolYearItem?>() {}.type)
+                            )
+                            currentSchoolWeek.lastRequest.longValue = (it["lastrequest"] ?: "0").toLong()
+                        } catch (_: Exception) { }
+                    }
+                }
+
+                // Get account subject schedule
+                fileModuleRepository.getAccountSubjectScheduleCache().also {
+                    subjectSchedule.data.value = it
                 }
             }
         )
@@ -505,8 +556,9 @@ class MainViewModel @Inject constructor(
     init {
         runOnStartup(
             invokeOnCompleted = {
-                loadNewsCache()
+                loadCache()
                 currentSchoolWeek.refreshData(force = true)
+                reloadNotification()
                 launchOnScope(script = {
                     newsGlobal.refreshData(
                         force = true,

@@ -109,6 +109,16 @@ fun AccountActivity.SubjectFee(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 15.dp)
+                            .padding(vertical = 3.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        content = {
+                            Text(getMainViewModel().appSettings.value.currentSchoolYear.toString())
+                        }
+                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 15.dp)
                             .padding(bottom = 7.dp)
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally,
