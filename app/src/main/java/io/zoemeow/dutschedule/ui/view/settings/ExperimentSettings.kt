@@ -120,9 +120,18 @@ fun SettingsActivity.ExperimentSettings(
                                     false -> "Disabled (regular notification for news subject)"
                                 },
                                 onClick = {
-                                    val intent = Intent(context, SettingsActivity::class.java)
-                                    intent.action = "settings_newssubjectnewparse"
-                                    context.startActivity(intent)
+                                    Intent(context, SettingsActivity::class.java).apply {
+                                        action = "settings_newssubjectnewparse"
+                                    }.also { intent -> context.startActivity(intent) }
+                                }
+                            )
+                            OptionItem(
+                                title = "News notifications in background",
+                                description = "Configure your settings",
+                                onClick = {
+                                    Intent(context, SettingsActivity::class.java).apply {
+                                        action = "settings_newsnotificaitonsettings"
+                                    }.also { intent -> context.startActivity(intent) }
                                 }
                             )
                         }

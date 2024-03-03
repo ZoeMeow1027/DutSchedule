@@ -2,16 +2,19 @@ package io.zoemeow.dutschedule.ui.component.settings.newsfilter
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import io.zoemeow.dutschedule.ui.component.base.ExpandableContent
 import io.zoemeow.dutschedule.ui.component.base.ExpandableContentDefaultTitle
 
 @Composable
 fun NewsFilterAddInNewsSubject(
+    modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
     opacity: Float = 1.0f
 ) {
     ExpandableContent(
+        modifier = modifier,
         opacity = opacity,
         title = {
             ExpandableContentDefaultTitle(title = "Add filter via news subject or subject schedule")

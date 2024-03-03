@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 @Composable
 fun ContentRegion(
     modifier: Modifier = Modifier,
+    textModifier: Modifier = Modifier,
     text: String,
     content: @Composable () -> Unit
 ) {
@@ -26,7 +27,8 @@ fun ContentRegion(
             Text(
                 text = text,
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                modifier = textModifier
             )
             content()
         }

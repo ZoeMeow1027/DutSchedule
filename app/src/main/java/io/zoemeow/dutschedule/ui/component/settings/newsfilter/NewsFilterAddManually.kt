@@ -22,6 +22,7 @@ import io.zoemeow.dutschedule.ui.component.base.ExpandableContentDefaultTitle
 
 @Composable
 fun NewsFilterAddManually(
+    modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpanded: (() -> Unit)? = null,
     onSubmit: ((String, String, String) -> Unit)? = null,
@@ -32,6 +33,7 @@ fun NewsFilterAddManually(
     val subjectName = remember { mutableStateOf("") }
 
     ExpandableContent(
+        modifier = modifier,
         opacity = opacity,
         title = {
             ExpandableContentDefaultTitle(title = "Add filter manually")

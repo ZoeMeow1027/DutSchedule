@@ -32,6 +32,12 @@ data class AppSettings(
     @SerializedName("appsettings.newsbackground.duration")
     val newsBackgroundDuration: Int = 0,
 
+    @SerializedName("appsettings.newsbackground.newsglobal.enabled")
+    val newsBackgroundGlobalEnabled: Boolean = false,
+
+    @SerializedName("appsettings.newsbackground.newssubject.enabled")
+    val newsBackgroundSubjectEnabled: Int = -1,
+
     @SerializedName("appsettings.newsbackground.parsenewssubject")
     val newsBackgroundParseNewsSubject: Boolean = false,
 
@@ -47,6 +53,8 @@ data class AppSettings(
         newsFilterList: ArrayList<SubjectCode>? = null,
         backgroundImageOpacity: Float? = null,
         fetchNewsBackgroundDuration: Int? = null,
+        newsBackgroundGlobalEnabled: Boolean? = null,
+        newsBackgroundSubjectEnabled: Int? = null,
         newsBackgroundParseNewsSubject: Boolean? = null,
         currentSchoolYear: SchoolYearItem? = null
     ): AppSettings {
@@ -63,6 +71,8 @@ data class AppSettings(
                 0 -> 0
                 else -> if (fetchNewsBackgroundDuration >= 5) fetchNewsBackgroundDuration else 5
             },
+            newsBackgroundGlobalEnabled = newsBackgroundGlobalEnabled ?: this.newsBackgroundGlobalEnabled,
+            newsBackgroundSubjectEnabled = newsBackgroundSubjectEnabled ?: this.newsBackgroundSubjectEnabled,
             newsBackgroundParseNewsSubject = newsBackgroundParseNewsSubject ?: this.newsBackgroundParseNewsSubject,
             currentSchoolYear = currentSchoolYear ?: this.currentSchoolYear
         )

@@ -18,11 +18,13 @@ import io.zoemeow.dutschedule.ui.component.base.ExpandableContentDefaultTitle
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewsFilterCurrentFilter(
+    modifier: Modifier = Modifier,
     selectedSubjects: List<SubjectCode>? = null,
     onRemoveRequested: ((SubjectCode) -> Unit)? = null,
     opacity: Float = 1.0f
 ) {
     ExpandableContent(
+        modifier = modifier,
         opacity = opacity,
         title = {
             ExpandableContentDefaultTitle(title = "Your current filter")

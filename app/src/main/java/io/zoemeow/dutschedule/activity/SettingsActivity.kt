@@ -13,6 +13,7 @@ import io.zoemeow.dutschedule.ui.view.settings.ExperimentSettings
 import io.zoemeow.dutschedule.ui.view.settings.LanguageSettings
 import io.zoemeow.dutschedule.ui.view.settings.MainView
 import io.zoemeow.dutschedule.ui.view.settings.NewsFilterSettings
+import io.zoemeow.dutschedule.ui.view.settings.NewsNotificationSettings
 import io.zoemeow.dutschedule.ui.view.settings.ParseNewsSubjectNotification
 import io.zoemeow.dutschedule.utils.BackgroundImageUtil
 
@@ -73,6 +74,15 @@ class SettingsActivity : BaseActivity() {
 
             "settings_languagesettings" -> {
                 LanguageSettings(
+                    context = context,
+                    snackBarHostState = snackBarHostState,
+                    containerColor = containerColor,
+                    contentColor = contentColor
+                )
+            }
+
+            "settings_newsnotificaitonsettings" -> {
+                NewsNotificationSettings(
                     context = context,
                     snackBarHostState = snackBarHostState,
                     containerColor = containerColor,

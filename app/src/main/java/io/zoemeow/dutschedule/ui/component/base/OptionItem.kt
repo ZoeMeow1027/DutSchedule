@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun OptionItem(
     modifier: Modifier = Modifier,
+    modifierInside: Modifier = Modifier.padding(vertical = 15.dp),
     title: String,
     description: String? = null,
     leadingIcon: (@Composable () -> Unit)? = null,
@@ -46,7 +47,7 @@ fun OptionItem(
                 color = Color.Transparent,
                 content = {
                     Row(
-                        modifier = Modifier.padding(vertical = 15.dp),
+                        modifier = modifierInside,
                         verticalAlignment = Alignment.CenterVertically,
                         content = {
                             leadingIcon?.let {
