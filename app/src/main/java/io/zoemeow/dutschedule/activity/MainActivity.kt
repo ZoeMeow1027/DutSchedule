@@ -265,6 +265,7 @@ class MainActivity : BaseActivity() {
             }
         )
         NotificationHistoryBottomSheet(
+            itemList = getMainViewModel().notificationHistory,
             visible = isNotificationOpened.value,
             sheetState = notificationModalBottomSheetState,
             onDismiss = { isNotificationOpened.value = false },

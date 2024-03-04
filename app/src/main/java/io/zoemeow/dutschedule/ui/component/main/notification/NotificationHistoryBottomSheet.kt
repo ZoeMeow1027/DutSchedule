@@ -37,6 +37,7 @@ import io.zoemeow.dutschedule.utils.getRandomString
 fun MainActivity.NotificationHistoryBottomSheet(
     visible: Boolean = false,
     sheetState: SheetState,
+    itemList: List<NotificationHistory> = listOf(),
     onDismiss: () -> Unit,
     onClearItem: ((NotificationHistory) -> Unit)? = null,
     onClearAll: (() -> Unit)? = null,
@@ -45,10 +46,10 @@ fun MainActivity.NotificationHistoryBottomSheet(
     if (visible) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
-            sheetState = sheetState
+            sheetState = sheetState,
         ) {
             MainView(
-                itemList = listOf(),
+                itemList = itemList,
                 opacity = opacity,
                 onClearItem = onClearItem,
                 clearAllRequested = onClearAll

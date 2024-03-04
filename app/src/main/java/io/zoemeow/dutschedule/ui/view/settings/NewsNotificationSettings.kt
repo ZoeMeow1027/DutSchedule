@@ -5,7 +5,11 @@ import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,17 +20,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,7 +63,7 @@ fun SettingsActivity.NewsNotificationSettings(
     containerColor: Color,
     contentColor: Color
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    // val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -63,9 +75,10 @@ fun SettingsActivity.NewsNotificationSettings(
         containerColor = containerColor,
         contentColor = contentColor,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text("News Notification Settings") },
-                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                // colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -80,23 +93,27 @@ fun SettingsActivity.NewsNotificationSettings(
                             )
                         }
                     )
-                },
-                scrollBehavior = scrollBehavior
+                }
+                // scrollBehavior = scrollBehavior
             )
         },
     ) {
         MainView(
             padding = it,
             fetchNewsInBackgroundDuration = getMainViewModel().appSettings.value.newsBackgroundDuration,
-            onFetchNewsStateChanged = { enabled ->
-                if (enabled) {
+            onFetchNewsStateChanged = { duration ->
+                if (duration > 0) {
                     if (PermissionRequestActivity.checkPermissionScheduleExactAlarm(context).isGranted) {
                         // TODO: Fetch news in background onClick
                         val dataTemp = getMainViewModel().appSettings.value.clone(
-                            fetchNewsBackgroundDuration = 30
+                            fetchNewsBackgroundDuration = duration
                         )
                         getMainViewModel().appSettings.value = dataTemp
                         getMainViewModel().saveSettings()
+                        showSnackBar(
+                            text = "Successfully enabled fetch news in background! News will refresh every $duration minute(s).",
+                            clearPrevious = true
+                        )
                     } else {
                         showSnackBar(
                             text = "You need to enable Alarms & Reminders in Android app settings to use this feature.",
@@ -115,23 +132,17 @@ fun SettingsActivity.NewsNotificationSettings(
                     )
                     getMainViewModel().appSettings.value = dataTemp
                     getMainViewModel().saveSettings()
-                }
-            },
-            onFetchNewsDurationClicked = {
-                if (PermissionRequestActivity.checkPermissionScheduleExactAlarm(context).isGranted) {
-                    // TODO: Fetch news in background onClick
-                } else {
                     showSnackBar(
-                        text = "You need to enable Alarms & Reminders in Android app settings to use this feature.",
-                        clearPrevious = true,
-                        actionText = "Open",
-                        action = {
-                            Intent(context, PermissionRequestActivity::class.java).also { intent ->
-                                context.startActivity(intent)
-                            }
-                        }
+                        text = "Successfully disabled fetch news in background!",
+                        clearPrevious = true
                     )
                 }
+            },
+            isNewSubjectNotificationParseEnabled = getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject,
+            onNewSubjectNotificationParseStateChanged = {
+                Intent(context, SettingsActivity::class.java).apply {
+                    action = "settings_newssubjectnewparse"
+                }.also { intent -> context.startActivity(intent) }
             },
             isNewsGlobalEnabled = getMainViewModel().appSettings.value.newsBackgroundGlobalEnabled,
             onNewsGlobalStateChanged = { enabled ->
@@ -140,14 +151,40 @@ fun SettingsActivity.NewsNotificationSettings(
                 )
                 getMainViewModel().appSettings.value = dataTemp
                 getMainViewModel().saveSettings()
+                showSnackBar(
+                    text = "Successfully ${
+                        if (enabled) "enabled" else "disabled"
+                    } global news notification!",
+                    clearPrevious = true
+                )
             },
             isNewsSubjectEnabled = getMainViewModel().appSettings.value.newsBackgroundSubjectEnabled,
-            onNewsSubjectStateChanged = { code ->
+            onNewsSubjectStateChanged = f@ { code ->
+                if (code == 1) {
+                    showSnackBar(
+                        text = "\"Match your subject schedule\" option is in development. Check back soon.",
+                        clearPrevious = true
+                    )
+                    return@f
+                }
+
                 val dataTemp = getMainViewModel().appSettings.value.clone(
                     newsBackgroundSubjectEnabled = code
                 )
                 getMainViewModel().appSettings.value = dataTemp
                 getMainViewModel().saveSettings()
+                showSnackBar(
+                    text = "Done! You will notify \"${
+                        when (code) {
+                            -1 -> "nothing"
+                            0 -> "all subject news notifications"
+                            1 -> "news match your subject schedule"
+                            2 -> "news match your filter list"
+                            else -> "(unknown)"
+                        }
+                    }\".",
+                    clearPrevious = true
+                )
             },
             subjectFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList,
             onSubjectFilterAdd = {
@@ -164,12 +201,14 @@ fun SettingsActivity.NewsNotificationSettings(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MainView(
     padding: PaddingValues = PaddingValues(0.dp),
     fetchNewsInBackgroundDuration: Int = 0,
-    onFetchNewsStateChanged: (Boolean) -> Unit,
-    onFetchNewsDurationClicked: () -> Unit,
+    onFetchNewsStateChanged: ((Int) -> Unit)? = null,
+    isNewSubjectNotificationParseEnabled: Boolean = false,
+    onNewSubjectNotificationParseStateChanged: (() -> Unit)? = null,
     isNewsGlobalEnabled: Boolean = false,
     onNewsGlobalStateChanged: ((Boolean) -> Unit)? = null,
     isNewsSubjectEnabled: Int = -1,
@@ -180,11 +219,9 @@ private fun MainView(
     onSubjectFilterClear: (() -> Unit)? = null,
     opacity: Float = 1f
 ) {
-    // isNewsSubjectEnabled:
-    // - -1: Off
-    // - 0: All
-    // - 1: Your subject schedule list
-    // - 2: Custom list
+    val durationTemp = remember {
+        mutableIntStateOf(fetchNewsInBackgroundDuration)
+    }
 
     Column(
         modifier = Modifier
@@ -196,8 +233,11 @@ private fun MainView(
             enabled = true,
             checked = fetchNewsInBackgroundDuration > 0,
             onCheckedChange = {
-                // TODO: Refresh news state changed, default is 30 minutes
-                onFetchNewsStateChanged(!(fetchNewsInBackgroundDuration > 0))
+                // Refresh news state changed, default is 30 minutes
+                onFetchNewsStateChanged?.let { it(when {
+                    (fetchNewsInBackgroundDuration > 0) -> 0
+                    else -> 30
+                }) }
             }
         )
         ContentRegion(
@@ -205,23 +245,103 @@ private fun MainView(
             textModifier = Modifier.padding(horizontal = 20.dp),
             text = "Notification settings"
         ) {
-            OptionItem(
-                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+            SimpleCardItem(
+                padding = PaddingValues(horizontal = 20.4.dp, vertical = 5.dp),
                 title = "Fetch news duration",
-                description = when {
-                    (fetchNewsInBackgroundDuration > 0) ->
-                        String.format(
-                            "Every %d minute%s",
-                            fetchNewsInBackgroundDuration,
-                            if (fetchNewsInBackgroundDuration != 1) "s" else ""
+                clicked = { },
+                opacity = opacity,
+                content = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(horizontal = 15.dp)
+                            .padding(top = 5.dp, bottom = 10.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            "Current duration settings: ${ when (fetchNewsInBackgroundDuration) {
+                                0 -> "Disabled"
+                                1 -> "1 minute"
+                                else -> "$fetchNewsInBackgroundDuration minutes"
+                            }
+                            }",
+                            modifier = Modifier.padding(bottom = 10.dp)
                         )
-                    else -> "Disabled"
-                },
-                onClick = {
-                    if (fetchNewsInBackgroundDuration > 0) {
-                        onFetchNewsDurationClicked()
+                        Slider(
+                            valueRange = 5f..240f,
+                            steps = 236,
+                            value = durationTemp.intValue.toFloat(),
+                            enabled = fetchNewsInBackgroundDuration > 0,
+                            colors = SliderDefaults.colors(
+                                activeTickColor = Color.Transparent,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTickColor = Color.Transparent,
+                                inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)
+                            ),
+                            onValueChange = {
+                                durationTemp.intValue = it.toInt()
+                            }
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
+                            content = {
+                                Text("${durationTemp.intValue} minute${if (durationTemp.intValue != 1) "s" else ""}")
+                            }
+                        )
+                        FlowRow(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .padding(top = 7.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            content = {
+                                listOf(15, 30, 60).forEach { min ->
+                                    SuggestionChip(
+                                        modifier = Modifier.padding(horizontal = 5.dp),
+                                        icon = {
+                                            if (durationTemp.intValue == min) {
+                                                Icon(
+                                                    Icons.Default.Check,
+                                                    "Selected",
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        },
+                                        onClick = {
+                                            if (fetchNewsInBackgroundDuration > 0) {
+                                                durationTemp.intValue = min
+                                            }
+                                        },
+                                        label = { Text(if (min == 0) "Turn off" else "$min min") }
+                                    )
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.size(5.dp))
+                        ElevatedButton(
+                            onClick = {
+                                if (fetchNewsInBackgroundDuration > 0) {
+                                    onFetchNewsStateChanged?.let { it(durationTemp.intValue) }
+                                }
+                            },
+                            content = {
+                                Text("Save")
+                            }
+                        )
                     }
                 }
+            )
+            OptionItem(
+                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                title = "News parse method on notification",
+                description = when (isNewSubjectNotificationParseEnabled) {
+                    true -> "Enabled (special notification for news subject)"
+                    false -> "Disabled (regular notification for news subject)"
+                },
+                onClick = { onNewSubjectNotificationParseStateChanged?.let { it() } }
             )
         }
         DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
@@ -381,9 +501,8 @@ private fun MainView(
 @Composable
 private fun MainViewPreview() {
     MainView(
-        fetchNewsInBackgroundDuration = 0,
+        fetchNewsInBackgroundDuration = 30,
         onFetchNewsStateChanged = { },
-        onFetchNewsDurationClicked = { },
         isNewsGlobalEnabled = true,
         subjectFilterList = arrayListOf(
             SubjectCode("19", "12", "Nhập môn ngành"),

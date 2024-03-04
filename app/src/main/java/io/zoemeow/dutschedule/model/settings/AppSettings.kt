@@ -33,10 +33,19 @@ data class AppSettings(
     val newsBackgroundDuration: Int = 0,
 
     @SerializedName("appsettings.newsbackground.newsglobal.enabled")
-    val newsBackgroundGlobalEnabled: Boolean = false,
+    val newsBackgroundGlobalEnabled: Boolean = true,
 
+    /**
+     * Is subject news notify you?
+     *
+     * -1: Off;
+     * 0: All;
+     * 1: Your subject schedule list;
+     * 2: Custom list (follow "newsBackgroundFilterList")
+     * @since v2.0-draft17
+     */
     @SerializedName("appsettings.newsbackground.newssubject.enabled")
-    val newsBackgroundSubjectEnabled: Int = -1,
+    val newsBackgroundSubjectEnabled: Int = 0,
 
     @SerializedName("appsettings.newsbackground.parsenewssubject")
     val newsBackgroundParseNewsSubject: Boolean = false,

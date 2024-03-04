@@ -234,6 +234,11 @@ class NewsBackgroundUpdateService : BaseService(
                 return
             }
 
+            // If user denied, no extra action needed
+            if (!settings.newsBackgroundGlobalEnabled) {
+                return
+            }
+
             // TODO: Notify by notify variable...
 
             // Processing news global notifications for notify here!
@@ -350,6 +355,11 @@ class NewsBackgroundUpdateService : BaseService(
                 return
             }
 
+            // If user denied, no extra action needed
+            if (settings.newsBackgroundSubjectEnabled == -1) {
+                return
+            }
+
             // TODO: Notify by notify variable...
 
             // TODO: Processing news subject notifications for notify here!
@@ -359,11 +369,12 @@ class NewsBackgroundUpdateService : BaseService(
                     var notifyRequired = false
                     // If enabled news filter, do following.
 
-                    // If filter was empty -> Not set -> All news -> Enable notify.
-                    if (settings.newsBackgroundFilterList.isEmpty()) {
+                    // settings.newsBackgroundSubjectEnabled == 0 -> All news enabled
+                    if (settings.newsBackgroundSubjectEnabled == 0) {
                         notifyRequired = true
                     }
-                    // If a news in filter list -> Enable notify.
+                    // TODO: settings.newsBackgroundSubjectEnabled == 1 action
+                    // settings.newsBackgroundSubjectEnabled == 2
                     else if (settings.newsBackgroundFilterList.any { source ->
                             newsItem.affectedClass.any { targetGroup ->
                                 targetGroup.codeList.any { target ->

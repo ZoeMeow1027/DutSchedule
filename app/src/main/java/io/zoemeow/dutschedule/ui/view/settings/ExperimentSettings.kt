@@ -114,19 +114,7 @@ fun SettingsActivity.ExperimentSettings(
                         text = "Notifications",
                         content = {
                             OptionItem(
-                                title = "New parse method on notification",
-                                description = when (getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject) {
-                                    true -> "Enabled (special notification for news subject)"
-                                    false -> "Disabled (regular notification for news subject)"
-                                },
-                                onClick = {
-                                    Intent(context, SettingsActivity::class.java).apply {
-                                        action = "settings_newssubjectnewparse"
-                                    }.also { intent -> context.startActivity(intent) }
-                                }
-                            )
-                            OptionItem(
-                                title = "News notifications in background",
+                                title = "News notifications in background settings",
                                 description = "Configure your settings",
                                 onClick = {
                                     Intent(context, SettingsActivity::class.java).apply {
