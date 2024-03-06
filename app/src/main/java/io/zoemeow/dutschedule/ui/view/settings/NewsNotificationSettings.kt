@@ -109,7 +109,7 @@ fun SettingsActivity.NewsNotificationSettings(
                             fetchNewsBackgroundDuration = duration
                         )
                         getMainViewModel().appSettings.value = dataTemp
-                        getMainViewModel().saveSettings()
+                        getMainViewModel().saveSettings(saveSettingsOnly = true)
                         showSnackBar(
                             text = "Successfully enabled fetch news in background! News will refresh every $duration minute(s).",
                             clearPrevious = true
@@ -131,7 +131,7 @@ fun SettingsActivity.NewsNotificationSettings(
                         fetchNewsBackgroundDuration = 0
                     )
                     getMainViewModel().appSettings.value = dataTemp
-                    getMainViewModel().saveSettings()
+                    getMainViewModel().saveSettings(saveSettingsOnly = true)
                     showSnackBar(
                         text = "Successfully disabled fetch news in background!",
                         clearPrevious = true
@@ -150,7 +150,7 @@ fun SettingsActivity.NewsNotificationSettings(
                     newsBackgroundGlobalEnabled = enabled
                 )
                 getMainViewModel().appSettings.value = dataTemp
-                getMainViewModel().saveSettings()
+                getMainViewModel().saveSettings(saveSettingsOnly = true)
                 showSnackBar(
                     text = "Successfully ${
                         if (enabled) "enabled" else "disabled"
@@ -172,7 +172,7 @@ fun SettingsActivity.NewsNotificationSettings(
                     newsBackgroundSubjectEnabled = code
                 )
                 getMainViewModel().appSettings.value = dataTemp
-                getMainViewModel().saveSettings()
+                getMainViewModel().saveSettings(saveSettingsOnly = true)
                 showSnackBar(
                     text = "Done! You will notify \"${
                         when (code) {
@@ -188,13 +188,13 @@ fun SettingsActivity.NewsNotificationSettings(
             },
             subjectFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList,
             onSubjectFilterAdd = {
-
+                // TODO: Add a filter
             },
-            onSubjectFilterDelete = { code ->
-
+            onSubjectFilterDelete = { _ ->
+                // TODO: Delete a filter
             },
             onSubjectFilterClear = {
-
+                // TODO: Delete all filters
             },
             opacity = getControlBackgroundAlpha()
         )

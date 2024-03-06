@@ -286,12 +286,16 @@ class MainViewModel @Inject constructor(
     /**
      * Save all current settings to file in storage.
      */
-    fun saveSettings() {
+    fun saveSettings(saveSettingsOnly: Boolean = false) {
         launchOnScope(
             script = {
                 fileModuleRepository.saveAppSettings(appSettings.value)
                 fileModuleRepository.saveAccountSession(accountSession.getAccountSession() ?: AccountSession())
-                fileModuleRepository.saveAccountSubjectScheduleCache(ArrayList(accountSession.getSubjectScheduleCache()))
+
+                if (!saveSettingsOnly) {
+                    fileModuleRepository.saveAccountSubjectScheduleCache(ArrayList(accountSession.getSubjectScheduleCache()))
+                    fileModuleRepository.saveNotificationHistory(ArrayList(notificationHistory.toList()))
+                }
             }
         )
     }

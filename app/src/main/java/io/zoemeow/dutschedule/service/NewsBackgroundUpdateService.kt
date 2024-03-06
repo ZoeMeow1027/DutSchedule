@@ -63,12 +63,11 @@ class NewsBackgroundUpdateService : BaseService(
 
         // Notify?
         // 0: All, 1: News global only, 2: News subject only, 3: News global and news subject with filter.
-        val nofityType = intent?.getIntExtra("news.service.variable.notifytype", 0) ?: 0
+        // val nofityType = intent?.getIntExtra("news.service.variable.notifytype", 0) ?: 0
 
         when (intent?.action) {
             "news.service.action.fetchglobal" -> {
                 fetchNewsGlobal(
-                    notify = nofityType,
                     fetchType = when (fetchType) {
                         0 -> NewsFetchType.NextPage
                         1 -> NewsFetchType.FirstPage
@@ -79,7 +78,6 @@ class NewsBackgroundUpdateService : BaseService(
             }
             "news.service.action.fetchsubject" -> {
                 fetchNewsSubject(
-                    notify = nofityType,
                     fetchType = when (fetchType) {
                         0 -> NewsFetchType.NextPage
                         1 -> NewsFetchType.FirstPage
@@ -108,11 +106,9 @@ class NewsBackgroundUpdateService : BaseService(
             }
             "news.service.action.fetchallpage1background" -> {
                 fetchNewsGlobal(
-                    notify = nofityType,
                     fetchType = NewsFetchType.FirstPage
                 )
                 fetchNewsSubject(
-                    notify = nofityType,
                     fetchType = NewsFetchType.FirstPage
                 )
 
@@ -134,7 +130,6 @@ class NewsBackgroundUpdateService : BaseService(
     }
 
     private fun fetchNewsGlobal(
-        notify: Int = 0,
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
@@ -255,7 +250,6 @@ class NewsBackgroundUpdateService : BaseService(
     }
 
     private fun fetchNewsSubject(
-        notify: Int = 0,
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
         try {
@@ -413,7 +407,7 @@ class NewsBackgroundUpdateService : BaseService(
         addToNotificationList(
             title = newsItem.title,
             description = newsItem.contentString,
-            newsDate = System.currentTimeMillis(),
+            newsDate = newsItem.date,
             type = NewsType.Global,
             jsonData = Gson().toJson(newsItem)
         )

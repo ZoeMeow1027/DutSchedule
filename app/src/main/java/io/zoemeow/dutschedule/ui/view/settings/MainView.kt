@@ -16,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,9 +32,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.BuildConfig
+import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
 import io.zoemeow.dutschedule.activity.SettingsActivity
 import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
@@ -44,7 +48,6 @@ import io.zoemeow.dutschedule.ui.component.base.OptionSwitchItem
 import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppBackgroundSettings
 import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogAppThemeSettings
-import io.zoemeow.dutschedule.ui.component.settings.dialog.DialogFetchNewsInBackgroundSettings
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +61,6 @@ fun SettingsActivity.MainView(
 ) {
     val dialogAppTheme: MutableState<Boolean> = remember { mutableStateOf(false) }
     val dialogBackground: MutableState<Boolean> = remember { mutableStateOf(false) }
-    val dialogFetchNews: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
@@ -71,7 +73,7 @@ fun SettingsActivity.MainView(
         contentColor = contentColor,
         topBar = {
             LargeTopAppBar(
-                title = { Text("Settings") },
+                title = { Text(getString(R.string.settings_name)) },
                 colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
                 navigationIcon = {
                     IconButton(
@@ -99,39 +101,29 @@ fun SettingsActivity.MainView(
                 content = {
                     ContentRegion(
                         modifier = Modifier
-                            .padding(horizontal = 20.dp)
                             .padding(top = 10.dp),
-                        text = "Notifications",
+                        textModifier = Modifier.padding(horizontal = 20.dp),
+                        text = getString(R.string.settings_category_notifications),
                         content = {
                             OptionItem(
-                                title = "Fetch news in background",
-                                description = when {
-                                    (getMainViewModel().appSettings.value.newsBackgroundDuration > 0) ->
-                                        String.format(
-                                            "Enabled, every %d minute%s",
-                                            getMainViewModel().appSettings.value.newsBackgroundDuration,
-                                            if (getMainViewModel().appSettings.value.newsBackgroundDuration != 1) "s" else ""
-                                        )
-                                    else -> "Disabled"
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_outline_calendar_clock_24),
+                                        getString(R.string.settings_option_newsschedule),
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
                                 },
+                                title = getString(R.string.settings_option_newsschedule),
+                                description = getString(R.string.settings_option_newsschedule_description),
                                 onClick = {
-                                    if (PermissionRequestActivity.checkPermissionScheduleExactAlarm(context).isGranted) {
-                                        dialogFetchNews.value = true
-                                    } else {
-                                        showSnackBar(
-                                            text = "You need to enable Alarms & Reminders in Android app settings to use this feature.",
-                                            clearPrevious = true,
-                                            actionText = "Open",
-                                            action = {
-                                                Intent(context, PermissionRequestActivity::class.java).also {
-                                                    context.startActivity(it)
-                                                }
-                                            }
-                                        )
-                                    }
+                                    Intent(context, SettingsActivity::class.java).apply {
+                                        action = "settings_newsnotificaitonsettings"
+                                    }.also { intent -> context.startActivity(intent) }
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "News filter settings",
                                 description = "Make your filter to only receive your preferred subject news.",
                                 onClick = {
@@ -142,8 +134,16 @@ fun SettingsActivity.MainView(
                             )
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 OptionItem(
-                                    title = "System notification settings",
-                                    description = "Click here to manage app notifications in Android app settings.",
+                                    modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.Notifications,
+                                            getString(R.string.settings_option_notificationoutside),
+                                            modifier = Modifier.padding(end = 15.dp)
+                                        )
+                                    },
+                                    title = getString(R.string.settings_option_notificationoutside),
+                                    description = getString(R.string.settings_option_notificationoutside_description),
                                     onClick = {
                                         context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).also { intent ->
                                             intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
@@ -156,12 +156,20 @@ fun SettingsActivity.MainView(
                     DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                     ContentRegion(
                         modifier = Modifier
-                            .padding(horizontal = 20.dp)
                             .padding(top = 10.dp),
-                        text = "Appearance",
+                        textModifier = Modifier.padding(horizontal = 20.dp),
+                        text = getString(R.string.settings_category_appearance),
                         content = {
                             OptionItem(
-                                title = "App theme",
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_dark_mode_24),
+                                        getString(R.string.settings_option_apptheme),
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
+                                title = getString(R.string.settings_option_apptheme),
                                 description = String.format(
                                     "%s%s",
                                     when (getMainViewModel().appSettings.value.themeMode) {
@@ -174,6 +182,14 @@ fun SettingsActivity.MainView(
                                 onClick = { dialogAppTheme.value = true }
                             )
                             OptionSwitchItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_contrast_24),
+                                        "Black background settings",
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
                                 title = "Black background",
                                 description = "Make app background to black color. Only in dark mode and turned off background image.",
                                 isChecked = getMainViewModel().appSettings.value.blackBackground,
@@ -182,10 +198,18 @@ fun SettingsActivity.MainView(
                                         getMainViewModel().appSettings.value.clone(
                                             blackBackground = value
                                         )
-                                    saveSettings()
+                                    getMainViewModel().saveSettings()
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_image_24),
+                                        "Background image settings",
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
                                 title = "Background image",
                                 description = when (getMainViewModel().appSettings.value.backgroundImage) {
                                     BackgroundImageOption.None -> "None"
@@ -198,12 +222,19 @@ fun SettingsActivity.MainView(
                     )
                     DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                     ContentRegion(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 10.dp),
+                        modifier = Modifier.padding(top = 10.dp),
+                        textModifier = Modifier.padding(horizontal = 20.dp),
                         text = "Miscellaneous settings",
                         content = {
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.google_fonts_globe_24),
+                                        "App language",
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
                                 title = "App language",
                                 description = Locale.getDefault().displayName,
                                 onClick = {
@@ -219,6 +250,7 @@ fun SettingsActivity.MainView(
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Application permissions",
                                 description = "Click here for allow and manage app permissions you granted.",
                                 onClick = {
@@ -231,6 +263,14 @@ fun SettingsActivity.MainView(
                                 }
                             )
                             OptionSwitchItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.ic_baseline_web_24),
+                                        "App language",
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
                                 title = "Open link inside app",
                                 description = "Open clicked link without leaving this app. Turn off to open link in default browser.",
                                 isChecked = getMainViewModel().appSettings.value.openLinkInsideApp,
@@ -239,10 +279,18 @@ fun SettingsActivity.MainView(
                                         getMainViewModel().appSettings.value.clone(
                                             openLinkInsideApp = value
                                         )
-                                    saveSettings()
+                                    getMainViewModel().saveSettings()
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = ImageVector.vectorResource(R.drawable.google_fonts_science_24),
+                                        "Experiment settings",
+                                        modifier = Modifier.padding(end = 15.dp)
+                                    )
+                                },
                                 title = "Experiment settings",
                                 description = "Our current experiment settings before public.",
                                 onClick = {
@@ -256,11 +304,12 @@ fun SettingsActivity.MainView(
                     DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                     ContentRegion(
                         modifier = Modifier
-                            .padding(horizontal = 20.dp)
                             .padding(top = 10.dp),
+                        textModifier = Modifier.padding(horizontal = 20.dp),
                         text = "About",
                         content = {
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Version",
                                 description = "Current version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\nClick here to check for update",
                                 onClick = {
@@ -269,6 +318,7 @@ fun SettingsActivity.MainView(
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Changelogs",
                                 description = "Tap to view app changelog",
                                 onClick = {
@@ -280,6 +330,7 @@ fun SettingsActivity.MainView(
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "GitHub (click to open link)",
                                 description = "https://github.com/ZoeMeow1027/DutSchedule",
                                 onClick = {
@@ -306,7 +357,7 @@ fun SettingsActivity.MainView(
                 themeMode = themeMode,
                 dynamicColor = dynamicColor
             )
-            saveSettings()
+            getMainViewModel().saveSettings()
         }
     )
     DialogAppBackgroundSettings(
@@ -349,27 +400,14 @@ fun SettingsActivity.MainView(
             }
 
             dialogBackground.value = false
-            saveSettings()
-        }
-    )
-    DialogFetchNewsInBackgroundSettings(
-        isVisible = dialogFetchNews.value,
-        value = getMainViewModel().appSettings.value.newsBackgroundDuration,
-        onDismiss = { dialogFetchNews.value = false },
-        onValueChanged = { value ->
-            dialogFetchNews.value = false
-            getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
-                fetchNewsBackgroundDuration = value
-            )
             getMainViewModel().saveSettings()
         }
     )
     BackHandler(
-        enabled = dialogAppTheme.value || dialogBackground.value || dialogFetchNews.value,
+        enabled = dialogAppTheme.value || dialogBackground.value,
         onBack = {
             dialogAppTheme.value = false
             dialogBackground.value = false
-            dialogFetchNews.value = false
         }
     )
 }

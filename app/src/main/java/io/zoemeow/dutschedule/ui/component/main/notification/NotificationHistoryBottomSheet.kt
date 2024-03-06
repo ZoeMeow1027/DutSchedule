@@ -35,6 +35,7 @@ import io.zoemeow.dutschedule.utils.getRandomString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainActivity.NotificationHistoryBottomSheet(
+    snackbarHost: (@Composable () -> Unit)? = null,
     visible: Boolean = false,
     sheetState: SheetState,
     itemList: List<NotificationHistory> = listOf(),
@@ -49,6 +50,7 @@ fun MainActivity.NotificationHistoryBottomSheet(
             sheetState = sheetState,
         ) {
             MainView(
+                snackbarHost = snackbarHost,
                 itemList = itemList,
                 opacity = opacity,
                 onClearItem = onClearItem,
@@ -61,6 +63,7 @@ fun MainActivity.NotificationHistoryBottomSheet(
 @Composable
 private fun MainView(
     itemList: List<NotificationHistory>,
+    snackbarHost: (@Composable () -> Unit)? = null,
     clearAllRequested: (() -> Unit)? = null,
     onClearItem: ((NotificationHistory) -> Unit)? = null,
     opacity: Float = 1f
@@ -70,7 +73,7 @@ private fun MainView(
             .fillMaxWidth()
             .fillMaxHeight(0.7f)
             .padding(horizontal = 15.dp)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         Row(
             modifier = Modifier
@@ -96,7 +99,9 @@ private fun MainView(
         }
         if (itemList.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(top = 15.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 15.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text("No notifications")
@@ -121,6 +126,14 @@ private fun MainView(
                 })
         }
         Spacer(modifier = Modifier.size(9.dp))
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.7f),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        snackbarHost?.let { it() }
     }
 }
 

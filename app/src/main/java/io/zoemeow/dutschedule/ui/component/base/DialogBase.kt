@@ -81,7 +81,7 @@ fun DialogBase(
                             ) {
                                 Text(
                                     title,
-                                    style = TextStyle(fontSize = 27.sp),
+                                    style = TextStyle(fontSize = 24.sp),
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 15.dp),
                                     textAlign = if (isTitleCentered) TextAlign.Center else TextAlign.Start
                                 )

@@ -185,7 +185,7 @@ class PermissionRequestActivity : BaseActivity() {
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
         // val permissionResultList = arrayListOf<Pair<String, Boolean>>()
-        result.toList().forEach { item ->
+        result.toList().forEach { _ -> // item ->
             // permissionResultList.add(Pair(item.first, item.second))
         }
 

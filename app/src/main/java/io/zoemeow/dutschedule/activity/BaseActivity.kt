@@ -181,16 +181,13 @@ abstract class BaseActivity: ComponentActivity() {
         }
     }
 
-    fun saveSettings() {
-        mainViewModel.saveSettings()
-    }
-
     fun showSnackBar(
         text: String,
         clearPrevious: Boolean = false,
         duration: SnackbarDuration = SnackbarDuration.Short,
         actionText: String? = null,
-        action: (() -> Unit)? = null
+        action: (() -> Unit)? = null,
+        onDismiss: (() -> Unit)? = null
     ) {
         snackBarScope.launch {
             if (clearPrevious) {
@@ -206,6 +203,9 @@ abstract class BaseActivity: ComponentActivity() {
             when (result) {
                 SnackbarResult.ActionPerformed -> {
                     if (actionText != null) action?.let { it() }
+                }
+                SnackbarResult.Dismissed -> {
+                    onDismiss?.let { it() }
                 }
                 else -> { }
             }

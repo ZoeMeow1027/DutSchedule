@@ -16,4 +16,12 @@
     <string name="service_newsbackgroundservice_newssubject_title_noannouncement_makeup">Making up</string>
     <string name="service_newsbackgroundservice_newssubject_date" formatted="false">On %s at lesson(s) %s</string>
     <string name="service_newsbackgroundservice_newssubject_room">Room will make up: %s</string>
+    <string name="settings_name">Settings</string>
+    <string name="settings_category_notifications">Notifications</string>
+    <string name="settings_option_newsschedule">News schedule in background settings</string>
+    <string name="settings_option_newsschedule_description">Configure your news notification settings, include duration, which news is enabled, news filter settings, and more.</string>
+    <string name="settings_option_notificationoutside">Notification settings outside app</string>
+    <string name="settings_option_notificationoutside_description">Click here to manage app notifications in Android app settings.</string>
+    <string name="settings_category_appearance">Appearance</string>
+    <string name="settings_option_apptheme">App theme</string>
 </resources>

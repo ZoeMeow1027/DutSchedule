@@ -16,4 +16,12 @@
     <string name="service_newsbackgroundservice_newssubject_title_noannouncement_makeup">học bù</string>
     <string name="service_newsbackgroundservice_newssubject_date" formatted="false">Vào ngày %s với tiết học %s</string>
     <string name="service_newsbackgroundservice_newssubject_room">Phòng sẽ học bù: %s</string>
+    <string name="settings_name">Cài đặt</string>
+    <string name="settings_category_notifications">Thông báo</string>
+    <string name="settings_option_newsschedule">Cài đặt cập nhật tin tức trong nền</string>
+    <string name="settings_option_newsschedule_description">Cấu hình cài đặt thông báo tin tức cho bạn, bao gồm thời gian cập nhật, tin tức nào sẽ được bật, cài đặt bộ lọc tin tức và hơn thế nữa.</string>
+    <string name="settings_option_notificationoutside">Cài đặt thông báo ngoài ứng dụng</string>
+    <string name="settings_option_notificationoutside_description">Nhấn vào đây để quản lí thông báo ứng dụng trong cài đặt Android.</string>
+    <string name="settings_category_appearance">Hiển thị</string>
+    <string name="settings_option_apptheme">Chủ đề ứng dụng</string>
 </resources>

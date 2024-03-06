@@ -117,7 +117,7 @@ fun SettingsActivity.ParseNewsSubjectNotification(
                             getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
                                 newsBackgroundParseNewsSubject = !getMainViewModel().appSettings.value.newsBackgroundParseNewsSubject
                             )
-                            saveSettings()
+                            getMainViewModel().saveSettings()
                         }
                     )
                     Column(

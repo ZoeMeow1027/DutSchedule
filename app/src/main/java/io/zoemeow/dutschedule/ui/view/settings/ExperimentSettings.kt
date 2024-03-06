@@ -1,7 +1,6 @@
 package io.zoemeow.dutschedule.ui.view.settings
 
 import android.content.Context
-import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -82,12 +81,12 @@ fun SettingsActivity.ExperimentSettings(
                     .verticalScroll(rememberScrollState()),
                 content = {
                     ContentRegion(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 10.dp),
+                        modifier = Modifier.padding(top = 10.dp),
+                        textModifier = Modifier.padding(horizontal = 20.dp),
                         text = "Global variable settings",
                         content = {
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Current school year settings",
                                 description = String.format(
                                     "Year: 20%d-20%d, Semester: %s%s",
@@ -108,30 +107,12 @@ fun SettingsActivity.ExperimentSettings(
                     )
                     DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                     ContentRegion(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 10.dp),
-                        text = "Notifications",
-                        content = {
-                            OptionItem(
-                                title = "News notifications in background settings",
-                                description = "Configure your settings",
-                                onClick = {
-                                    Intent(context, SettingsActivity::class.java).apply {
-                                        action = "settings_newsnotificaitonsettings"
-                                    }.also { intent -> context.startActivity(intent) }
-                                }
-                            )
-                        }
-                    )
-                    DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
-                    ContentRegion(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 10.dp),
+                        modifier = Modifier.padding(top = 10.dp),
+                        textModifier = Modifier.padding(horizontal = 20.dp),
                         text = "Appearance",
                         content = {
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Background opacity",
                                 description = String.format(
                                     "%2.0f%% %s",
@@ -146,6 +127,7 @@ fun SettingsActivity.ExperimentSettings(
                                 }
                             )
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Component opacity",
                                 description = String.format(
                                     "%2.0f%% %s",
@@ -163,12 +145,12 @@ fun SettingsActivity.ExperimentSettings(
                     )
                     DividerItem(padding = PaddingValues(top = 5.dp, bottom = 15.dp))
                     ContentRegion(
-                        modifier = Modifier
-                            .padding(horizontal = 20.dp)
-                            .padding(top = 10.dp),
+                        modifier = Modifier.padding(top = 10.dp),
+                        textModifier = Modifier.padding(horizontal = 20.dp),
                         text = "Troubleshooting",
                         content = {
                             OptionItem(
+                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
                                 title = "Debug log (not work yet)",
                                 description = "Get debug log for this application to troubleshoot issues.",
                                 onClick = {
@@ -190,7 +172,7 @@ fun SettingsActivity.ExperimentSettings(
             getMainViewModel().appSettings.value = getMainViewModel().appSettings.value.clone(
                 currentSchoolYear = it
             )
-            saveSettings()
+            getMainViewModel().saveSettings()
             dialogSchoolYear.value = false
         }
     )
