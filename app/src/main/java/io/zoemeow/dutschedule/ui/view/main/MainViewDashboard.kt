@@ -26,13 +26,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -42,7 +42,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.R
@@ -79,7 +78,6 @@ fun MainActivity.MainViewDashboard(
     settingsClicked: (() -> Unit)? = null,
     externalLinkClicked: (() -> Unit)? = null
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val isNotificationOpened = remember { mutableStateOf(false) }
     val needConfirmClearAllNotifications = remember { mutableStateOf(true) }
     val notificationModalBottomSheetState = rememberModalBottomSheetState(
@@ -114,17 +112,14 @@ fun MainActivity.MainViewDashboard(
     }
 
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         containerColor = containerColor,
         contentColor = contentColor,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text(text = "DutSchedule") },
-                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
-                scrollBehavior = scrollBehavior
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         bottomBar = {
@@ -345,7 +340,18 @@ fun MainActivity.MainViewDashboard(
                 visible = isNotificationOpened.value,
                 sheetState = notificationModalBottomSheetState,
                 onDismiss = { isNotificationOpened.value = false },
-                onClearItem = {
+                onClick = { item ->
+                    if (listOf(1, 2).contains(item.tag)) {
+                        Intent(context, NewsActivity::class.java).also {
+                            it.action = "activity_detail"
+                            for (map1 in item.parameters) {
+                                it.putExtra(map1.key, map1.value)
+                            }
+                            context.startActivity(it)
+                        }
+                    }
+                },
+                onClear = {
                     val itemTemp = it.clone()
                     getMainViewModel().notificationHistory.remove(it)
                     getMainViewModel().saveSettings()

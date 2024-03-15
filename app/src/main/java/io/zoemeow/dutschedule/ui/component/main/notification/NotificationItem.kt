@@ -1,5 +1,6 @@
 package io.zoemeow.dutschedule.ui.component.main.notification
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,11 +31,12 @@ fun NotificationItem(
     modifier: Modifier = Modifier,
     item: NotificationHistory,
     showDate: Boolean = false,
+    onClick: (() -> Unit)? = null,
     onClear: (() -> Unit)? = null,
     opacity: Float = 1f
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.clickable { onClick?.let { it() } },
         shape = RoundedCornerShape(5.dp),
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = opacity),
         content = {

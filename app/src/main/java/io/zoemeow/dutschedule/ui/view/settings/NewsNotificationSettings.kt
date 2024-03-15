@@ -3,6 +3,7 @@ package io.zoemeow.dutschedule.ui.view.settings
 import android.content.Context
 import android.content.Intent
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -37,7 +38,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +56,10 @@ import io.zoemeow.dutschedule.ui.component.base.OptionItem
 import io.zoemeow.dutschedule.ui.component.base.RadioButtonOption
 import io.zoemeow.dutschedule.ui.component.base.SimpleCardItem
 import io.zoemeow.dutschedule.ui.component.base.SwitchWithTextInSurface
+import io.zoemeow.dutschedule.ui.component.settings.AddNewSubjectFilterDialog
 import io.zoemeow.dutschedule.ui.component.settings.ContentRegion
+import io.zoemeow.dutschedule.ui.component.settings.DeleteASubjectFilterDialog
+import io.zoemeow.dutschedule.ui.component.settings.DeleteAllSubjectFilterDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,6 +70,10 @@ fun SettingsActivity.NewsNotificationSettings(
     contentColor: Color
 ) {
     // val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val dialogAddNew = remember { mutableStateOf(false) }
+    val tempDeleteItem: MutableState<SubjectCode> = remember { mutableStateOf(SubjectCode("","","")) }
+    val dialogDeleteItem = remember { mutableStateOf(false) }
+    val dialogDeleteAll = remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -189,15 +199,87 @@ fun SettingsActivity.NewsNotificationSettings(
             subjectFilterList = getMainViewModel().appSettings.value.newsBackgroundFilterList,
             onSubjectFilterAdd = {
                 // TODO: Add a filter
+                dialogAddNew.value = true
             },
-            onSubjectFilterDelete = { _ ->
+            onSubjectFilterDelete = { data ->
                 // TODO: Delete a filter
+                tempDeleteItem.value = data
+                dialogDeleteItem.value = true
             },
             onSubjectFilterClear = {
                 // TODO: Delete all filters
+                dialogDeleteAll.value = true
             },
             opacity = getControlBackgroundAlpha()
         )
+    }
+    AddNewSubjectFilterDialog(
+        isVisible = dialogAddNew.value,
+        onDismiss = { dialogAddNew.value = false },
+        onDone = { syId, cId, subName ->
+            // TODO: Add item manually
+            try {
+                val item = SubjectCode(syId, cId, subName)
+                getMainViewModel().appSettings.value.newsBackgroundFilterList.add(item)
+                getMainViewModel().saveSettings(saveSettingsOnly = true)
+                showSnackBar(
+                    String.format("Successfully added %s [%s.Nh%s]", subName, syId, subName),
+                    clearPrevious = true
+                )
+            } catch (_: Exception) { }
+
+            dialogAddNew.value = false
+        }
+    )
+    DeleteASubjectFilterDialog(
+        subjectCode = tempDeleteItem.value,
+        isVisible = dialogDeleteItem.value,
+        onDismiss = { dialogDeleteItem.value = false },
+        onDone = {
+            // TODO: Clear item on tempDeleteItem.value
+            try {
+                getMainViewModel().appSettings.value.newsBackgroundFilterList.remove(tempDeleteItem.value)
+                getMainViewModel().saveSettings(saveSettingsOnly = true)
+                showSnackBar(
+                    String.format(
+                        "Successfully deleted %s [%s.Nh%s]",
+                        tempDeleteItem.value.subjectName,
+                        tempDeleteItem.value.studentYearId,
+                        tempDeleteItem.value.classId
+                    ),
+                    clearPrevious = true
+                )
+            } catch (_: Exception) { }
+
+            dialogDeleteItem.value = false
+        }
+    )
+    DeleteAllSubjectFilterDialog(
+        isVisible = dialogDeleteAll.value,
+        onDismiss = { dialogDeleteAll.value = false },
+        onDone = {
+            // TODO: Clear all items
+            try {
+                getMainViewModel().appSettings.value.newsBackgroundFilterList.clear()
+                getMainViewModel().saveSettings(saveSettingsOnly = true)
+                showSnackBar(
+                    "Successfully cleared all filters!",
+                    clearPrevious = true
+                )
+            } catch (_: Exception) { }
+            dialogDeleteAll.value = false
+        }
+    )
+    BackHandler(dialogAddNew.value || dialogDeleteItem.value || dialogDeleteAll.value) {
+        if (dialogAddNew.value) {
+            dialogAddNew.value = false
+        }
+        if (dialogDeleteItem.value) {
+            dialogDeleteItem.value = false
+        }
+        if (dialogDeleteAll.value) {
+            dialogDeleteAll.value = false
+        }
     }
 }
 
@@ -454,7 +536,7 @@ private fun MainView(
                             OptionItem(
                                 modifier = Modifier.padding(vertical = 3.dp),
                                 modifierInside = Modifier,
-                                title = "${code.subjectName} - ${code.subjectName}.Nh${code.classId}",
+                                title = "${code.subjectName} [${code.studentYearId}.Nh${code.classId}]",
                                 onClick = { },
                                 trailingIcon = {
                                     IconButton(

@@ -32,7 +32,6 @@ class MainActivity : BaseActivity() {
         containerColor: Color,
         contentColor: Color
     ) {
-
         MainViewDashboard(
             context = context,
             snackBarHostState = snackBarHostState,

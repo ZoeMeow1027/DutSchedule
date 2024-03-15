@@ -12,7 +12,6 @@ import io.zoemeow.dutschedule.model.settings.BackgroundImageOption
 import io.zoemeow.dutschedule.ui.view.settings.ExperimentSettings
 import io.zoemeow.dutschedule.ui.view.settings.LanguageSettings
 import io.zoemeow.dutschedule.ui.view.settings.MainView
-import io.zoemeow.dutschedule.ui.view.settings.NewsFilterSettings
 import io.zoemeow.dutschedule.ui.view.settings.NewsNotificationSettings
 import io.zoemeow.dutschedule.ui.view.settings.ParseNewsSubjectNotification
 import io.zoemeow.dutschedule.utils.BackgroundImageUtil
@@ -47,14 +46,6 @@ class SettingsActivity : BaseActivity() {
         contentColor: Color
     ) {
         when (intent.action) {
-            "settings_newsfilter" -> {
-                NewsFilterSettings(
-                    snackBarHostState = snackBarHostState,
-                    containerColor = containerColor,
-                    contentColor = contentColor
-                )
-            }
-
             "settings_newssubjectnewparse" -> {
                 ParseNewsSubjectNotification(
                     snackBarHostState = snackBarHostState,

@@ -40,7 +40,8 @@ fun MainActivity.NotificationHistoryBottomSheet(
     sheetState: SheetState,
     itemList: List<NotificationHistory> = listOf(),
     onDismiss: () -> Unit,
-    onClearItem: ((NotificationHistory) -> Unit)? = null,
+    onClick: ((NotificationHistory) -> Unit)? = null,
+    onClear: ((NotificationHistory) -> Unit)? = null,
     onClearAll: (() -> Unit)? = null,
     opacity: Float = 1f
 ) {
@@ -53,8 +54,9 @@ fun MainActivity.NotificationHistoryBottomSheet(
                 snackbarHost = snackbarHost,
                 itemList = itemList,
                 opacity = opacity,
-                onClearItem = onClearItem,
-                clearAllRequested = onClearAll
+                onClick = onClick,
+                onClear = onClear,
+                onClearAll = onClearAll
             )
         }
     }
@@ -64,8 +66,9 @@ fun MainActivity.NotificationHistoryBottomSheet(
 private fun MainView(
     itemList: List<NotificationHistory>,
     snackbarHost: (@Composable () -> Unit)? = null,
-    clearAllRequested: (() -> Unit)? = null,
-    onClearItem: ((NotificationHistory) -> Unit)? = null,
+    onClick: ((NotificationHistory) -> Unit)? = null,
+    onClear: ((NotificationHistory) -> Unit)? = null,
+    onClearAll: (() -> Unit)? = null,
     opacity: Float = 1f
 ) {
     Column(
@@ -89,7 +92,7 @@ private fun MainView(
             if (itemList.isNotEmpty()) {
                 IconButton(
                     onClick = {
-                        clearAllRequested?.let { it() }
+                        onClearAll?.let { it() }
                     },
                     content = {
                         Icon(ImageVector.vectorResource(id = R.drawable.ic_baseline_clear_all_24), "")
@@ -119,7 +122,8 @@ private fun MainView(
                         NotificationItem(
                             modifier = Modifier.padding(bottom = 5.dp),
                             opacity = opacity,
-                            onClear = { onClearItem?.let { it(item) } },
+                            onClick = { onClick?.let { it(item) } },
+                            onClear = { onClear?.let { it(item) } },
                             item = item
                         )
                     }

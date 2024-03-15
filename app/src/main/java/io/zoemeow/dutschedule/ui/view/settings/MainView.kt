@@ -20,11 +20,11 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import io.zoemeow.dutschedule.BuildConfig
@@ -62,19 +61,15 @@ fun SettingsActivity.MainView(
     val dialogAppTheme: MutableState<Boolean> = remember { mutableStateOf(false) }
     val dialogBackground: MutableState<Boolean> = remember { mutableStateOf(false) }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
         containerColor = containerColor,
         contentColor = contentColor,
         topBar = {
-            LargeTopAppBar(
+            TopAppBar(
                 title = { Text(getString(R.string.settings_name)) },
-                colors = TopAppBarDefaults.largeTopAppBarColors(containerColor = Color.Transparent, scrolledContainerColor = Color.Transparent),
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -89,8 +84,7 @@ fun SettingsActivity.MainView(
                             )
                         }
                     )
-                },
-                scrollBehavior = scrollBehavior
+                }
             )
         },
         content = {
@@ -120,16 +114,6 @@ fun SettingsActivity.MainView(
                                     Intent(context, SettingsActivity::class.java).apply {
                                         action = "settings_newsnotificaitonsettings"
                                     }.also { intent -> context.startActivity(intent) }
-                                }
-                            )
-                            OptionItem(
-                                modifierInside = Modifier.padding(horizontal = 20.dp, vertical = 15.dp),
-                                title = "News filter settings",
-                                description = "Make your filter to only receive your preferred subject news.",
-                                onClick = {
-                                    val intent = Intent(context, SettingsActivity::class.java)
-                                    intent.action = "settings_newsfilter"
-                                    context.startActivity(intent)
                                 }
                             )
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
