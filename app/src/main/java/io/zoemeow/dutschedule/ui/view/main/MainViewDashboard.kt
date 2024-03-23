@@ -34,11 +34,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -55,9 +53,8 @@ import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.UpdateAvailableSummaryItem
-import io.zoemeow.dutschedule.ui.component.main.notification.NotificationHistoryBottomSheet
+import io.zoemeow.dutschedule.ui.component.main.notification.NotificationDialogBox
 import io.zoemeow.dutschedule.utils.CustomDateUtil
-import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -79,11 +76,6 @@ fun MainActivity.MainViewDashboard(
     externalLinkClicked: (() -> Unit)? = null
 ) {
     val isNotificationOpened = remember { mutableStateOf(false) }
-    val needConfirmClearAllNotifications = remember { mutableStateOf(true) }
-    val notificationModalBottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
-    val notificationSheetScope = rememberCoroutineScope()
 
     fun getNews(byWeek: Boolean = false): Int {
         var data = 0
@@ -188,11 +180,8 @@ fun MainActivity.MainViewDashboard(
                                 onClick = {
                                     // Open notification bottom sheet
                                     // Notification list requested
-                                    notificationSheetScope.launch {
-                                        if (!isNotificationOpened.value) {
-                                            isNotificationOpened.value = true
-                                        }
-                                        notificationModalBottomSheetState.expand()
+                                    if (!isNotificationOpened.value) {
+                                        isNotificationOpened.value = true
                                     }
                                 }
                             ) {
@@ -334,11 +323,10 @@ fun MainActivity.MainViewDashboard(
                     )
                 }
             )
-            NotificationHistoryBottomSheet(
-                snackbarHost = { SnackbarHost(hostState = snackBarHostState) },
+            NotificationDialogBox(
+                modifier = Modifier.padding(padding),
                 itemList = getMainViewModel().notificationHistory,
-                visible = isNotificationOpened.value,
-                sheetState = notificationModalBottomSheetState,
+                isVisible = isNotificationOpened.value,
                 onDismiss = { isNotificationOpened.value = false },
                 onClick = { item ->
                     if (listOf(1, 2).contains(item.tag)) {
@@ -365,25 +353,21 @@ fun MainActivity.MainViewDashboard(
                     )
                 },
                 onClearAll = {
-                    if (needConfirmClearAllNotifications.value) {
-                        needConfirmClearAllNotifications.value = false
-                        showSnackBar(
-                            text = "This action is undone! To confirm, click \"Clear all\" icon again.",
-                            onDismiss = {
-                                needConfirmClearAllNotifications.value = true
-                            },
-                            clearPrevious = true
-                        )
-                    } else {
-                        needConfirmClearAllNotifications.value = true
-                        getMainViewModel().notificationHistory.clear()
-                        getMainViewModel().saveSettings()
-                        showSnackBar(
-                            text = "Successfully cleared all notifications!",
-                            clearPrevious = true
-                        )
-                    }
-                }
+                    showSnackBar(
+                        text = "This action is undone! To confirm, click \"Confirm\" to clear all.",
+                        actionText = "Confirm",
+                        action = {
+                            getMainViewModel().notificationHistory.clear()
+                            getMainViewModel().saveSettings()
+                            showSnackBar(
+                                text = "Successfully cleared all notifications!",
+                                clearPrevious = true
+                            )
+                        },
+                        clearPrevious = true
+                    )
+                },
+                height = 1f
             )
         }
     )

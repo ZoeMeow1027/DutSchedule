@@ -110,6 +110,7 @@ class DUTAccountSession(
                                     onSessionChanged = { sId, dateUnix ->
                                         if (dateUnix == null || dateUnix == 0L || sId == null) {
                                             // TODO: Account session isn't valid!
+                                            accountSession.data.value = null
                                             throw Exception()
                                         } else {
                                             accountSession.data.value = accountSession.data.value!!.clone(
@@ -231,24 +232,27 @@ class DUTAccountSession(
         launchOnScope(
             script = {
                 // TODO: Fully logout from server
-                CoroutineScope(Dispatchers.Main).launch {
-                    withContext(Dispatchers.IO) {
-                        accountSession.data.value?.let {
-                            val temp = it.clone()
-                            dutRequestRepository.logout(temp)
-                        }
-                    }
+                var temp = AccountSession()
+                accountSession.processState.value = ProcessState.Successful
+                accountSession.data.value?.let {
+                    temp = it.clone()
                 }
                 accountSession.resetValue()
                 subjectSchedule.resetValue()
                 subjectFee.resetValue()
                 accountInformation.resetValue()
                 accountTrainingStatus.resetValue()
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    withContext(Dispatchers.IO) {
+                        dutRequestRepository.logout(temp)
+                    }
+                }
             },
             onCompleted = { throwable ->
                 accountSession.processState.value = ProcessState.NotRunYet
-                onCompleted?.let { it(throwable != null) }
                 onEventSent?.let { it(1) }
+                onCompleted?.let { it(throwable != null) }
             }
         )
     }
@@ -290,6 +294,7 @@ class DUTAccountSession(
                     (it != null) -> ProcessState.Failed
                     else -> ProcessState.Successful
                 }
+                subjectSchedule.lastRequest.longValue = System.currentTimeMillis()
                 onEventSent?.let { it(2) }
             }
         )
@@ -332,6 +337,7 @@ class DUTAccountSession(
                     (it != null) -> ProcessState.Failed
                     else -> ProcessState.Successful
                 }
+                subjectFee.lastRequest.longValue = System.currentTimeMillis()
                 onEventSent?.let { it(3) }
             }
         )
@@ -367,6 +373,7 @@ class DUTAccountSession(
                     (it != null) -> ProcessState.Failed
                     else -> ProcessState.Successful
                 }
+                accountInformation.lastRequest.longValue = System.currentTimeMillis()
                 onEventSent?.let { it(4) }
             }
         )
@@ -402,6 +409,7 @@ class DUTAccountSession(
                     (it != null) -> ProcessState.Failed
                     else -> ProcessState.Successful
                 }
+                accountTrainingStatus.lastRequest.longValue = System.currentTimeMillis()
                 onEventSent?.let { it(5) }
             }
         )

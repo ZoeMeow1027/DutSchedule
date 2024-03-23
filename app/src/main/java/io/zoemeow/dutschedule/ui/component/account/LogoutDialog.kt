@@ -40,13 +40,13 @@ fun LogoutDialog(
         },
         actionButtons = {
             TextButton(
-                onClick = { logoutClicked?.let { it() } },
-                content = { Text("Logout") },
-            )
-            TextButton(
                 onClick = { dismissClicked?.let { it() } },
                 content = { Text("Cancel") },
                 modifier = Modifier.padding(start = 8.dp),
+            )
+            TextButton(
+                onClick = { logoutClicked?.let { it() } },
+                content = { Text("Logout") },
             )
         }
     )

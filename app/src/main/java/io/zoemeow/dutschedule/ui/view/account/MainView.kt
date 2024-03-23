@@ -7,18 +7,14 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,7 +27,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -39,8 +34,7 @@ import io.zoemeow.dutschedule.activity.AccountActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.account.AccountAuth
 import io.zoemeow.dutschedule.ui.component.account.AccountInfoBanner
-import io.zoemeow.dutschedule.ui.component.account.LoginBannerNotLoggedIn
-import io.zoemeow.dutschedule.ui.component.account.LoginDialog
+import io.zoemeow.dutschedule.ui.component.account.LoginBox
 import io.zoemeow.dutschedule.ui.component.account.LogoutDialog
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import kotlinx.coroutines.CoroutineScope
@@ -86,60 +80,71 @@ fun AccountActivity.MainView(
             )
         },
         content = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it)
-                    .verticalScroll(rememberScrollState()),
-                content = {
-                    when (getMainViewModel().accountSession.accountSession.processState.value) {
-                        ProcessState.NotRunYet -> {
-                            LoginBannerNotLoggedIn(
-                                opacity = getControlBackgroundAlpha(),
-                                padding = PaddingValues(10.dp),
-                                clicked = {
-                                    loginDialogVisible.value = true
-                                },
-                            )
-                        }
-                        ProcessState.Failed -> {
-                            ButtonBase(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                                modifierInside = Modifier.padding(vertical = 7.dp),
-                                content = { Text("Try to login again") },
-                                horizontalArrangement = Arrangement.Start,
-                                opacity = getControlBackgroundAlpha(),
-                                clicked = {
-                                    getMainViewModel().accountSession.reLogin()
+            getMainViewModel().accountSession.accountSession.processState.value.let { state ->
+                LoginBox(
+                    modifier = Modifier
+                        .padding(it)
+                        .padding(horizontal = 15.dp),
+                    isVisible = state != ProcessState.Successful,
+                    isProcessing = state == ProcessState.Running,
+                    isControlEnabled = state != ProcessState.Running,
+                    isLoggedInBefore = state == ProcessState.Failed,
+                    clearOnInvisible = true,
+                    opacity = getControlBackgroundAlpha(),
+                    onForgotPass = {
+                        openLink(
+                            url = "https://www.facebook.com/ctsvdhbkdhdn/posts/pfbid02G5sza1p8x7tEJ7S1Cac6a66EW3exgxLNmR9L26RZ8sX8xjhbEnguoeAXms31i7oxl",
+                            context = context,
+                            customTab = getMainViewModel().appSettings.value.openLinkInsideApp
+                        )
+                    },
+                    onClearLogin = { },
+                    onSubmit = { username, password, rememberLogin ->
+                        run {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                loginDialogEnabled.value = false
+                                showSnackBar(
+                                    text = "Logging you in...",
+                                    clearPrevious = true,
+                                )
+                            }
+                            getMainViewModel().accountSession.login(
+                                accountAuth = AccountAuth(
+                                    username = username,
+                                    password = password,
+                                    rememberLogin = rememberLogin
+                                ),
+                                onCompleted = {loggedIn ->
+                                    when (loggedIn) {
+                                        true -> {
+                                            loginDialogEnabled.value = true
+                                            loginDialogVisible.value = false
+                                            getMainViewModel().accountSession.reLogin()
+                                            showSnackBar(
+                                                text = "Successfully logged in!",
+                                                clearPrevious = true,
+                                            )
+                                        }
+                                        false -> {
+                                            loginDialogEnabled.value = true
+                                            showSnackBar(
+                                                text = "Login failed! Please check your login information and try again.",
+                                                clearPrevious = true,
+                                            )
+                                        }
+                                    }
                                 }
                             )
-                            ButtonBase(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp, vertical = 5.dp),
-                                modifierInside = Modifier.padding(vertical = 7.dp),
-                                content = { Text("Logout") },
-                                horizontalArrangement = Arrangement.Start,
-                                opacity = getControlBackgroundAlpha(),
-                                clicked = {
-                                    logoutDialogVisible.value = true
-                                }
-                            )
                         }
-                        ProcessState.Running -> {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().height(120.dp).padding(10.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                content = {
-                                    CircularProgressIndicator()
-                                    Spacer(modifier = Modifier.size(5.dp))
-                                    Text("Logging in...")
-                                }
-                            )
-                        }
-                        ProcessState.Successful -> {
+                    }
+                )
+                if (state == ProcessState.Successful) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(it)
+                            .verticalScroll(rememberScrollState()),
+                        content = {
                             getMainViewModel().accountSession.accountInformation.let { accInfo ->
                                 AccountInfoBanner(
                                     opacity = getControlBackgroundAlpha(),
@@ -219,59 +224,8 @@ fun AccountActivity.MainView(
                                 }
                             )
                         }
-                    }
-                }
-            )
-        }
-    )
-    LoginDialog(
-        isVisible = loginDialogVisible.value,
-        controlEnabled = loginDialogEnabled.value,
-        loginClicked = { username, password, rememberLogin ->
-            run {
-                CoroutineScope(Dispatchers.IO).launch {
-                    loginDialogEnabled.value = false
-                    showSnackBar(
-                        text = "Logging you in...",
-                        clearPrevious = true,
                     )
                 }
-                getMainViewModel().accountSession.login(
-                    accountAuth = AccountAuth(
-                        username = username,
-                        password = password,
-                        rememberLogin = rememberLogin
-                    ),
-                    onCompleted = {
-                        when (it) {
-                            true -> {
-                                loginDialogEnabled.value = true
-                                loginDialogVisible.value = false
-                                getMainViewModel().accountSession.reLogin()
-                                showSnackBar(
-                                    text = "Successfully logged in!",
-                                    clearPrevious = true,
-                                )
-                            }
-                            false -> {
-                                loginDialogEnabled.value = true
-                                showSnackBar(
-                                    text = "Login failed! Please check your login information and try again.",
-                                    clearPrevious = true,
-                                )
-                            }
-                        }
-                    }
-                )
-            }
-        },
-        cancelRequested = {
-            loginDialogVisible.value = false
-        },
-        canDismiss = false,
-        dismissClicked = {
-            if (loginDialogEnabled.value) {
-                loginDialogVisible.value = false
             }
         }
     )
@@ -280,7 +234,7 @@ fun AccountActivity.MainView(
         canDismiss = true,
         logoutClicked = {
             run {
-                loginDialogVisible.value = false
+                logoutDialogVisible.value = false
                 getMainViewModel().accountSession.logout(
                     onCompleted = {
                         showSnackBar(
