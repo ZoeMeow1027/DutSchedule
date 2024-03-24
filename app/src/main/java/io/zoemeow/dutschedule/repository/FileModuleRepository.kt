@@ -4,24 +4,22 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.dutwrapper.dutwrapper.model.accounts.SubjectScheduleItem
-import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
 import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.account.AccountSession
-import io.zoemeow.dutschedule.model.news.NewsCache
+import io.zoemeow.dutschedule.model.news.NewsGlobalItem
 import io.zoemeow.dutschedule.model.news.NewsSearchHistory
+import io.zoemeow.dutschedule.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import java.io.File
-
 
 class FileModuleRepository(
     context: Context
 ) {
     // context.cacheDir
 
-    private val PATH_CACHE_NEWSGLOBAL = "${context.filesDir.path}/cache_news_global.json"
-    private val PATH_CACHE_NEWSSUBJECT = "${context.filesDir.path}/cache_news_subject.json"
+    private val PATH_CACHE_NEWSGLOBAL = "${context.filesDir.path}/news.global.cache.json"
+    private val PATH_CACHE_NEWSSUBJECT = "${context.filesDir.path}/news.subject.cache.json"
     private val PATH_APPSETTINGS = "${context.filesDir.path}/settings.json"
     private val PATH_ACCOUNT = "${context.filesDir.path}/account.json"
     private val PATH_ACCOUNT_SUBJECTSCHEDULE_CACHE = "${context.filesDir.path}/account.subjectschedule.cache.json"
@@ -78,52 +76,84 @@ class FileModuleRepository(
     }
 
     fun saveCacheNewsGlobal(
-        newsCacheGlobal: NewsCache<NewsGlobalItem>
+        newsList: List<NewsGlobalItem>,
+        newsNextPage: Int,
+        lastRequest: Long = 0
     ) {
+        val map = mapOf(
+            "data" to Gson().toJson(newsList),
+            "nextPage" to newsNextPage.toString(),
+            "lastRequest" to lastRequest.toString()
+        )
         val file = File(PATH_CACHE_NEWSGLOBAL)
-        file.writeText(Gson().toJson(newsCacheGlobal))
+        file.writeText(Gson().toJson(map))
     }
 
-    fun getCacheNewsGlobal(): NewsCache<NewsGlobalItem> {
+    fun getCacheNewsGlobal(
+        onDataExported: (List<NewsGlobalItem>, Int, Long) -> Unit
+    ) {
         val file = File(PATH_CACHE_NEWSGLOBAL)
         try {
             file.bufferedReader().apply {
                 val text = this.use { it.readText() }
-                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsGlobalItem>>(
+                val objItem = Gson().fromJson<Map<String, String?>>(
                     text,
-                    (object : TypeToken<NewsCache<NewsGlobalItem>>() {}.type)
+                    (object : TypeToken<Map<String, String?>>() {}.type)
                 )
                 this.close()
-                return newsCacheGlobal
+                onDataExported(
+                    Gson().fromJson(
+                        objItem["data"],
+                        (object : TypeToken<List<NewsGlobalItem>>() {}.type)
+                    ),
+                    objItem["nextPage"]?.toIntOrNull() ?: 1,
+                    objItem["lastRequest"]?.toLongOrNull() ?: 0
+                )
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            return NewsCache()
+            onDataExported(listOf(), 1, 0)
         }
     }
 
     fun saveCacheNewsSubject(
-        newsCacheSubject: NewsCache<NewsSubjectItem>
+        newsList: List<NewsSubjectItem>,
+        newsNextPage: Int,
+        lastRequest: Long = 0
     ) {
+        val map = mapOf(
+            "data" to Gson().toJson(newsList),
+            "nextPage" to newsNextPage.toString(),
+            "lastRequest" to lastRequest.toString()
+        )
         val file = File(PATH_CACHE_NEWSSUBJECT)
-        file.writeText(Gson().toJson(newsCacheSubject))
+        file.writeText(Gson().toJson(map))
     }
 
-    fun getCacheNewsSubject(): NewsCache<NewsSubjectItem> {
+    fun getCacheNewsSubject(
+        onDataExported: (List<NewsSubjectItem>, Int, Long) -> Unit
+    ) {
         val file = File(PATH_CACHE_NEWSSUBJECT)
         try {
             file.bufferedReader().apply {
                 val text = this.use { it.readText() }
-                val newsCacheGlobal = Gson().fromJson<NewsCache<NewsSubjectItem>>(
+                val objItem = Gson().fromJson<Map<String, String?>>(
                     text,
-                    (object : TypeToken<NewsCache<NewsSubjectItem>>() {}.type)
+                    (object : TypeToken<Map<String, String?>>() {}.type)
                 )
                 this.close()
-                return newsCacheGlobal
+                onDataExported(
+                    Gson().fromJson(
+                        objItem["data"],
+                        (object : TypeToken<List<NewsSubjectItem>>() {}.type)
+                    ),
+                    objItem["nextPage"]?.toIntOrNull() ?: 1,
+                    objItem["lastRequest"]?.toLongOrNull() ?: 0
+                )
             }
         } catch (ex: Exception) {
             ex.printStackTrace()
-            return NewsCache()
+            onDataExported(listOf(), 1, 0)
         }
     }
 

@@ -13,10 +13,10 @@ import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
 import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.PermissionRequestActivity
+import io.zoemeow.dutschedule.model.DUTNewsInstance
 import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
-import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.model.settings.SubjectCode
 import io.zoemeow.dutschedule.repository.DutRequestRepository
@@ -35,6 +35,7 @@ class NewsBackgroundUpdateService : BaseService(
     private lateinit var file: FileModuleRepository
     private lateinit var dutRequestRepository: DutRequestRepository
     private lateinit var settings: AppSettings
+    private lateinit var newsInstance: DUTNewsInstance
 
     override fun onInitialize() {
         file = FileModuleRepository(this)
@@ -132,96 +133,97 @@ class NewsBackgroundUpdateService : BaseService(
     private fun fetchNewsGlobal(
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
+        val newsList: ArrayList<io.zoemeow.dutschedule.model.news.NewsGlobalItem> = arrayListOf()
+        var newsIndex = 0
+        var lastRequest = 0L
         try {
             // Get news cache
-            val newsCache = file.getCacheNewsGlobal()
+            file.getCacheNewsGlobal(
+                onDataExported = { list, index, lq ->
+                    newsList.clear()
+                    newsList.addAll(list)
+                    newsIndex = index
+                    lastRequest = lq
+                }
+            )
 
-            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+            if (lastRequest + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
                 throw Exception("Request too fast. Try again later.")
             }
 
             // Get news from internet
             val newsFromInternet = dutRequestRepository.getNewsGlobal(
                 page = when (fetchType) {
-                    NewsFetchType.NextPage -> newsCache.pageCurrent
+                    NewsFetchType.NextPage -> newsIndex
                     NewsFetchType.FirstPage -> 1
                     NewsFetchType.ClearAndFirstPage -> 1
                 }
             )
 
-            // If requested, clear cache
+            // If requested clear old news
             if (fetchType == NewsFetchType.ClearAndFirstPage) {
-                newsCache.newsListByDate.clear()
+                newsList.clear()
             }
 
-            // Remove duplicate news to new list
-            val newsFiltered = arrayListOf<NewsGroupByDate<NewsGlobalItem>>()
-            newsFromInternet.forEach { newsItem ->
-                val anyMatch = newsCache.newsListByDate.any { newsSourceGroup ->
-                    newsSourceGroup.itemList.any { newsSourceItem ->
-                        newsSourceItem.date == newsItem.date
-                                && newsSourceItem.title == newsItem.title
-                                && newsSourceItem.contentString == newsItem.contentString
-                    }
+            val notifyNews = arrayListOf<io.zoemeow.dutschedule.model.news.NewsGlobalItem>()
+
+            // - Filter latest news into a variable
+            // - Remove duplicated news
+            // - Update news from server
+            val latestNews = arrayListOf<io.zoemeow.dutschedule.model.news.NewsGlobalItem>()
+            newsFromInternet.forEach { newsTargetItem ->
+                val anyMatch = newsList.any { newsSourceItem ->
+                    newsSourceItem.date == newsTargetItem.date
+                            && newsSourceItem.title == newsTargetItem.title
+                            && newsSourceItem.contentString == newsTargetItem.contentString
+                }
+                val anyNeedUpdated = newsList.any { newsSourceItem ->
+                    newsSourceItem.date == newsTargetItem.date
+                            && newsSourceItem.title == newsTargetItem.title
                 }
 
-                if (!anyMatch) {
-                    // Check if date group exist
-                    val groupExist =
-                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                    if (!groupExist) {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsFiltered.add(newsGroupNew)
-                    } else {
-                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                            .add(newsItem)
+                when {
+                    // Ignore when entire match
+                    anyMatch -> {}
+                    // Update when match title
+                    anyNeedUpdated -> {
+                        newsList.first {newsSourceItem ->
+                            newsSourceItem.date == newsTargetItem.date
+                                    && newsSourceItem.title == newsTargetItem.title
+                        }.update(newsTargetItem)
+                        val newsTemp = io.zoemeow.dutschedule.model.news.NewsGlobalItem()
+                        newsTemp.update(newsTargetItem)
+                        notifyNews.add(newsTemp)
                     }
-                }
-            }
-
-            // Add to current cache
-            newsFiltered.forEach { newsGroup ->
-                var itemIndex = 0
-                newsGroup.itemList.forEach { newsItem ->
-                    if (newsCache.newsListByDate.any { group -> group.date == newsItem.date }) {
-                        if (fetchType == NewsFetchType.FirstPage) {
-                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(itemIndex, newsItem)
-                            itemIndex += 1
-                        } else {
-                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(newsItem)
-                        }
-                    } else {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsCache.newsListByDate.add(newsGroupNew)
+                    // Otherwise, add to latest news collection
+                    else -> {
+                        val newsTemp = io.zoemeow.dutschedule.model.news.NewsGlobalItem()
+                        newsTemp.update(newsTargetItem)
+                        latestNews.add(newsTemp)
+                        notifyNews.add(newsTemp)
                     }
                 }
             }
-            newsCache.newsListByDate.sortByDescending { group -> group.date }
 
-            when (fetchType) {
-                NewsFetchType.NextPage -> {
-                    newsCache.pageCurrent += 1
-                }
-                NewsFetchType.FirstPage -> {
-                    if (newsCache.pageCurrent <= 1)
-                        newsCache.pageCurrent += 1
-                }
-                NewsFetchType.ClearAndFirstPage -> {
-                    newsCache.pageCurrent = 2
-                }
+            // Reverse latest news collection
+            // Add all news in latestNews to global variable
+            if (fetchType == NewsFetchType.FirstPage) {
+                latestNews.reverse()
+                latestNews.forEach { newsList.add(0, it) }
+            } else {
+                newsList.addAll(latestNews)
             }
 
-            newsCache.lastModifiedDate = System.currentTimeMillis()
+            // Adjust index
+            newsIndex = when (fetchType) {
+                NewsFetchType.NextPage -> newsIndex + 1
+                NewsFetchType.FirstPage -> if (newsIndex > 1) newsIndex else 2
+                NewsFetchType.ClearAndFirstPage -> 2
+            }
 
-            file.saveCacheNewsGlobal(newsCache)
+            lastRequest = System.currentTimeMillis()
+
+            file.saveCacheNewsGlobal(newsList, newsIndex, lastRequest)
 
             // Check if any news need to be notify here using newsFiltered!
             // If no notification permission, aborting...
@@ -237,10 +239,8 @@ class NewsBackgroundUpdateService : BaseService(
             // TODO: Notify by notify variable...
 
             // Processing news global notifications for notify here!
-            newsFiltered.forEach { newsGroup ->
-                newsGroup.itemList.forEach { newsItem ->
-                    notifyNewsGlobal(this, newsItem)
-                }
+            notifyNews.forEach {
+                notifyNewsGlobal(this, it)
             }
             Log.d("NewsBackgroundService", "Done executing function in news global.")
         } catch (ex: Exception) {
@@ -252,96 +252,95 @@ class NewsBackgroundUpdateService : BaseService(
     private fun fetchNewsSubject(
         fetchType: NewsFetchType = NewsFetchType.NextPage
     ) {
+        val newsList: ArrayList<io.zoemeow.dutschedule.model.news.NewsSubjectItem> = arrayListOf()
+        var newsIndex = 0
+        var lastRequest = 0L
         try {
             // Get news cache
-            val newsCache = file.getCacheNewsSubject()
+            file.getCacheNewsSubject(
+                onDataExported = { list, index, lq ->
+                    newsList.clear()
+                    newsList.addAll(list)
+                    newsIndex = index
+                    lastRequest = lq
+                }
+            )
 
-            if (newsCache.lastModifiedDate + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
+            if (lastRequest + (settings.newsBackgroundDuration * 60 * 1000) > System.currentTimeMillis()) {
                 throw Exception("Request too fast. Try again later.")
             }
 
             // Get news from internet
             val newsFromInternet = dutRequestRepository.getNewsSubject(
                 page = when (fetchType) {
-                    NewsFetchType.NextPage -> newsCache.pageCurrent
+                    NewsFetchType.NextPage -> newsIndex
                     NewsFetchType.FirstPage -> 1
                     NewsFetchType.ClearAndFirstPage -> 1
                 }
             )
 
-            // If requested, clear cache
+            // If requested clear old news
             if (fetchType == NewsFetchType.ClearAndFirstPage) {
-                newsCache.newsListByDate.clear()
+                newsList.clear()
             }
 
-            // Remove duplicate news to new list
-            val newsFiltered = arrayListOf<NewsGroupByDate<NewsSubjectItem>>()
-            newsFromInternet.forEach { newsItem ->
-                val anyMatch = newsCache.newsListByDate.any { newsSourceGroup ->
-                    newsSourceGroup.itemList.any { newsSourceItem ->
-                        newsSourceItem.date == newsItem.date
-                                && newsSourceItem.title == newsItem.title
-                                && newsSourceItem.contentString == newsItem.contentString
-                    }
+            val notifyNews = arrayListOf<io.zoemeow.dutschedule.model.news.NewsSubjectItem>()
+
+            // - Filter latest news into a variable
+            // - Remove duplicated news
+            // - Update news from server
+            val latestNews = arrayListOf<io.zoemeow.dutschedule.model.news.NewsSubjectItem>()
+            newsFromInternet.forEach { newsTargetItem ->
+                val anyMatch = newsList.any { newsSourceItem ->
+                    newsSourceItem.date == newsTargetItem.date
+                            && newsSourceItem.title == newsTargetItem.title
+                            && newsSourceItem.contentString == newsTargetItem.contentString
+                }
+                val anyNeedUpdated = newsList.any { newsSourceItem ->
+                    newsSourceItem.date == newsTargetItem.date
+                            && newsSourceItem.title == newsTargetItem.title
                 }
 
-                if (!anyMatch) {
-                    // Check if date group exist
-                    val groupExist =
-                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                    if (!groupExist) {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsFiltered.add(newsGroupNew)
-                    } else {
-                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                            .add(newsItem)
+                when {
+                    // Ignore when entire match
+                    anyMatch -> {}
+                    // Update when match title
+                    anyNeedUpdated -> {
+                        newsList.first {newsSourceItem ->
+                            newsSourceItem.date == newsTargetItem.date
+                                    && newsSourceItem.title == newsTargetItem.title
+                        }.update(newsTargetItem)
+                        val newsTemp = io.zoemeow.dutschedule.model.news.NewsSubjectItem()
+                        newsTemp.update(newsTargetItem)
+                        notifyNews.add(newsTemp)
                     }
-                }
-            }
-
-            // Add to current cache
-            newsFiltered.forEach { newsGroup ->
-                var itemIndex = 0
-                newsGroup.itemList.forEach { newsItem ->
-                    if (newsCache.newsListByDate.any { group -> group.date == newsItem.date }) {
-                        if (fetchType == NewsFetchType.FirstPage) {
-                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(itemIndex, newsItem)
-                            itemIndex += 1
-                        } else {
-                            newsCache.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(newsItem)
-                        }
-                    } else {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsCache.newsListByDate.add(newsGroupNew)
+                    // Otherwise, add to latest news collection
+                    else -> {
+                        val newsTemp = io.zoemeow.dutschedule.model.news.NewsSubjectItem()
+                        newsTemp.update(newsTargetItem)
+                        latestNews.add(newsTemp)
+                        notifyNews.add(newsTemp)
                     }
                 }
             }
-            newsCache.newsListByDate.sortByDescending { group -> group.date }
 
-            when (fetchType) {
-                NewsFetchType.NextPage -> {
-                    newsCache.pageCurrent += 1
-                }
-                NewsFetchType.FirstPage -> {
-                    if (newsCache.pageCurrent <= 1)
-                        newsCache.pageCurrent += 1
-                }
-                NewsFetchType.ClearAndFirstPage -> {
-                    newsCache.pageCurrent = 2
-                }
+            if (fetchType == NewsFetchType.FirstPage) {
+                latestNews.reverse()
+                latestNews.forEach { newsList.add(0, it) }
+            } else {
+                newsList.addAll(latestNews)
             }
 
-            newsCache.lastModifiedDate = System.currentTimeMillis()
+            // Adjust index
+            newsIndex = when (fetchType) {
+                NewsFetchType.NextPage -> newsIndex + 1
+                NewsFetchType.FirstPage -> if (newsIndex > 1) newsIndex else 2
+                NewsFetchType.ClearAndFirstPage -> 2
+            }
 
-            file.saveCacheNewsSubject(newsCache)
+            lastRequest = System.currentTimeMillis()
+
+            file.saveCacheNewsSubject(newsList, newsIndex, lastRequest)
 
             // Check if any news need to be notify here using newsFiltered!
             // If no notification permission, aborting...
@@ -357,39 +356,37 @@ class NewsBackgroundUpdateService : BaseService(
             // TODO: Notify by notify variable...
 
             // TODO: Processing news subject notifications for notify here!
-            newsFiltered.forEach newsGroupForEach@ { newsGroup ->
-                newsGroup.itemList.forEach newsItemForEach@ { newsItem ->
-                    // Default value is false.
-                    var notifyRequired = false
-                    // If enabled news filter, do following.
+            notifyNews.forEach { newsItem ->
+                // Default value is false.
+                var notifyRequired = false
+                // If enabled news filter, do following.
 
-                    // settings.newsBackgroundSubjectEnabled == 0 -> All news enabled
-                    if (settings.newsBackgroundSubjectEnabled == 0) {
-                        notifyRequired = true
-                    }
-                    // TODO: settings.newsBackgroundSubjectEnabled == 1 action
-                    // settings.newsBackgroundSubjectEnabled == 2
-                    else if (settings.newsBackgroundFilterList.any { source ->
-                            newsItem.affectedClass.any { targetGroup ->
-                                targetGroup.codeList.any { target ->
-                                    source.isEquals(
-                                        SubjectCode(
-                                            target.studentYearId,
-                                            target.classId,
-                                            targetGroup.subjectName
-                                        )
+                // settings.newsBackgroundSubjectEnabled == 0 -> All news enabled
+                if (settings.newsBackgroundSubjectEnabled == 0) {
+                    notifyRequired = true
+                }
+                // TODO: settings.newsBackgroundSubjectEnabled == 1 action
+                // settings.newsBackgroundSubjectEnabled == 2
+                else if (settings.newsBackgroundFilterList.any { source ->
+                        newsItem.affectedClass.any { targetGroup ->
+                            targetGroup.codeList.any { target ->
+                                source.isEquals(
+                                    SubjectCode(
+                                        target.studentYearId,
+                                        target.classId,
+                                        targetGroup.subjectName
                                     )
-                                }
+                                )
                             }
                         }
-                    ) notifyRequired = true
-
-                    // TODO: If no notify/notify settings is off, continue with return@forEach.
-                    // notifyRequired and notify variable
-
-                    if (notifyRequired) {
-                        notifyNewsSubject(this, newsItem)
                     }
+                ) notifyRequired = true
+
+                // TODO: If no notify/notify settings is off, continue with return@forEach.
+                // notifyRequired and notify variable
+
+                if (notifyRequired) {
+                    notifyNewsSubject(this, newsItem)
                 }
             }
             Log.d("NewsBackgroundService", "Done executing function in news subject.")

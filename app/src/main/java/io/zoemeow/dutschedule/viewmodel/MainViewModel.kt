@@ -9,16 +9,13 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dutwrapper.dutwrapper.Utils
-import io.dutwrapper.dutwrapper.model.news.NewsGlobalItem
-import io.dutwrapper.dutwrapper.model.news.NewsSubjectItem
 import io.dutwrapper.dutwrapper.model.utils.DutSchoolYearItem
-import io.zoemeow.dutschedule.model.DUTAccountSession
+import io.zoemeow.dutschedule.model.DUTAccountInstance
+import io.zoemeow.dutschedule.model.DUTNewsInstance
 import io.zoemeow.dutschedule.model.NotificationHistory
 import io.zoemeow.dutschedule.model.ProcessVariable
 import io.zoemeow.dutschedule.model.account.AccountSession
-import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.model.news.NewsFetchType
-import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.model.settings.AppSettings
 import io.zoemeow.dutschedule.repository.DutRequestRepository
 import io.zoemeow.dutschedule.repository.FileModuleRepository
@@ -35,7 +32,7 @@ class MainViewModel @Inject constructor(
 ) : ViewModel() {
     val appSettings: MutableState<AppSettings> = mutableStateOf(AppSettings())
 
-    val accountSession: DUTAccountSession = DUTAccountSession(
+    val accountSession: DUTAccountInstance = DUTAccountInstance(
         dutRequestRepository = dutRequestRepository,
         onEventSent = { eventId ->
             when (eventId) {
@@ -51,210 +48,15 @@ class MainViewModel @Inject constructor(
         }
     )
 
-    /**
-     * Refresh or clear news global.
-     *
-     * @param newsfetchtype Following NewsFetchType enum class.
-     */
-    val newsGlobal = ProcessVariable<NewsCache<NewsGlobalItem>>(
-        onRefresh = { baseData, arg ->
-            val newsBase = baseData ?: NewsCache()
-            val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
-
-            // Get news from internet
-            val newsFromInternet = dutRequestRepository.getNewsGlobal(
-                page = when (fetchType) {
-                    NewsFetchType.NextPage -> newsBase.pageCurrent
-                    NewsFetchType.FirstPage -> 1
-                    NewsFetchType.ClearAndFirstPage -> 1
-                }
-            )
-
-            // If requested, clear cache
-            if (fetchType == NewsFetchType.ClearAndFirstPage) {
-                newsBase.newsListByDate.clear()
-            }
-
-            // Remove duplicate news to new list
-            val newsFiltered = arrayListOf<NewsGroupByDate<NewsGlobalItem>>()
-            newsFromInternet.forEach { newsItem ->
-                val anyMatch = newsBase.newsListByDate.any { newsSourceGroup ->
-                    newsSourceGroup.itemList.any { newsSourceItem ->
-                        newsSourceItem.date == newsItem.date
-                                && newsSourceItem.title == newsItem.title
-                                && newsSourceItem.contentString == newsItem.contentString
-                    }
-                }
-
-                if (!anyMatch) {
-                    // Check if date group exist
-                    val groupExist =
-                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                    if (!groupExist) {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsFiltered.add(newsGroupNew)
-                    } else {
-                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                            .add(newsItem)
-                    }
+    val newsInstance: DUTNewsInstance = DUTNewsInstance(
+        dutRequestRepository = dutRequestRepository,
+        onEventSent = {eventId ->
+            when (eventId) {
+                1 -> {
+                    Log.d("app", "triggered saved news")
+                    saveSettings()
                 }
             }
-
-            // Add to current cache
-            newsFiltered.forEach { newsGroup ->
-                var itemIndex = 0
-                newsGroup.itemList.forEach { newsItem ->
-                    if (newsBase.newsListByDate.any { group -> group.date == newsItem.date }) {
-                        if (fetchType == NewsFetchType.FirstPage) {
-                            newsBase.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(itemIndex, newsItem)
-                            itemIndex += 1
-                        } else {
-                            newsBase.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(newsItem)
-                        }
-                    } else {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsBase.newsListByDate.add(newsGroupNew)
-                    }
-                }
-            }
-            newsBase.newsListByDate.sortByDescending { group -> group.date }
-
-            when (fetchType) {
-                NewsFetchType.NextPage -> {
-                    newsBase.pageCurrent += 1
-                }
-
-                NewsFetchType.FirstPage -> {
-                    if (newsBase.pageCurrent <= 1)
-                        newsBase.pageCurrent += 1
-                }
-
-                NewsFetchType.ClearAndFirstPage -> {
-                    newsBase.pageCurrent = 2
-                }
-            }
-
-            newsBase.lastModifiedDate = System.currentTimeMillis()
-
-            // TODO: Remove here!
-            fileModuleRepository.saveCacheNewsGlobal(newsBase)
-
-            return@ProcessVariable newsBase
-        },
-        onAfterRefresh = {
-            // TODO: Save here!
-            // fileModuleRepository.saveCacheNewsSubject(newsSubject2)
-        }
-    )
-
-    /**
-     * Refresh or clear news subject.
-     *
-     * @param newsfetchtype Following NewsFetchType enum class.
-     */
-    val newsSubject = ProcessVariable<NewsCache<NewsSubjectItem>>(
-        onRefresh = { baseData, arg ->
-            val newsBase = baseData ?: NewsCache()
-            val fetchType = NewsFetchType.fromValue(Integer.parseInt(arg?.get("newsfetchtype") ?: "1"))
-
-            // Get news from internet
-            val newsFromInternet = dutRequestRepository.getNewsSubject(
-                page = when (fetchType) {
-                    NewsFetchType.NextPage -> newsBase.pageCurrent
-                    NewsFetchType.FirstPage -> 1
-                    NewsFetchType.ClearAndFirstPage -> 1
-                }
-            )
-
-            // If requested, clear cache
-            if (fetchType == NewsFetchType.ClearAndFirstPage) {
-                newsBase.newsListByDate.clear()
-            }
-
-            // Remove duplicate news to new list
-            val newsFiltered = arrayListOf<NewsGroupByDate<NewsSubjectItem>>()
-            newsFromInternet.forEach { newsItem ->
-                val anyMatch = newsBase.newsListByDate.any { newsSourceGroup ->
-                    newsSourceGroup.itemList.any { newsSourceItem ->
-                        newsSourceItem.date == newsItem.date
-                                && newsSourceItem.title == newsItem.title
-                                && newsSourceItem.contentString == newsItem.contentString
-                    }
-                }
-
-                if (!anyMatch) {
-                    // Check if date group exist
-                    val groupExist =
-                        newsFiltered.any { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                    if (!groupExist) {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsFiltered.add(newsGroupNew)
-                    } else {
-                        newsFiltered.first { newsGroupTarget -> newsGroupTarget.date == newsItem.date }
-                            .add(newsItem)
-                    }
-                }
-            }
-
-            newsFiltered.forEach { newsGroup ->
-                var itemIndex = 0
-                newsGroup.itemList.forEach { newsItem ->
-                    if (newsBase.newsListByDate.any { group -> group.date == newsItem.date }) {
-                        if (fetchType == NewsFetchType.FirstPage) {
-                            newsBase.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(itemIndex, newsItem)
-                            itemIndex += 1
-                        } else {
-                            newsBase.newsListByDate.first { group -> group.date == newsItem.date }
-                                .itemList.add(newsItem)
-                        }
-                    } else {
-                        val newsGroupNew = NewsGroupByDate(
-                            date = newsItem.date,
-                            itemList = arrayListOf(newsItem)
-                        )
-                        newsBase.newsListByDate.add(newsGroupNew)
-                    }
-                }
-            }
-            newsBase.newsListByDate.sortByDescending { group -> group.date }
-
-            when (fetchType) {
-                NewsFetchType.NextPage -> {
-                    newsBase.pageCurrent += 1
-                }
-
-                NewsFetchType.FirstPage -> {
-                    if (newsBase.pageCurrent <= 1)
-                        newsBase.pageCurrent += 1
-                }
-
-                NewsFetchType.ClearAndFirstPage -> {
-                    newsBase.pageCurrent = 2
-                }
-            }
-
-            newsBase.lastModifiedDate = System.currentTimeMillis()
-
-            // TODO: Remove here!
-            fileModuleRepository.saveCacheNewsSubject(newsBase)
-
-            return@ProcessVariable newsBase
-        },
-        onAfterRefresh = {
-            // TODO: Save here!
-            // fileModuleRepository.saveCacheNewsSubject(newsSubject2)
         }
     )
 
@@ -316,13 +118,16 @@ class MainViewModel @Inject constructor(
         launchOnScope(
             script = {
                 // Get all news cache
-                fileModuleRepository.getCacheNewsGlobal().also {
-                    newsGlobal.data.value = it
+                fileModuleRepository.getCacheNewsGlobal { newsGlobalItems, i, lq ->
+                    newsInstance.loadNewsCache(newsGlobalItems, i, lq, null, null, null)
                 }
-                fileModuleRepository.getCacheNewsSubject().also {
-                    newsSubject.data.value = it
+                fileModuleRepository.getCacheNewsSubject { newsSubjectItems, i, lq ->
+                    newsInstance.loadNewsCache(null, null, null, newsSubjectItems, i, lq)
                 }
 
+                fileModuleRepository.getAccountSubjectScheduleCache().also {
+                    accountSession.setSubjectScheduleCache(it)
+                }
                 // Get school year cache
                 fileModuleRepository.getSchoolYearCache().also {
                     if (it != null) {
@@ -379,13 +184,13 @@ class MainViewModel @Inject constructor(
                 reloadNotification()
                 accountSession.reLogin(force = true)
                 launchOnScope(script = {
-                    newsGlobal.refreshData(
-                        force = true,
-                        args = mapOf("newsfetchtype" to NewsFetchType.FirstPage.value.toString())
+                    newsInstance.fetchGlobalNews(
+                        fetchType = NewsFetchType.FirstPage,
+                        forceRequest = true
                     )
-                    newsSubject.refreshData(
-                        force = true,
-                        args = mapOf("newsfetchtype" to NewsFetchType.FirstPage.value.toString())
+                    newsInstance.fetchSubjectNews(
+                        fetchType = NewsFetchType.FirstPage,
+                        forceRequest = true
                     )
                 })
             }

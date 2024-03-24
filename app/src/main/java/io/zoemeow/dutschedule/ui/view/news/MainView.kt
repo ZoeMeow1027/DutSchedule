@@ -44,7 +44,6 @@ import io.zoemeow.dutschedule.R
 import io.zoemeow.dutschedule.activity.NewsActivity
 import io.zoemeow.dutschedule.model.ProcessState
 import io.zoemeow.dutschedule.model.news.NewsFetchType
-import io.zoemeow.dutschedule.model.news.NewsGroupByDate
 import io.zoemeow.dutschedule.ui.component.base.ButtonBase
 import io.zoemeow.dutschedule.ui.component.news.NewsListPage
 import kotlinx.coroutines.CoroutineScope
@@ -158,11 +157,11 @@ fun NewsActivity.MainView(
         floatingActionButton = {
             if (when (pagerState.currentPage) {
                     0 -> {
-                        getMainViewModel().newsGlobal.processState.value != ProcessState.Running
+                        getMainViewModel().newsInstance.newsGlobal.processState.value != ProcessState.Running
                     }
 
                     1 -> {
-                        getMainViewModel().newsSubject.processState.value != ProcessState.Running
+                        getMainViewModel().newsInstance.newsSubject.processState.value != ProcessState.Running
                     }
 
                     else -> false
@@ -172,16 +171,16 @@ fun NewsActivity.MainView(
                     onClick = {
                         when (pagerState.currentPage) {
                             0 -> {
-                                getMainViewModel().newsGlobal.refreshData(
-                                    force = true,
-                                    args = mapOf("newsfetchtype" to NewsFetchType.ClearAndFirstPage.value.toString())
+                                getMainViewModel().newsInstance.fetchGlobalNews(
+                                    fetchType = NewsFetchType.ClearAndFirstPage,
+                                    forceRequest = true
                                 )
                             }
 
                             1 -> {
-                                getMainViewModel().newsSubject.refreshData(
-                                    force = true,
-                                    args = mapOf("newsfetchtype" to NewsFetchType.ClearAndFirstPage.value.toString())
+                                getMainViewModel().newsInstance.fetchSubjectNews(
+                                    fetchType = NewsFetchType.ClearAndFirstPage,
+                                    forceRequest = true
                                 )
                             }
 
@@ -202,9 +201,8 @@ fun NewsActivity.MainView(
                 when (pageIndex) {
                     0 -> {
                         NewsListPage(
-                            newsList = (getMainViewModel().newsGlobal.data.value?.newsListByDate
-                                ?: arrayListOf()),
-                            processState = getMainViewModel().newsGlobal.processState.value,
+                            newsList = getMainViewModel().newsInstance.newsGlobal.data.toList(),
+                            processState = getMainViewModel().newsInstance.newsGlobal.processState.value,
                             opacity = getControlBackgroundAlpha(),
                             itemClicked = { newsItem ->
                                 context.startActivity(
@@ -220,9 +218,9 @@ fun NewsActivity.MainView(
                             endOfListReached = {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     withContext(Dispatchers.IO) {
-                                        getMainViewModel().newsGlobal.refreshData(
-                                            force = true,
-                                            args = mapOf("newsfetchtype" to NewsFetchType.NextPage.value.toString())
+                                        getMainViewModel().newsInstance.fetchGlobalNews(
+                                            fetchType = NewsFetchType.NextPage,
+                                            forceRequest = true
                                         )
                                     }
                                 }
@@ -233,9 +231,8 @@ fun NewsActivity.MainView(
                     1 -> {
                         @Suppress("UNCHECKED_CAST")
                         (NewsListPage(
-                            newsList = (getMainViewModel().newsSubject.data.value?.newsListByDate
-                                ?: arrayListOf()) as ArrayList<NewsGroupByDate<NewsGlobalItem>>,
-                            processState = getMainViewModel().newsSubject.processState.value,
+                            newsList = getMainViewModel().newsInstance.newsSubject.data.toList() as List<NewsGlobalItem>,
+                            processState = getMainViewModel().newsInstance.newsSubject.processState.value,
                             opacity = getControlBackgroundAlpha(),
                             itemClicked = { newsItem ->
                                 context.startActivity(
@@ -251,9 +248,9 @@ fun NewsActivity.MainView(
                             endOfListReached = {
                                 CoroutineScope(Dispatchers.Main).launch {
                                     withContext(Dispatchers.IO) {
-                                        getMainViewModel().newsSubject.refreshData(
-                                            force = true,
-                                            args = mapOf("newsfetchtype" to NewsFetchType.NextPage.value.toString())
+                                        getMainViewModel().newsInstance.fetchSubjectNews(
+                                            fetchType = NewsFetchType.NextPage,
+                                            forceRequest = true
                                         )
                                     }
                                 }

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import io.zoemeow.dutschedule.GlobalVariables
 
 data class VariableListState<T>(
     val data: SnapshotStateList<T> = mutableStateListOf(),
@@ -14,7 +15,7 @@ data class VariableListState<T>(
     val parameters: MutableMap<String, String> = mutableMapOf()
 ) {
     fun isExpired(): Boolean {
-        return (lastRequest.longValue + ProcessVariable.expiredDuration) < System.currentTimeMillis()
+        return (lastRequest.longValue + GlobalVariables.requestExpiredDuration) < System.currentTimeMillis()
     }
 
     fun isSuccessfulRequestExpired(): Boolean {

@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import io.zoemeow.dutschedule.GlobalVariables
 
 data class VariableState<T>(
     val data: MutableState<T?>,
@@ -12,7 +13,7 @@ data class VariableState<T>(
     val parameters: MutableMap<String, String> = mutableMapOf()
 ) {
     fun isExpired(): Boolean {
-        return (lastRequest.longValue + ProcessVariable.expiredDuration) < System.currentTimeMillis()
+        return (lastRequest.longValue + GlobalVariables.requestExpiredDuration) < System.currentTimeMillis()
     }
 
     fun isSuccessfulRequestExpired(): Boolean {

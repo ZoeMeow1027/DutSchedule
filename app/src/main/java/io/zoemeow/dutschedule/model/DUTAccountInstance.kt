@@ -25,7 +25,7 @@ import kotlinx.coroutines.withContext
  * 4: Account information
  * 5: Account training status
  */
-class DUTAccountSession(
+class DUTAccountInstance(
     private val dutRequestRepository: DutRequestRepository,
     private val onEventSent: ((Int) -> Unit)? = null
 ) {
@@ -71,6 +71,11 @@ class DUTAccountSession(
         }
 
         this.accountSession.data.value = accountSession.clone()
+    }
+
+    fun setSubjectScheduleCache(data: List<SubjectScheduleItem>) {
+        this.subjectSchedule.data.clear()
+        this.subjectSchedule.data.addAll(data)
     }
 
     fun getSubjectScheduleCache(): List<SubjectScheduleItem> {

@@ -48,7 +48,6 @@ import io.zoemeow.dutschedule.activity.MainActivity
 import io.zoemeow.dutschedule.activity.NewsActivity
 import io.zoemeow.dutschedule.model.CustomClock
 import io.zoemeow.dutschedule.model.ProcessState
-import io.zoemeow.dutschedule.model.news.NewsCache
 import io.zoemeow.dutschedule.ui.component.main.DateAndTimeSummaryItem
 import io.zoemeow.dutschedule.ui.component.main.LessonTodaySummaryItem
 import io.zoemeow.dutschedule.ui.component.main.SchoolNewsSummaryItem
@@ -85,20 +84,11 @@ fun MainActivity.MainViewDashboard(
         ).toInstant(TimeZone.UTC)
         val before7Days = today.minus(7.days)
 
+        // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
         if (!byWeek) {
-            (getMainViewModel().newsGlobal.data.value ?: NewsCache()).newsListByDate.firstOrNull {
-                // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
-                it.date == today.toEpochMilliseconds()
-            }.also {
-                if (it != null) data = it.itemList.count()
-            }
+            data = getMainViewModel().newsInstance.newsGlobal.data.filter { it.date == today.toEpochMilliseconds() }.size
         } else {
-            (getMainViewModel().newsGlobal.data.value ?: NewsCache()).newsListByDate.forEach {
-                // https://stackoverflow.com/questions/77368433/how-to-get-current-date-with-reset-time-0000-with-kotlinx-localdatetime
-                if (it.date <= today.toEpochMilliseconds() && it.date >= before7Days.toEpochMilliseconds()) {
-                    data += it.itemList.count()
-                }
-            }
+            data = getMainViewModel().newsInstance.newsGlobal.data.filter { it.date <= today.toEpochMilliseconds() && it.date >= before7Days.toEpochMilliseconds() }.size
         }
         return data
     }
@@ -302,7 +292,7 @@ fun MainActivity.MainViewDashboard(
                                 clicked = {
                                     context.startActivity(Intent(context, NewsActivity::class.java))
                                 },
-                                isLoading = getMainViewModel().newsGlobal.processState.value == ProcessState.Running,
+                                isLoading = getMainViewModel().newsInstance.newsGlobal.processState.value == ProcessState.Running,
                                 opacity = getControlBackgroundAlpha()
                             )
                             UpdateAvailableSummaryItem(

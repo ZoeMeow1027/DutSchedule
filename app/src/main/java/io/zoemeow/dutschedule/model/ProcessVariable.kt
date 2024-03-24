@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableLongState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
+import io.zoemeow.dutschedule.GlobalVariables
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +19,7 @@ data class ProcessVariable<T>(
     val onAfterRefresh: ((Boolean) -> Unit)? = null
 ) {
     private fun isExpired(): Boolean {
-        return (lastRequest.longValue + expiredDuration) < System.currentTimeMillis()
+        return (lastRequest.longValue + GlobalVariables.requestExpiredDuration) < System.currentTimeMillis()
     }
 
     private fun isSuccessfulRequestExpired(): Boolean {
@@ -77,9 +78,5 @@ data class ProcessVariable<T>(
                 onAfterRefresh?.let { it(throwable == null) }
             }
         )
-    }
-
-    companion object {
-        const val expiredDuration = 1000 * 60 * 5
     }
 }
