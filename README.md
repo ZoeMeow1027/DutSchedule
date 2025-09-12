@@ -1,6 +1,9 @@
 # DutSchedule
-
 A unofficial Android app to provide better UI from [sv.dut.udn.vn](http://sv.dut.udn.vn).
+
+> [!NOTE]
+> - I will decrepate this repository. My work will move to [dutschedule_flutter](https://github.com/ZoeMeow1027/dutschedule_flutter).
+> - If you want to fork and add fix yourself, feel free to do that.
 
 # Version
 - Release version: [![https://github.com/ZoeMeow1027/DutSchedule](https://img.shields.io/github/v/release/ZoeMeow1027/DutSchedule)](https://github.com/ZoeMeow1027/DutSchedule/releases)
